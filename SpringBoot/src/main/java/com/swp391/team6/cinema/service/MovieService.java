@@ -64,7 +64,7 @@ public class MovieService {
     public void deleteMovie(Long id) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));
-        
+
         movie.setIsDeleted(true);
         movieRepository.save(movie);
     }
