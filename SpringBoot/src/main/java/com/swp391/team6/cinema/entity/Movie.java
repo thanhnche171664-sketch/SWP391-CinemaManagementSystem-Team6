@@ -30,7 +30,7 @@ public class Movie {
     @Column(name = "genre", length = 100)
     private String genre;
 
-    @Column(name = "age_rating", length = 10)
+    @Column(name = "rating", length = 10)
     private String ageRating;
 
     @Column(name = "description", columnDefinition = "TEXT")
