@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý nhân viên - Cinema System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Bạn có thể copy thêm các biến màu từ file theme.css vào đây */
+        :root {
+            --primary: 221.2 83.2% 53.3%;
+            --background: 0 0% 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+
+<div class="max-w-6.xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Danh sách nhân viên</h1>
+            <p class="text-gray-500">Quản lý đội ngũ nhân sự và phân quyền chi nhánh.</p>
+        </div>
+        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            Thêm nhân viên
+        </button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="p-4 font-semibold text-gray-700">Họ tên</th>
+                <th class="p-4 font-semibold text-gray-700">Email/SĐT</th>
+                <th class="p-4 font-semibold text-gray-700">Chức vụ</th>
+                <th class="p-4 font-semibold text-gray-700">Chi nhánh</th>
+                <th class="p-4 font-semibold text-gray-700">Trạng thái</th>
+                <th class="p-4 font-semibold text-gray-700 text-right">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="staff : ${staffList}" class="hover:bg-gray-50 border-b border-gray-100 transition">
+                <td class="p-4 font-medium text-gray-900" th:text="${staff.full_name}">Nguyễn Văn A</td>
+                <td class="p-4 text-gray-600">
+                    <div class="text-sm" th:text="${staff.email}">admin@gmail.com</div>
+                    <div class="text-xs text-gray-400" th:text="${staff.phone}">0123456789</div>
+                </td>
+                <td class="p-4">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold"
+                          th:classappend="${staff.role == 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}"
+                          th:text="${staff.role}">STAFF</span>
+                </td>
+                <td class="p-4 text-gray-600" th:text="${staff.branch_name}">Hà Nội Cinema</td>
+                <td class="p-4">
+                    <span th:if="${staff.status == 'active'}" class="flex items-center gap-1 text-green-600">
+                        <span class="w-2 h-2 bg-green-600 rounded-full"></span> Hoạt động
+                    </span>
+                    <span th:unless="${staff.status == 'active'}" class="flex items-center gap-1 text-gray-400">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span> Nghỉ việc
+                    </span>
+                </td>
+                <td class="p-4 text-right">
+                    <button class="text-gray-400 hover:text-blue-600 p-1"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+                    <button class="text-gray-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="staffModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-300">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <h2 class="text-xl font-bold mb-4">Thông tin nhân viên</h2>
+        <form action="#" method="POST">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Họ tên</label>
+                    <input type="text" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" class="w-full border rounded-lg p-2 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Vai trò</label>
+                        <select class="w-full border rounded-lg p-2 outline-none bg-white">
+                            <option value="STAFF">Staff</option>
+                            <option value="MANAGER">Manager</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Trạng thái</label>
+                        <select class="w-full border rounded-lg p-2 outline-none bg-white">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Hủy</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Lưu dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Khởi tạo các icon Lucide
+    lucide.createIcons();
+
+    // Logic điều khiển Modal thay cho React State
+    function openModal() {
+        document.getElementById('staffModal').classList.remove('hidden');
+    }
+    function closeModal() {
+        document.getElementById('staffModal').classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>
