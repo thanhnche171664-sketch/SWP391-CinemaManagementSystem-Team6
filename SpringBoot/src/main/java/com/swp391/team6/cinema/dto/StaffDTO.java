@@ -18,4 +18,5 @@ public class StaffDTO {
 
     private Long branch_id;
     private String branch_name;
+    private String password;
 }

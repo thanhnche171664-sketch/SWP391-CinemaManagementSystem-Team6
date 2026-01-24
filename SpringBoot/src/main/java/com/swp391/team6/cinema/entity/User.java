@@ -7,9 +7,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Data // Tự động tạo Getter, Setter, toString...
-@NoArgsConstructor // Constructor không tham số
-@AllArgsConstructor // Constructor đầy đủ tham số
+@Data
+@NoArgsConstructor
+@AllArgsConstructor 
 public class User {
 
     @Id

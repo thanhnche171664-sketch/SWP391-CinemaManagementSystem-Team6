@@ -5,34 +5,55 @@
     <title>Quản lý nhân viên - Cinema System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        /* Bạn có thể copy thêm các biến màu từ file theme.css vào đây */
-        :root {
-            --primary: 221.2 83.2% 53.3%;
-            --background: 0 0% 100%;
-        }
-    </style>
 </head>
 <body class="bg-gray-50 p-8">
 
-<div class="max-w-6.xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Danh sách nhân viên</h1>
             <p class="text-gray-500">Quản lý đội ngũ nhân sự và phân quyền chi nhánh.</p>
         </div>
-        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+        <button onclick="openModalAdd()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm font-semibold">
             <i data-lucide="plus-circle" class="w-5 h-5"></i>
             Thêm nhân viên
         </button>
     </div>
 
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
+        <div class="relative flex-1 min-w-[280px]">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search by name, email, or phone..." class="pl-10 w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition">
+        </div>
+
+        <select id="roleFilter" onchange="filterTable()" class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]">
+            <option value="">All Roles</option>
+            <option value="ADMIN">ADMIN</option>
+            <option value="MANAGER">MANAGER</option>
+            <option value="STAFF">STAFF</option>
+        </select>
+
+        <select id="branchFilter" onchange="filterTable()" class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]">
+            <option value="">All Branches</option>
+            <option th:each="b : ${branches}" th:value="${b.branchName}" th:text="${b.branchName}"></option>
+        </select>
+
+        <select id="statusFilter" onchange="filterTable()" class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]">
+            <option value="">All Status</option>
+            <option value="Hoạt động">Hoạt động</option>
+            <option value="Tạm khóa">Tạm khóa</option>
+        </select>
+    </div>
+
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table class="w-full text-left border-collapse">
+        <table class="w-full text-left border-collapse" id="staffTable">
             <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
+                <th class="p-4 font-semibold text-gray-700">ID</th>
                 <th class="p-4 font-semibold text-gray-700">Họ tên</th>
-                <th class="p-4 font-semibold text-gray-700">Email/SĐT</th>
+                <th class="p-4 font-semibold text-gray-700">Liên hệ</th>
                 <th class="p-4 font-semibold text-gray-700">Chức vụ</th>
                 <th class="p-4 font-semibold text-gray-700">Chi nhánh</th>
                 <th class="p-4 font-semibold text-gray-700">Trạng thái</th>
@@ -41,28 +62,32 @@
             </thead>
             <tbody>
             <tr th:each="staff : ${staffList}" class="hover:bg-gray-50 border-b border-gray-100 transition">
-                <td class="p-4 font-medium text-gray-900" th:text="${staff.full_name}">Nguyễn Văn A</td>
+                <td class="p-4 text-gray-500 font-mono text-sm" th:text="${staff.user_id}"></td>
+                <td class="p-4 font-medium text-gray-900" th:text="${staff.full_name}"></td>
                 <td class="p-4 text-gray-600">
-                    <div class="text-sm" th:text="${staff.email}">admin@gmail.com</div>
-                    <div class="text-xs text-gray-400" th:text="${staff.phone}">0123456789</div>
+                    <div class="text-sm font-medium" th:text="${staff.email}"></div>
+                    <div class="text-xs text-gray-400" th:text="${staff.phone}"></div>
                 </td>
                 <td class="p-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-semibold"
-                          th:classappend="${staff.role == 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}"
-                          th:text="${staff.role}">STAFF</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase"
+                          th:classappend="${staff.role == 'ADMIN' ? 'bg-red-100 text-red-700' : (staff.role == 'MANAGER' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700')}"
+                          th:text="${staff.role}"></span>
                 </td>
-                <td class="p-4 text-gray-600" th:text="${staff.branch_name}">Hà Nội Cinema</td>
+                <td class="p-4 text-gray-600" th:text="${staff.branch_name}"></td>
                 <td class="p-4">
-                    <span th:if="${staff.status == 'active'}" class="flex items-center gap-1 text-green-600">
-                        <span class="w-2 h-2 bg-green-600 rounded-full"></span> Hoạt động
-                    </span>
-                    <span th:unless="${staff.status == 'active'}" class="flex items-center gap-1 text-gray-400">
-                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span> Nghỉ việc
-                    </span>
+                    <a th:href="@{'/admin/staff/toggle/' + ${staff.user_id}}" class="flex items-center gap-1.5 transition hover:opacity-75">
+                        <span th:class="${staff.status == 'active' ? 'bg-green-500' : 'bg-gray-400'} + ' w-2.5 h-2.5 rounded-full'"></span>
+                        <span th:text="${staff.status == 'active' ? 'Hoạt động' : 'Tạm khóa'}"
+                              th:class="${staff.status == 'active' ? 'text-green-700' : 'text-gray-400'} + ' text-sm font-medium'"></span>
+                    </a>
                 </td>
-                <td class="p-4 text-right">
-                    <button class="text-gray-400 hover:text-blue-600 p-1"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
-                    <button class="text-gray-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                <td class="p-4 text-right space-x-2">
+                    <button type="button" th:onclick="prepareEdit([[${staff}]])" class="text-gray-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </button>
+                    <a th:href="@{'/admin/staff/delete/' + ${staff.user_id}}" onclick="return confirm('Bạn có chắc muốn xóa nhân viên này?')" class="inline-block text-gray-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </a>
                 </td>
             </tr>
             </tbody>
@@ -70,56 +95,115 @@
     </div>
 </div>
 
-<div id="staffModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-in fade-in duration-300">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <h2 class="text-xl font-bold mb-4">Thông tin nhân viên</h2>
-        <form action="#" method="POST">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Họ tên</label>
-                    <input type="text" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+<div id="staffModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl scale-95 transition-transform">
+        <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-900 border-b pb-4">Thêm nhân viên mới</h2>
+        <form th:action="@{/admin/staff/save}" th:object="${newStaff}" method="POST" id="staffForm">
+            <input type="hidden" th:field="*{user_id}" id="form-id">
+            <div class="grid grid-cols-2 gap-5">
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Họ tên đầy đủ</label>
+                    <input type="text" th:field="*{full_name}" id="form-name" required class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                    <input type="email" th:field="*{email}" id="form-email" required class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Số điện thoại</label>
+                    <input type="text" th:field="*{phone}" id="form-phone" required class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu</label>
+                    <div class="relative">
+                        <input type="password" th:field="*{password}" id="form-password" class="w-full border border-gray-300 rounded-xl p-2.5 pl-10 outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mặc định: 123456">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </span>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" class="w-full border rounded-lg p-2 outline-none">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Vai trò</label>
+                    <select th:field="*{role}" id="form-role" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                        <option value="STAFF">Staff</option>
+                        <option value="MANAGER">Manager</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Vai trò</label>
-                        <select class="w-full border rounded-lg p-2 outline-none bg-white">
-                            <option value="STAFF">Staff</option>
-                            <option value="MANAGER">Manager</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Trạng thái</label>
-                        <select class="w-full border rounded-lg p-2 outline-none bg-white">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Trạng thái</label>
+                    <select th:field="*{status}" id="form-status" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                        <option value="active">Hoạt động</option>
+                        <option value="inactive">Tạm khóa</option>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Chi nhánh trực thuộc</label>
+                    <select th:field="*{branch_id}" id="form-branch" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                        <option value="">-- Chọn chi nhánh --</option>
+                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
+                    </select>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Hủy</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Lưu dữ liệu</button>
+            <div class="flex justify-end gap-3 mt-8 pt-5 border-t">
+                <button type="button" onclick="closeModal()" class="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Hủy</button>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-200 transition">Lưu dữ liệu</button>
             </div>
         </form>
     </div>
 </div>
 
-<script>
-    // Khởi tạo các icon Lucide
+<script th:inline="javascript">
     lucide.createIcons();
 
-    // Logic điều khiển Modal thay cho React State
-    function openModal() {
+    function filterTable() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const roleValue = document.getElementById('roleFilter').value;
+        const branchValue = document.getElementById('branchFilter').value;
+        const statusValue = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const name = row.cells[1].innerText.toLowerCase();
+            const contact = row.cells[2].innerText.toLowerCase();
+            const role = row.cells[3].innerText.trim();
+            const branch = row.cells[4].innerText.trim();
+            const status = row.cells[5].innerText.trim();
+
+            const matchesSearch = name.includes(searchText) || contact.includes(searchText);
+            const matchesRole = roleValue === "" || role === roleValue;
+            const matchesBranch = branchValue === "" || branch === branchValue;
+            const matchesStatus = statusValue === "" || status.includes(statusValue);
+
+            row.style.display = (matchesSearch && matchesRole && matchesBranch && matchesStatus) ? "" : "none";
+        });
+    }
+
+    function openModalAdd() {
+        document.getElementById('modalTitle').innerText = "Thêm nhân viên mới";
+        document.getElementById('staffForm').reset();
+        document.getElementById('form-id').value = "";
+        document.getElementById('form-password').required = false;
         document.getElementById('staffModal').classList.remove('hidden');
     }
+
+    function prepareEdit(staff) {
+        document.getElementById('modalTitle').innerText = "Cập nhật thông tin";
+        document.getElementById('form-id').value = staff.user_id;
+        document.getElementById('form-name').value = staff.full_name;
+        document.getElementById('form-email').value = staff.email;
+        document.getElementById('form-phone').value = staff.phone;
+        document.getElementById('form-role').value = staff.role;
+        document.getElementById('form-status').value = staff.status;
+        document.getElementById('form-branch').value = staff.branch_id || "";
+        document.getElementById('form-password').required = false;
+        document.getElementById('form-password').value = "";
+        document.getElementById('staffModal').classList.remove('hidden');
+    }
+
     function closeModal() {
         document.getElementById('staffModal').classList.add('hidden');
     }
 </script>
-
 </body>
 </html>
