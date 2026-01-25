@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.service;
 
+import com.swp391.team6.cinema.dto.CustomerDTO;
 import com.swp391.team6.cinema.dto.StaffDTO;
 import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.User;
@@ -53,9 +54,7 @@ public class UserService {
             dto.setBranch_name("Toàn hệ thống");
         }
 
-        if (user.getCreatedAt() != null) {
-            dto.setCreated_at(user.getCreatedAt().toString());
-        }
+        dto.setCreated_at(user.getCreatedAt());
 
         return dto;
     }
@@ -91,13 +90,39 @@ public class UserService {
         });
     }
 
-
-
     public void deleteStaff(Long id) {
         userRepository.deleteById(id);
     }
 
     public List<CinemaBranch> findAllBranches() {
         return branchRepository.findAll();
+    }
+
+    public List<CustomerDTO> findAllCustomers() {
+        List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
+
+        return userRepository.findByRoleIn(roles).stream()
+                .map(this::convertToCustomerDTO)
+                .collect(Collectors.toList());
+    }
+
+    private CustomerDTO convertToCustomerDTO(User user) {
+        CustomerDTO dto = new CustomerDTO();
+        dto.setUser_id(user.getUserId());
+        dto.setFull_name(user.getFullName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setStatus(user.getStatus().name());
+        dto.setCreated_at(user.getCreatedAt());
+        return dto;
+    }
+
+    public void updateCustomer(CustomerDTO dto) {
+        User customer = userRepository.findById(dto.getUser_id())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+        customer.setFullName(dto.getFull_name());
+        customer.setPhone(dto.getPhone());
+        customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
+        userRepository.save(customer);
     }
 }

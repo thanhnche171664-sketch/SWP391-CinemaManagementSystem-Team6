@@ -56,6 +56,7 @@
                 <th class="p-4 font-semibold text-gray-700">Liên hệ</th>
                 <th class="p-4 font-semibold text-gray-700">Chức vụ</th>
                 <th class="p-4 font-semibold text-gray-700">Chi nhánh</th>
+                <th class="p-4 font-semibold text-gray-700">Ngày tạo</th>
                 <th class="p-4 font-semibold text-gray-700">Trạng thái</th>
                 <th class="p-4 font-semibold text-gray-700 text-right">Thao tác</th>
             </tr>
@@ -74,6 +75,7 @@
                           th:text="${staff.role}"></span>
                 </td>
                 <td class="p-4 text-gray-600" th:text="${staff.branch_name}"></td>
+                <td class="p-4 text-sm text-gray-500" th:text="${#temporals.format(staff.created_at, 'dd/MM/yyyy')}"></td>
                 <td class="p-4">
                     <a th:href="@{'/admin/staff/toggle/' + ${staff.user_id}}" class="flex items-center gap-1.5 transition hover:opacity-75">
                         <span th:class="${staff.status == 'active' ? 'bg-green-500' : 'bg-gray-400'} + ' w-2.5 h-2.5 rounded-full'"></span>
@@ -168,7 +170,7 @@
             const contact = row.cells[2].innerText.toLowerCase();
             const role = row.cells[3].innerText.trim();
             const branch = row.cells[4].innerText.trim();
-            const status = row.cells[5].innerText.trim();
+            const status = row.cells[6].innerText.trim();
 
             const matchesSearch = name.includes(searchText) || contact.includes(searchText);
             const matchesRole = roleValue === "" || role === roleValue;
@@ -203,6 +205,13 @@
 
     function closeModal() {
         document.getElementById('staffModal').classList.add('hidden');
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('staffModal');
+        if (event.target == modal) {
+            closeModal();
+        }
     }
 </script>
 </body>
