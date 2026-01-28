@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý phim - Cinema System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50 p-8">
+
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Quản lý phim</h1>
+            <p class="text-gray-500">Tạo mới, cập nhật và ẩn/hiện phim.</p>
+        </div>
+        <button onclick="openModalAdd()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm font-semibold">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            Thêm phim
+        </button>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-center">
+        <div class="relative flex-1 min-w-[260px]">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search by title..." class="pl-10 w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition">
+        </div>
+
+        <select id="statusFilter" onchange="filterTable()" class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]">
+            <option value="">All Status</option>
+            <option value="upcoming">upcoming</option>
+            <option value="now_showing">now_showing</option>
+            <option value="stopped">stopped</option>
+        </select>
+
+        <select id="hiddenFilter" onchange="filterTable()" class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]">
+            <option value="">All Visibility</option>
+            <option value="shown">Shown</option>
+            <option value="hidden">Hidden</option>
+        </select>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <table class="w-full text-left border-collapse" id="movieTable">
+            <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="p-4 font-semibold text-gray-700">ID</th>
+                <th class="p-4 font-semibold text-gray-700">Poster</th>
+                <th class="p-4 font-semibold text-gray-700">Tiêu đề</th>
+                <th class="p-4 font-semibold text-gray-700">Thể loại</th>
+                <th class="p-4 font-semibold text-gray-700">Thời lượng</th>
+                <th class="p-4 font-semibold text-gray-700">Tuổi</th>
+                <th class="p-4 font-semibold text-gray-700">Trạng thái</th>
+                <th class="p-4 font-semibold text-gray-700">Hiển thị</th>
+                <th class="p-4 font-semibold text-gray-700 text-right">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="movie : ${movieList}" class="hover:bg-gray-50 border-b border-gray-100 transition">
+                <td class="p-4 text-gray-500 font-mono text-sm" th:text="${movie.movieId}"></td>
+                <td class="p-4">
+                    <img th:if="${movie.posterUrl}" th:src="${movie.posterUrl}" class="w-12 h-16 object-cover rounded-md border" th:alt="${movie.title}">
+                    <span th:if="${movie.posterUrl == null}" class="text-xs text-gray-400">No image</span>
+                </td>
+                <td class="p-4 font-medium text-gray-900" th:text="${movie.title}"></td>
+                <td class="p-4 text-gray-600" th:text="${movie.genre}"></td>
+                <td class="p-4 text-gray-600" th:text="${movie.duration} + ' phút'"></td>
+                <td class="p-4 text-gray-600" th:text="${movie.ageRating}"></td>
+                <td class="p-4">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700"
+                          th:text="${movie.status}"></span>
+                </td>
+                <td class="p-4">
+                    <a th:href="@{'/admin/movies/toggle/' + ${movie.movieId}}" class="flex items-center gap-1.5 transition hover:opacity-75">
+                        <span th:class="${movie.hidden ? 'bg-gray-400' : 'bg-green-500'} + ' w-2.5 h-2.5 rounded-full'"></span>
+                        <span th:text="${movie.hidden ? 'Hidden' : 'Shown'}"
+                              th:class="${movie.hidden ? 'text-gray-400' : 'text-green-700'} + ' text-sm font-medium'"></span>
+                    </a>
+                </td>
+                <td class="p-4 text-right space-x-2">
+                    <button type="button" th:onclick="prepareEdit([[${movie}]])" class="text-gray-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </button>
+                    <a th:href="@{'/movies/' + ${movie.movieId}}" class="inline-block text-gray-400 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-lg transition">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="movieModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl scale-95 transition-transform">
+        <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-900 border-b pb-4">Thêm phim mới</h2>
+        <form th:action="@{/admin/movies/save}" th:object="${newMovie}" method="POST" id="movieForm">
+            <input type="hidden" th:field="*{movieId}" id="form-id">
+            <div class="grid grid-cols-2 gap-5">
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Tiêu đề phim</label>
+                    <input type="text" th:field="*{title}" id="form-title" required class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Thể loại</label>
+                    <input type="text" th:field="*{genre}" id="form-genre" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Thời lượng (phút)</label>
+                    <input type="number" min="1" th:field="*{duration}" id="form-duration" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Độ tuổi</label>
+                    <input type="text" th:field="*{ageRating}" id="form-ageRating" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition" placeholder="PG-13">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Trạng thái</label>
+                    <select th:field="*{status}" id="form-status" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                        <option value="upcoming">upcoming</option>
+                        <option value="now_showing">now_showing</option>
+                        <option value="stopped">stopped</option>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Poster URL</label>
+                    <input type="url" th:field="*{posterUrl}" id="form-posterUrl" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition" placeholder="https://...">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Trailer URL</label>
+                    <input type="url" th:field="*{trailerUrl}" id="form-trailerUrl" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition" placeholder="https://...">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Mô tả</label>
+                    <textarea rows="4" th:field="*{description}" id="form-description" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-8 pt-5 border-t">
+                <button type="button" onclick="closeModal()" class="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Hủy</button>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-200 transition">Lưu dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    lucide.createIcons();
+
+    function filterTable() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const statusValue = document.getElementById('statusFilter').value;
+        const hiddenValue = document.getElementById('hiddenFilter').value;
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const title = row.cells[2].innerText.toLowerCase();
+            const status = row.cells[6].innerText.trim();
+            const visibility = row.cells[7].innerText.trim().toLowerCase();
+
+            const matchesSearch = title.includes(searchText);
+            const matchesStatus = statusValue === "" || status === statusValue;
+            const matchesHidden = hiddenValue === "" || visibility === hiddenValue;
+
+            row.style.display = (matchesSearch && matchesStatus && matchesHidden) ? "" : "none";
+        });
+    }
+
+    function openModalAdd() {
+        document.getElementById('modalTitle').innerText = "Thêm phim mới";
+        document.getElementById('movieForm').reset();
+        document.getElementById('form-id').value = "";
+        document.getElementById('movieModal').classList.remove('hidden');
+    }
+
+    function prepareEdit(movie) {
+        document.getElementById('modalTitle').innerText = "Cập nhật phim";
+        document.getElementById('form-id').value = movie.movieId;
+        document.getElementById('form-title').value = movie.title || "";
+        document.getElementById('form-genre').value = movie.genre || "";
+        document.getElementById('form-duration').value = movie.duration || "";
+        document.getElementById('form-ageRating').value = movie.ageRating || "";
+        document.getElementById('form-status').value = movie.status || "upcoming";
+        document.getElementById('form-posterUrl').value = movie.posterUrl || "";
+        document.getElementById('form-trailerUrl').value = movie.trailerUrl || "";
+        document.getElementById('form-description').value = movie.description || "";
+        document.getElementById('movieModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('movieModal').classList.add('hidden');
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('movieModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+</body>
+</html>

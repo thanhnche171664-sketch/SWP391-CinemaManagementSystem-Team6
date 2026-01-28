@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${movie.title} + ' - Cinema Management System'">Movie Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Cinema Management System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/movies}">Movies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/showtimes}">Showtimes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/login}">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-4">
+                <img th:src="${movie.posterUrl}" class="img-fluid rounded" th:alt="${movie.title}">
+            </div>
+            <div class="col-md-8">
+                <h1 th:text="${movie.title}">Movie Title</h1>
+                <div class="mb-3">
+                    <span class="badge bg-primary me-2" th:text="${movie.status}">Status</span>
+                    <span class="badge bg-secondary me-2" th:text="${movie.genre}">Genre</span>
+                    <span class="badge bg-info me-2" th:text="${movie.ageRating}">Age Rating</span>
+                </div>
+                
+                <p class="lead" th:text="${movie.description}">Movie description goes here...</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Duration</h5>
+                        <p th:text="${movie.duration} + ' minutes'">120 minutes</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Genre</h5>
+                        <p th:text="${movie.genre}">Action</p>
+                    </div>
+                </div>
+
+                <div class="mt-4" th:if="${movie.trailerUrl}">
+                    <h5>Trailer</h5>
+                    <div class="ratio ratio-16x9">
+                        <iframe th:src="${movie.trailerUrl}" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a th:href="@{/showtimes/movie/{id}(id=${movie.movieId})}" class="btn btn-primary btn-lg">
+                        Book Tickets
+                    </a>
+                    <a th:href="@{/movies}" class="btn btn-secondary btn-lg">Back to Movies</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <h3>Showtimes</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Room</th>
+                                <th>Branch</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="showtime : ${showtimes}">
+                                <td th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy')}">Date</td>
+                                <td th:text="${#temporals.format(showtime.startTime, 'HH:mm')}">Time</td>
+                                <td th:text="${showtime.room.roomName}">Room</td>
+                                <td th:text="${showtime.room.branch.branchName}">Branch</td>
+                                <td><span class="badge bg-success" th:text="${showtime.status}">Status</span></td>
+                                <td>
+                                    <a th:href="@{/booking/{id}(id=${showtime.showtimeId})}" class="btn btn-sm btn-primary">Book</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-3">
+        <div class="container">
+            <p>&copy; 2026 Cinema Management System - Team 6. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
