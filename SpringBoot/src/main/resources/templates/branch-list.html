@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý rạp chiếu</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <h2 class="logo">🎬 Admin Panel</h2>
+
+        <nav>
+            <a href="#">Tổng quan</a>
+            <a href="#">Quản lý phim</a>
+            <a class="active" href="#">Quản lý rạp</a>
+            <a href="#">Quản lý suất chiếu</a>
+            <a href="#">Quản lý đặt vé</a>
+            <a href="#">Báo cáo & Thống kê</a>
+        </nav>
+    </aside>
+
+    <main class="content">
+
+        <header class="header">
+            <div>
+                <h1>Quản lý rạp chiếu</h1>
+                <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
+            </div>
+
+            <a class="btn-add" href="/branches/new">+ Thêm rạp mới</a>
+        </header>
+
+        <div class="search-box">
+            <input type="text" placeholder="Tìm kiếm rạp...">
+        </div>
+
+        <div class="branch-list">
+
+            <div class="branch-card" th:each="branch : ${branches}">
+
+                <div class="branch-header">
+                    <div>
+                        <h2 th:text="${branch.branchName}">CGV Vincom</h2>
+                        <p th:text="${branch.address}">Địa chỉ</p>
+                        <p>
+                            <strong>Thành phố:</strong>
+                            <span th:text="${branch.city}"></span>
+                        </p>
+                    </div>
+
+                    <div class="actions">
+                        <a th:href="@{/branches/edit/{id}(id=${branch.branchId})}">✏️</a>
+                        <a th:href="@{/branches/delete/{id}(id=${branch.branchId})}" class="danger">🗑️</a>
+                    </div>
+                </div>
+
+                <div class="rooms">
+                    <div class="room-card">
+                        <h4>Phòng 1</h4>
+                        <p>100 ghế</p>
+                    </div>
+                    <div class="room-card">
+                        <h4>Phòng 2</h4>
+                        <p>80 ghế</p>
+                    </div>
+                    <div class="room-card">
+                        <h4>Phòng VIP</h4>
+                        <p>60 ghế</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>
