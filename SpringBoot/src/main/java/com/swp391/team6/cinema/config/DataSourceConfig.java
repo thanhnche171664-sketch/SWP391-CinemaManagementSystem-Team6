@@ -1,5 +1,7 @@
 package com.swp391.team6.cinema.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -11,13 +13,8 @@ public class DataSourceConfig {
 
     @Bean
     @Primary
+    @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.h2.Driver");
-        // DB_CLOSE_DELAY=-1 giúp dữ liệu không bị xóa ngay khi mất kết nối
-        dataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
-        dataSource.setUsername("sa");
-        dataSource.setPassword("");
-        return dataSource;
+        return DataSourceBuilder.create().build();
     }
 }
