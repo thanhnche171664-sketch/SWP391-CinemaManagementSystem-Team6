@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý phim - Cinema System</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<div class="layout">
+    <div th:replace="sidebar :: sidebar('movies')"></div>
+
+    <main class="content">
+        <div class="header">
+            <div>
+                <h1>Quản lý phim</h1>
+                <p>Tạo mới, cập nhật và ẩn/hiện phim.</p>
+            </div>
+            <button type="button" onclick="openModalAdd()" class="btn-add">
+                <i data-lucide="plus-circle"></i>
+                Thêm phim
+            </button>
+        </div>
+
+        <div class="filters">
+            <div class="search-box has-icon">
+                <span class="search-icon">
+                    <i data-lucide="search"></i>
+                </span>
+                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm theo tiêu đề...">
+            </div>
+
+            <select id="statusFilter" onchange="filterTable()" class="filter-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="upcoming">upcoming</option>
+                <option value="now_showing">now_showing</option>
+                <option value="stopped">stopped</option>
+            </select>
+
+            <select id="hiddenFilter" onchange="filterTable()" class="filter-select">
+                <option value="">Tất cả hiển thị</option>
+                <option value="shown">Shown</option>
+                <option value="hidden">Hidden</option>
+            </select>
+        </div>
+
+        <div class="table-card">
+            <table class="data-table" id="movieTable">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Poster</th>
+                    <th>Tiêu đề</th>
+                    <th>Thể loại</th>
+                    <th>Thời lượng</th>
+                    <th>Tuổi</th>
+                    <th>Trạng thái</th>
+                    <th>Hiển thị</th>
+                    <th class="text-right">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="movie : ${movieList}">
+                    <td class="mono text-muted" th:text="${movie.movieId}"></td>
+                    <td>
+                        <img th:if="${movie.posterUrl}" th:src="${movie.posterUrl}" class="poster-img" th:alt="${movie.title}">
+                        <span th:if="${movie.posterUrl == null}" class="empty-poster">No image</span>
+                    </td>
+                    <td th:text="${movie.title}"></td>
+                    <td class="text-muted" th:text="${movie.genre}"></td>
+                    <td class="text-muted" th:text="${movie.duration} + ' phút'"></td>
+                    <td class="text-muted" th:text="${movie.ageRating}"></td>
+                    <td>
+                        <span class="status-badge" th:classappend="' status-' + ${movie.status}"
+                              th:text="${movie.status}"></span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/admin/movies/toggle/' + ${movie.movieId}}" class="visibility-link">
+                            <span th:class="'visibility-dot ' + (${movie.hidden} ? 'dot-hidden' : 'dot-shown')"></span>
+                            <span th:text="${movie.hidden ? 'Hidden' : 'Shown'}"
+                                  th:class="'visibility-label ' + (${movie.hidden} ? 'text-muted' : 'text-success')"></span>
+                        </a>
+                    </td>
+                    <td class="text-right">
+                        <div class="action-buttons">
+                            <button type="button" th:onclick="prepareEdit([[${movie}]])" class="icon-btn">
+                                <i data-lucide="edit-3"></i>
+                            </button>
+                            <a th:href="@{'/movies/' + ${movie.movieId}}" class="icon-btn">
+                                <i data-lucide="eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<div id="movieModal" class="modal-backdrop hidden">
+    <div class="modal">
+        <h2 id="modalTitle" class="modal-title">Thêm phim mới</h2>
+        <form th:action="@{/admin/movies/save}" th:object="${newMovie}" method="POST" id="movieForm">
+            <input type="hidden" th:field="*{movieId}" id="form-id">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label class="form-label">Tiêu đề phim</label>
+                    <input type="text" th:field="*{title}" id="form-title" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Thể loại</label>
+                    <input type="text" th:field="*{genre}" id="form-genre" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Thời lượng (phút)</label>
+                    <input type="number" min="1" th:field="*{duration}" id="form-duration" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Độ tuổi</label>
+                    <input type="text" th:field="*{ageRating}" id="form-ageRating" class="form-input" placeholder="PG-13">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <select th:field="*{status}" id="form-status" class="form-select">
+                        <option value="upcoming">upcoming</option>
+                        <option value="now_showing">now_showing</option>
+                        <option value="stopped">stopped</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Poster URL</label>
+                    <input type="url" th:field="*{posterUrl}" id="form-posterUrl" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Trailer URL</label>
+                    <input type="url" th:field="*{trailerUrl}" id="form-trailerUrl" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Mô tả</label>
+                    <textarea rows="4" th:field="*{description}" id="form-description" class="form-textarea"></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" onclick="closeModal()" class="btn-secondary">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    lucide.createIcons();
+
+    function filterTable() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const statusValue = document.getElementById('statusFilter').value;
+        const hiddenValue = document.getElementById('hiddenFilter').value;
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const title = row.cells[2].innerText.toLowerCase();
+            const status = row.cells[6].innerText.trim();
+            const visibility = row.cells[7].innerText.trim().toLowerCase();
+
+            const matchesSearch = title.includes(searchText);
+            const matchesStatus = statusValue === "" || status === statusValue;
+            const matchesHidden = hiddenValue === "" || visibility === hiddenValue;
+
+            row.style.display = (matchesSearch && matchesStatus && matchesHidden) ? "" : "none";
+        });
+    }
+
+    function openModalAdd() {
+        document.getElementById('modalTitle').innerText = "Thêm phim mới";
+        document.getElementById('movieForm').reset();
+        document.getElementById('form-id').value = "";
+        document.getElementById('movieModal').classList.remove('hidden');
+    }
+
+    function prepareEdit(movie) {
+        document.getElementById('modalTitle').innerText = "Cập nhật phim";
+        document.getElementById('form-id').value = movie.movieId;
+        document.getElementById('form-title').value = movie.title || "";
+        document.getElementById('form-genre').value = movie.genre || "";
+        document.getElementById('form-duration').value = movie.duration || "";
+        document.getElementById('form-ageRating').value = movie.ageRating || "";
+        document.getElementById('form-status').value = movie.status || "upcoming";
+        document.getElementById('form-posterUrl').value = movie.posterUrl || "";
+        document.getElementById('form-trailerUrl').value = movie.trailerUrl || "";
+        document.getElementById('form-description').value = movie.description || "";
+        document.getElementById('movieModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('movieModal').classList.add('hidden');
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('movieModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+</body>
+</html>
