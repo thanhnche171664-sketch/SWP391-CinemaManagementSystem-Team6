@@ -9,13 +9,10 @@
 
 <div class="layout">
 
-    <!-- Sidebar -->
     <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
 
-    <!-- Content -->
     <main class="content">
 
-        <!-- Header -->
         <header class="header">
             <div>
                 <h1>Thêm rạp chiếu mới</h1>
@@ -23,7 +20,6 @@
             </div>
         </header>
 
-        <!-- Form Card -->
         <div class="form-wrapper">
 
             <form th:action="@{/branches}"
