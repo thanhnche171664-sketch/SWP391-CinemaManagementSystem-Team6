@@ -30,10 +30,11 @@ public class MovieManagementController {
 
     @PostMapping("/save")
     public String save(@ModelAttribute("newMovie") MovieDTO movieDTO) {
-        if (movieDTO.getMovieId() == null) {
+        Long movieId = movieDTO.getMovieId();
+        if (movieId == null || movieId <= 0) {
             movieService.createMovie(movieDTO);
         } else {
-            movieService.updateMovie(movieDTO.getMovieId(), movieDTO);
+            movieService.updateMovie(movieId, movieDTO);
         }
         return "redirect:/admin/movies";
     }

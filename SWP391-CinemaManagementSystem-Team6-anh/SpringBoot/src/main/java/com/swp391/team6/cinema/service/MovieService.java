@@ -48,6 +48,8 @@ public class MovieService {
     @Transactional
     public MovieDTO createMovie(MovieDTO movieDTO) {
         Movie movie = convertToEntity(movieDTO);
+        // Ensure new entity is always inserted
+        movie.setMovieId(null);
         Movie savedMovie = movieRepository.save(movie);
         return convertToDTO(savedMovie);
     }
