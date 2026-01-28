@@ -30,7 +30,6 @@
 
         <select id="roleFilter" onchange="filterTable()" class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]">
             <option value="">All Roles</option>
-            <option value="ADMIN">ADMIN</option>
             <option value="MANAGER">MANAGER</option>
             <option value="STAFF">STAFF</option>
         </select>
@@ -99,7 +98,7 @@
 
 <div id="staffModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl scale-95 transition-transform">
-        <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-900 border-b pb-4">Thêm nhân viên mới</h2>
+        <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-gray-900 border-b pb-4">Nhân viên</h2>
         <form th:action="@{/admin/staff/save}" th:object="${newStaff}" method="POST" id="staffForm">
             <input type="hidden" th:field="*{user_id}" id="form-id">
             <div class="grid grid-cols-2 gap-5">
@@ -109,39 +108,34 @@
                 </div>
                 <div class="col-span-1">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
-                    <input type="email" th:field="*{email}" id="form-email" required class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition">
+                    <input type="email" th:field="*{email}" id="form-email" required class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition focus:ring-2 focus:ring-blue-500">
+                    <span id="emailError" class="text-red-500 text-[10px] hidden mt-1">Email không đúng định dạng</span>
                 </div>
                 <div class="col-span-1">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Số điện thoại</label>
-                    <input type="text" th:field="*{phone}" id="form-phone" required class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition">
+                    <input type="text" th:field="*{phone}" id="form-phone" required class="w-full border border-gray-300 rounded-xl p-2.5 outline-none transition focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu</label>
-                    <div class="relative">
-                        <input type="password" th:field="*{password}" id="form-password" class="w-full border border-gray-300 rounded-xl p-2.5 pl-10 outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mặc định: 123456">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                        </span>
-                    </div>
+                    <input type="password" th:field="*{password}" id="form-password" class="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Vai trò</label>
-                    <select th:field="*{role}" id="form-role" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                    <select th:field="*{role}" id="form-role" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="STAFF">Staff</option>
                         <option value="MANAGER">Manager</option>
-                        <option value="ADMIN">Admin</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Trạng thái</label>
-                    <select th:field="*{status}" id="form-status" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                    <select th:field="*{status}" id="form-status" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="active">Hoạt động</option>
                         <option value="inactive">Tạm khóa</option>
                     </select>
                 </div>
                 <div class="col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Chi nhánh trực thuộc</label>
-                    <select th:field="*{branch_id}" id="form-branch" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none transition">
+                    <select th:field="*{branch_id}" id="form-branch" class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Chọn chi nhánh --</option>
                         <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
                     </select>
@@ -149,7 +143,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-8 pt-5 border-t">
                 <button type="button" onclick="closeModal()" class="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Hủy</button>
-                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-200 transition">Lưu dữ liệu</button>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-md transition">Lưu dữ liệu</button>
             </div>
         </form>
     </div>
@@ -171,12 +165,10 @@
             const role = row.cells[3].innerText.trim();
             const branch = row.cells[4].innerText.trim();
             const status = row.cells[6].innerText.trim();
-
             const matchesSearch = name.includes(searchText) || contact.includes(searchText);
             const matchesRole = roleValue === "" || role === roleValue;
             const matchesBranch = branchValue === "" || branch === branchValue;
             const matchesStatus = statusValue === "" || status.includes(statusValue);
-
             row.style.display = (matchesSearch && matchesRole && matchesBranch && matchesStatus) ? "" : "none";
         });
     }
@@ -185,7 +177,7 @@
         document.getElementById('modalTitle').innerText = "Thêm nhân viên mới";
         document.getElementById('staffForm').reset();
         document.getElementById('form-id').value = "";
-        document.getElementById('form-password').required = false;
+        document.getElementById('form-password').placeholder = "Mặc định: 123456";
         document.getElementById('staffModal').classList.remove('hidden');
     }
 
@@ -195,11 +187,13 @@
         document.getElementById('form-name').value = staff.full_name;
         document.getElementById('form-email').value = staff.email;
         document.getElementById('form-phone').value = staff.phone;
-        document.getElementById('form-role').value = staff.role;
         document.getElementById('form-status').value = staff.status;
         document.getElementById('form-branch').value = staff.branch_id || "";
-        document.getElementById('form-password').required = false;
         document.getElementById('form-password').value = "";
+        document.getElementById('form-password').placeholder = "Để trống nếu không đổi";
+
+        document.getElementById('form-role').value = staff.role;
+
         document.getElementById('staffModal').classList.remove('hidden');
     }
 
@@ -207,11 +201,18 @@
         document.getElementById('staffModal').classList.add('hidden');
     }
 
-    window.onclick = function(event) {
-        const modal = document.getElementById('staffModal');
-        if (event.target == modal) {
-            closeModal();
+    document.getElementById('staffForm').addEventListener('submit', function(e) {
+        const email = document.getElementById('form-email');
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!regex.test(email.value)) {
+            e.preventDefault();
+            document.getElementById('emailError').classList.remove('hidden');
+            email.focus();
         }
+    });
+
+    window.onclick = function(e) {
+        if (e.target == document.getElementById('staffModal')) closeModal();
     }
 </script>
 </body>

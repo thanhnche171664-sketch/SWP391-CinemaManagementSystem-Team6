@@ -18,52 +18,35 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CinemaBranchRepository branchRepository;
 
+    // ================= STAFF MANAGEMENT =================
+
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
-                User.UserRole.ADMIN,
                 User.UserRole.MANAGER,
                 User.UserRole.STAFF
         );
-
-        List<User> users = userRepository.findByRoleIn(staffRoles);
-
-        return users.stream()
+        return userRepository.findByRoleIn(staffRoles).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-    }
-
-    private StaffDTO convertToDTO(User user) {
-        StaffDTO dto = new StaffDTO();
-
-        dto.setUser_id(user.getUserId());
-        dto.setFull_name(user.getFullName());
-        dto.setEmail(user.getEmail());
-        dto.setPhone(user.getPhone());
-
-        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
-        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
-
-        if (user.getBranch() != null) {
-            dto.setBranch_id(user.getBranch().getBranchId());
-            dto.setBranch_name(user.getBranch().getBranchName());
-        } else {
-            dto.setBranch_name("Toàn hệ thống");
-        }
-
-        dto.setCreated_at(user.getCreatedAt());
-
-        return dto;
     }
 
     public void saveStaff(StaffDTO dto) {
         User user;
         if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id()).orElse(new User());
+            user = userRepository.findById(dto.getUser_id())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+
+            if (!user.getRole().equals(User.UserRole.ADMIN) && "ADMIN".equals(dto.getRole())) {
+                throw new RuntimeException("Không được phép nâng cấp lên quyền ADMIN");
+            }
         } else {
+            if ("ADMIN".equals(dto.getRole())) {
+                throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
+            }
             user = new User();
             user.setPasswordHash("123456");
         }
@@ -98,9 +81,28 @@ public class UserService {
         return branchRepository.findAll();
     }
 
+    private StaffDTO convertToDTO(User user) {
+        StaffDTO dto = new StaffDTO();
+        dto.setUser_id(user.getUserId());
+        dto.setFull_name(user.getFullName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
+        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
+        if (user.getBranch() != null) {
+            dto.setBranch_id(user.getBranch().getBranchId());
+            dto.setBranch_name(user.getBranch().getBranchName());
+        } else {
+            dto.setBranch_name("Toàn hệ thống");
+        }
+        dto.setCreated_at(user.getCreatedAt());
+        return dto;
+    }
+
+    // ================= CUSTOMER MANAGEMENT =================
+
     public List<CustomerDTO> findAllCustomers() {
         List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
-
         return userRepository.findByRoleIn(roles).stream()
                 .map(this::convertToCustomerDTO)
                 .collect(Collectors.toList());
