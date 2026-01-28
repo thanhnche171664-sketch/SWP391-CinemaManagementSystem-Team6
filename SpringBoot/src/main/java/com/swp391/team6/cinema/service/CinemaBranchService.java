@@ -16,4 +16,9 @@ public class CinemaBranchService {
     public List<CinemaBranch> getAllBranches() {
         return cinemaBranchRepository.findAll();
     }
+
+    public void createBranch(CinemaBranch branch) {
+        branch.setStatus(CinemaBranch.BranchStatus.active);
+        cinemaBranchRepository.save(branch);
+    }
 }
