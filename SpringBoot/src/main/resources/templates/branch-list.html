@@ -8,11 +8,8 @@
 <body>
 
 <div class="layout">
-
     <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
-
     <main class="content">
-
         <header class="header">
             <div>
                 <h1>Quản lý rạp chiếu</h1>
@@ -22,17 +19,19 @@
             <a class="btn-add" href="/branches/new">+ Thêm rạp mới</a>
         </header>
 
-        <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm rạp...">
-        </div>
+        <form class="search-box" th:action="@{/branches/search}" method="get">
+            <input type="text"
+                   name="keyword"
+                   placeholder="Tìm kiếm theo tên rạp"
+                   th:value="${keyword}">
+        </form>
 
         <div class="branch-list">
-
             <div class="branch-card" th:each="branch : ${branches}">
-
                 <div class="branch-header">
                     <div>
                         <h2 th:text="${branch.branchName}">CGV Vincom</h2>
+                        <p th:text="${branch.city}">Thành phố</p>
                         <p th:text="${branch.address}">Địa chỉ</p>
                     </div>
 
