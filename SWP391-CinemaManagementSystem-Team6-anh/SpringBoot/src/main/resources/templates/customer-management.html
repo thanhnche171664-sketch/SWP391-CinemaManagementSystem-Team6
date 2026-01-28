@@ -5,104 +5,6 @@
     <title>Quản lý Khách hàng - Cinema System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-<<<<<<< HEAD:SWP391-CinemaManagementSystem-Team6-anh/SpringBoot/src/main/resources/templates/customer-management.html
-</head>
-<body class="bg-gray-50 p-8">
-<div class="max-w-7xl mx-auto">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Danh sách Khách hàng</h1>
-        <p class="text-gray-500">Xem và quản lý tài khoản khách hàng đăng ký thành viên.</p>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex gap-4 items-center">
-        <div class="relative flex-1">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                <i data-lucide="search" class="w-4 h-4"></i>
-            </span>
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm tên, email, số điện thoại..."
-                   class="pl-10 w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition">
-        </div>
-        <select id="statusFilter" onchange="filterTable()"
-                class="border border-gray-200 rounded-lg p-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]">
-            <option value="">All Status</option>
-            <option value="Hoạt động">Hoạt động</option>
-            <option value="Tạm khóa">Tạm khóa</option>
-        </select>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table class="w-full text-left border-collapse" id="customerTable">
-            <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-                <th class="p-4 font-semibold text-gray-700">ID</th>
-                <th class="p-4 font-semibold text-gray-700">Khách hàng</th>
-                <th class="p-4 font-semibold text-gray-700">Liên hệ</th>
-                <th class="p-4 font-semibold text-gray-700">Ngày tạo</th>
-                <th class="p-4 font-semibold text-gray-700">Trạng thái</th>
-                <th class="p-4 font-semibold text-gray-700 text-right">Thao tác</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="c : ${customerList}" class="hover:bg-gray-50 border-b border-gray-100 transition">
-                <td class="p-4 text-gray-500 font-mono text-sm" th:text="${c.user_id}"></td>
-                <td class="p-4 font-medium text-gray-900" th:text="${c.full_name}"></td>
-                <td class="p-4">
-                    <div class="text-sm font-medium text-gray-700" th:text="${c.email}"></div>
-                    <div class="text-xs text-gray-400" th:text="${c.phone}"></div>
-                </td>
-                <td class="p-4 text-sm text-gray-500" th:text="${#temporals.format(c.created_at, 'dd/MM/yyyy')}"></td>
-                <td class="p-4">
-                    <a th:href="@{'/admin/customers/toggle/' + ${c.user_id}}" class="flex items-center gap-1.5 hover:opacity-80 transition">
-                        <span th:class="${c.status == 'active' ? 'bg-green-500' : 'bg-red-500'} + ' w-2.5 h-2.5 rounded-full'"></span>
-                        <span th:text="${c.status == 'active' ? 'Hoạt động' : 'Tạm khóa'}"
-                              th:class="${c.status == 'active' ? 'text-green-700' : 'text-red-700'} + ' text-sm font-medium'"></span>
-                    </a>
-                </td>
-                <td class="p-4 text-right">
-                    <button type="button" th:onclick="prepareEdit([[${c}]])"
-                            class="text-gray-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition inline-flex items-center">
-                        <i data-lucide="edit-3" class="w-5 h-5"></i>
-                    </button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div id="customerModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl scale-95 transition-transform">
-        <h2 class="text-2xl font-bold mb-6 text-gray-900 border-b pb-4">Cập nhật Khách hàng</h2>
-        <form th:action="@{/admin/customers/update}" th:object="${editedCustomer}" method="POST">
-            <input type="hidden" th:field="*{user_id}" id="form-id">
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Họ và tên</label>
-                    <input type="text" th:field="*{full_name}" id="form-name" required
-                           class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Số điện thoại</label>
-                    <input type="text" th:field="*{phone}" id="form-phone" required
-                           class="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Trạng thái tài khoản</label>
-                    <select th:field="*{status}" id="form-status"
-                            class="w-full border border-gray-300 rounded-xl p-2.5 bg-white outline-none focus:ring-2 focus:ring-blue-500 transition">
-                        <option value="active">Hoạt động</option>
-                        <option value="inactive">Tạm khóa</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex justify-end gap-3 mt-8 pt-5 border-t">
-                <button type="button" onclick="closeModal()"
-                        class="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Hủy</button>
-                <button type="submit"
-                        class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition">
-                    Cập nhật
-                </button>
-=======
     <style>
         body { background: #0f0f0f; color: #fff; }
         .layout { display: flex; height: 100vh; }
@@ -143,7 +45,7 @@
         </div>
 
         <div class="bg-[#111] rounded-2xl border border-[#222] overflow-hidden shadow-2xl">
-            <table class="w-full text-left">
+            <table class="w-full text-left" id="customerTable">
                 <thead class="bg-[#000] border-b border-[#222]">
                 <tr>
                     <th class="p-4 text-gray-500 font-medium uppercase text-xs">ID</th>
@@ -211,23 +113,20 @@
             <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-[#222]">
                 <button type="button" onclick="closeModal()" class="px-6 py-2.5 text-gray-400 font-bold hover:text-white transition uppercase text-sm">Hủy</button>
                 <button type="submit" class="px-8 py-2.5 bg-white text-black rounded-xl font-black hover:bg-gray-200 transition uppercase text-sm">Cập nhật</button>
->>>>>>> main:SpringBoot/src/main/resources/templates/customer-management.html
             </div>
         </form>
     </div>
 </div>
 
 <script th:inline="javascript">
+    // Khởi tạo icons
     lucide.createIcons();
 
+    // Lọc bảng khách hàng
     function filterTable() {
         const searchText = document.getElementById('searchInput').value.toLowerCase();
         const statusValue = document.getElementById('statusFilter').value;
-<<<<<<< HEAD:SWP391-CinemaManagementSystem-Team6-anh/SpringBoot/src/main/resources/templates/customer-management.html
-        const rows = document.querySelectorAll('tbody tr');
-=======
         const rows = document.querySelectorAll('#customerTableBody tr');
->>>>>>> main:SpringBoot/src/main/resources/templates/customer-management.html
 
         rows.forEach(row => {
             const name = row.cells[1].innerText.toLowerCase();
@@ -241,6 +140,7 @@
         });
     }
 
+    // Đưa dữ liệu vào modal để chỉnh sửa
     function prepareEdit(c) {
         document.getElementById('form-id').value = c.user_id;
         document.getElementById('form-name').value = c.full_name;
@@ -249,32 +149,17 @@
 
         const modal = document.getElementById('customerModal');
         modal.classList.remove('hidden');
-<<<<<<< HEAD:SWP391-CinemaManagementSystem-Team6-anh/SpringBoot/src/main/resources/templates/customer-management.html
-        // Thêm animation scale nhẹ
-        modal.querySelector('div').classList.add('scale-100');
     }
 
-    function closeModal() {
-        const modal = document.getElementById('customerModal');
-        modal.classList.add('hidden');
-        modal.querySelector('div').classList.remove('scale-100');
-    }
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('customerModal');
-        if (event.target == modal) {
-            closeModal();
-        }
-=======
-    }
-
+    // Đóng modal
     function closeModal() {
         document.getElementById('customerModal').classList.add('hidden');
     }
 
+    // Đóng modal khi click ra vùng ngoài
     window.onclick = function(e) {
-        if (e.target == document.getElementById('customerModal')) closeModal();
->>>>>>> main:SpringBoot/src/main/resources/templates/customer-management.html
+        const modal = document.getElementById('customerModal');
+        if (e.target === modal) closeModal();
     }
 </script>
 </body>

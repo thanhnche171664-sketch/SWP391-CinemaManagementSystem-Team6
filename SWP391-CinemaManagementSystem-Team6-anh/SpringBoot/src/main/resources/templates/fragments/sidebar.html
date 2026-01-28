@@ -12,10 +12,16 @@
            href="#">Tổng quan</a>
 
         <a th:classappend="${active == 'movies'} ? 'active'"
-           href="#">Quản lý phim</a>
+           th:href="@{/admin/movies}">Quản lý phim</a>
 
         <a th:classappend="${active == 'branches'} ? 'active'"
            th:href="@{/branches}">Quản lý rạp</a>
+
+        <a th:classappend="${active == 'staff'} ? 'active'"
+           th:href="@{/admin/staff}">Quản lý nhân viên</a>
+
+        <a th:classappend="${active == 'customers'} ? 'active'"
+           th:href="@{/admin/customers}">Quản lý khách hàng</a>
 
         <a th:classappend="${active == 'shows'} ? 'active'"
            href="#">Quản lý suất chiếu</a>

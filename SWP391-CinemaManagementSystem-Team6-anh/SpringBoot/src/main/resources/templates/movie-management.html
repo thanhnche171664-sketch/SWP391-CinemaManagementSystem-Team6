@@ -9,7 +9,7 @@
 <body>
 
 <div class="layout">
-    <div th:replace="sidebar :: sidebar('movies')"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar('movies')}"></div>
 
     <main class="content">
         <div class="header">
