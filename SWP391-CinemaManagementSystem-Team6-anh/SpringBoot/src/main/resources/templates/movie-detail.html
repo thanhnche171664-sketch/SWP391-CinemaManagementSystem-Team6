@@ -62,7 +62,17 @@
                 <div class="mt-4" th:if="${movie.trailerUrl}">
                     <h5>Trailer</h5>
                     <div class="ratio ratio-16x9">
-                        <iframe th:src="${movie.trailerUrl}" allowfullscreen></iframe>
+                        <iframe
+                                th:with="
+                baseUrl=${#strings.replace(movie.trailerUrl, 'watch?v=', 'embed/')},
+                cleanUrl=${#strings.contains(baseUrl, '&') ? #strings.substringBefore(baseUrl, '&') : baseUrl}
+            "
+                                th:src="${cleanUrl}"
+                                title="YouTube video player"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                        </iframe>
                     </div>
                 </div>
 
