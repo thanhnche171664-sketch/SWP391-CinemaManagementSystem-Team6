@@ -48,7 +48,6 @@
 
             <select id="roleFilter" onchange="filterTable()" class="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white cursor-pointer">
                 <option value="">Tất cả chức vụ</option>
-                <option value="ADMIN">ADMIN</option>
                 <option value="MANAGER">MANAGER</option>
                 <option value="STAFF">STAFF</option>
             </select>
@@ -146,7 +145,6 @@
                     <select th:field="*{role}" id="form-role" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
                         <option value="STAFF">STAFF</option>
                         <option value="MANAGER">MANAGER</option>
-                        <option value="ADMIN">ADMIN</option>
                     </select>
                 </div>
                 <div>
@@ -225,7 +223,6 @@
         document.getElementById('staffModal').classList.add('hidden');
     }
 
-    // Đóng modal khi click ra ngoài
     window.onclick = function(event) {
         const modal = document.getElementById('staffModal');
         if (event.target == modal) {

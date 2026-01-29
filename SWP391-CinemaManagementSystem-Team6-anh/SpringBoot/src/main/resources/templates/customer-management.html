@@ -119,10 +119,8 @@
 </div>
 
 <script th:inline="javascript">
-    // Khởi tạo icons
     lucide.createIcons();
 
-    // Lọc bảng khách hàng
     function filterTable() {
         const searchText = document.getElementById('searchInput').value.toLowerCase();
         const statusValue = document.getElementById('statusFilter').value;
@@ -140,7 +138,6 @@
         });
     }
 
-    // Đưa dữ liệu vào modal để chỉnh sửa
     function prepareEdit(c) {
         document.getElementById('form-id').value = c.user_id;
         document.getElementById('form-name').value = c.full_name;
@@ -151,12 +148,10 @@
         modal.classList.remove('hidden');
     }
 
-    // Đóng modal
     function closeModal() {
         document.getElementById('customerModal').classList.add('hidden');
     }
 
-    // Đóng modal khi click ra vùng ngoài
     window.onclick = function(e) {
         const modal = document.getElementById('customerModal');
         if (e.target === modal) closeModal();
