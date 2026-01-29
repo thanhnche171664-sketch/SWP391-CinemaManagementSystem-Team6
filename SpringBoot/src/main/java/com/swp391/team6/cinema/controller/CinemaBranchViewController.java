@@ -69,4 +69,10 @@ public class CinemaBranchViewController {
         return "branch-list";
     }
 
+    @GetMapping("/toggle-status/{id}")
+    public String toggleBranchStatus(@PathVariable Long id) {
+        cinemaBranchService.toggleStatus(id);
+        return "redirect:/branches";
+    }
+
 }

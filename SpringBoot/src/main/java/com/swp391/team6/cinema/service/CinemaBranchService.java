@@ -55,4 +55,17 @@ public class CinemaBranchService {
                         keyword, keyword
                 );
     }
+
+    public void toggleStatus(Long id) {
+        CinemaBranch branch = cinemaBranchRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Branch not found"));
+
+        if (branch.getStatus() == CinemaBranch.BranchStatus.active) {
+            branch.setStatus(CinemaBranch.BranchStatus.inactive);
+        } else {
+            branch.setStatus(CinemaBranch.BranchStatus.active);
+        }
+
+        cinemaBranchRepository.save(branch);
+    }
 }
