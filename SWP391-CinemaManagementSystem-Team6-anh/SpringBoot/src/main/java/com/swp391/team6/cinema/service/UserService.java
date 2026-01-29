@@ -24,7 +24,6 @@ public class UserService {
 
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
-                User.UserRole.ADMIN,
                 User.UserRole.MANAGER,
                 User.UserRole.STAFF
         );

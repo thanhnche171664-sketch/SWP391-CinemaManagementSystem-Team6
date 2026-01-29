@@ -17,7 +17,7 @@ public class StaffController {
     @GetMapping
     public String showStaffPage(Model model) {
         model.addAttribute("staffList", userService.findAllStaff());
-        model.addAttribute("branches", userService.findAllBranches()); // Thêm dòng này
+        model.addAttribute("branches", userService.findAllBranches());
         model.addAttribute("newStaff", new StaffDTO());
         return "staff-management";
     }
