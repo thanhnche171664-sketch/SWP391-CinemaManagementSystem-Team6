@@ -1,14 +1,62 @@
+# Server Configuration
+server:
+  port: 8080
+
 spring:
+  # Database Configuration
   datasource:
-    url: jdbc:mysql://localhost:3306/cinema_db
+    url: jdbc:mysql://localhost:3306/cinemadb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: Danhviptb12
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # JPA Configuration
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
-server:
-  port: 8080
+  # Email Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: thanhnche171664@fpt.edu.vn
+    password: mggu virp mfxv levq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # OAuth2 Google Configuration
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 264245226222-cjk7tg1ns7it42g9nob13jbroqj61ffn.apps.googleusercontent.com
+            client-secret: GOCSPX-_ZfeWy83YGj5Td2bpqX60v_7XQB
+            scope: profile,email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Google
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.swp391.team6: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Application URL
+app:
+  url: http://localhost:8080

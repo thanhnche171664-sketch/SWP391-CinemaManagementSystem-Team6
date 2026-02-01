@@ -1,0 +1,450 @@
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-blue: #00A9FF;
+    --success-color: #48bb78;
+    --error-color: #f56565;
+    --warning-color: #f59e0b;
+    --text-dark: #1a202c;
+    --text-light: #718096;
+    --bg-light: #f7fafc;
+    --border-color: #e2e8f0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4A90E2 0%, #7B68EE 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Page Layout */
+.forgot-page {
+    width: 100%;
+    padding: 20px;
+}
+
+.forgot-container {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.back-button {
+    margin-bottom: 20px;
+}
+
+.back-button a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.back-button a:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-4px);
+}
+
+/* Card */
+.forgot-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.forgot-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-light);
+    border-radius: 50%;
+}
+
+.forgot-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.forgot-header p {
+    font-size: 14px;
+    color: var(--text-light);
+    line-height: 1.5;
+}
+
+/* Timer */
+.timer-wrapper {
+    margin-top: 16px;
+    padding: 12px 20px;
+    background: #fff3cd;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.timer-text {
+    font-size: 14px;
+    color: #856404;
+}
+
+.timer {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--error-color);
+    font-family: 'Courier New', monospace;
+    min-width: 32px;
+    text-align: center;
+}
+
+.timer.expired {
+    color: #dc3545;
+}
+
+/* Alerts */
+.alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.alert-error {
+    background: #fff5f5;
+    color: var(--error-color);
+    border-left: 4px solid var(--error-color);
+}
+
+.alert-success {
+    background: #f0fff4;
+    color: var(--success-color);
+    border-left: 4px solid var(--success-color);
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    pointer-events: none;
+    z-index: 1;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 14px 52px 14px 48px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 169, 255, 0.1);
+}
+
+/* OTP Inputs */
+.otp-inputs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.otp-input {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.otp-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 169, 255, 0.1);
+}
+
+.otp-input.filled {
+    border-color: var(--success-color);
+    background: #f0fff4;
+}
+
+/* Toggle Password */
+.toggle-password {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+
+.toggle-password:hover {
+    color: var(--primary-blue);
+}
+
+/* Buttons */
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 16px;
+}
+
+.btn-submit:hover {
+    background: #0098e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 169, 255, 0.3);
+}
+
+.btn-submit:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-resend {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: var(--text-dark);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 16px;
+}
+
+.btn-resend:hover:not(:disabled) {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+}
+
+.btn-resend:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Links */
+.login-link {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.login-link a {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Modal (reuse from register) */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-light);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: var(--text-light);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+}
+
+.modal-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.modal-body {
+    padding: 30px 24px;
+    text-align: center;
+}
+
+.modal-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.modal-body p {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-dark);
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    background: var(--bg-light);
+}
+
+.btn-modal {
+    padding: 10px 24px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-modal:hover {
+    background: #0098e6;
+}
+
+.modal-content.modal-error .modal-header {
+    background: #fff5f5;
+}
+
+.modal-content.modal-error .btn-modal {
+    background: var(--error-color);
+}
+
+.modal-content.modal-success .modal-header {
+    background: #f0fff4;
+}
+
+.modal-content.modal-success .btn-modal {
+    background: var(--success-color);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .forgot-card {
+        padding: 30px 20px;
+    }
+
+    .otp-input {
+        width: 45px;
+        height: 55px;
+        font-size: 20px;
+    }
+
+    .otp-inputs {
+        gap: 8px;
+    }
+}
