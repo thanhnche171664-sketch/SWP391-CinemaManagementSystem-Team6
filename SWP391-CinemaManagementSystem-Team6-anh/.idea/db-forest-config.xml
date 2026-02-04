@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="db-tree-configuration">
-<<<<<<< HEAD:SWP391-CinemaManagementSystem-Team6-anh/.idea/db-forest-config.xml
-    <option name="data" value="----------------------------------------&#10;1:0:878a6904-5b68-4b66-85c6-2397bec68979&#10;" />
-=======
-    <option name="data" value="----------------------------------------&#10;1:0:ab8cae92-a325-4fdf-9ade-5c430526940c&#10;2:0:ea44ac05-f815-4487-9fa8-efb891930a71&#10;" />
->>>>>>> main:.idea/db-forest-config.xml
+    <option name="data" value="----------------------------------------&#10;1:0:ab8cae92-a325-4fdf-9ade-5c430526940c&#10;" />
   </component>
 </project>
