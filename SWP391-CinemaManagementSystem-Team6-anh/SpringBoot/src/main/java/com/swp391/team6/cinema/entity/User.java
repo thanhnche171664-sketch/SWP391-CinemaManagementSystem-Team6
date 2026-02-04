@@ -44,6 +44,9 @@ public class User {
     @Column(name = "status")
     private UserStatus status = UserStatus.active;
 
+    @Column(name = "is_verify")
+    private Boolean isVerify = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
