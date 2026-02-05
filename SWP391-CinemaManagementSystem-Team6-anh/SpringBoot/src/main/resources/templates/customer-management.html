@@ -85,39 +85,39 @@
 
 <div id="customerModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
     <div class="bg-[#111] border border-[#333] rounded-3xl p-8 w-full max-w-lg shadow-2xl transition-all">
-        <h2 class="text-2xl font-bold mb-6 text-white border-b border-[#222] pb-4 uppercase tracking-tighter">Cập nhật Khách hàng</h2>
+        <h2 class="text-2xl font-bold mb-6 text-white border-b border-[#222] pb-4 uppercase tracking-tighter">Cập nhật Trạng thái</h2>
         <form th:action="@{/admin/customers/update}" th:object="${editedCustomer}" method="POST" class="space-y-6">
             <input type="hidden" th:field="*{user_id}" id="form-id">
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Họ tên khách hàng</label>
-                <input type="text" th:field="*{full_name}" id="form-name" required
-                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white transition">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Họ tên khách hàng (Chỉ xem)</label>
+                <input type="text" th:field="*{full_name}" id="form-name" readonly
+                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-gray-500 outline-none cursor-not-allowed opacity-60">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Số điện thoại</label>
-                <input type="text" th:field="*{phone}" id="form-phone" required
-                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white transition">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Số điện thoại (Chỉ xem)</label>
+                <input type="text" th:field="*{phone}" id="form-phone" readonly
+                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-gray-500 outline-none cursor-not-allowed opacity-60">
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Trạng thái tài khoản</label>
                 <select th:field="*{status}" id="form-status"
-                        class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white transition cursor-pointer">
+                        class="w-full bg-[#1a1a1a] border border-white rounded-xl p-3 text-white outline-none focus:ring-2 focus:ring-blue-500 transition cursor-pointer">
                     <option value="active">Hoạt động</option>
                     <option value="inactive">Tạm khóa</option>
                 </select>
+                <p class="text-[10px] text-blue-400 mt-2 italic">* Đây là trường duy nhất bạn có quyền thay đổi.</p>
             </div>
 
             <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-[#222]">
                 <button type="button" onclick="closeModal()" class="px-6 py-2.5 text-gray-400 font-bold hover:text-white transition uppercase text-sm">Hủy</button>
-                <button type="submit" class="px-8 py-2.5 bg-white text-black rounded-xl font-black hover:bg-gray-200 transition uppercase text-sm">Cập nhật</button>
+                <button type="submit" class="px-8 py-2.5 bg-blue-600 text-white rounded-xl font-black hover:bg-blue-700 transition uppercase text-sm shadow-lg shadow-blue-900/20">Xác nhận thay đổi</button>
             </div>
         </form>
     </div>
 </div>
-
 <script th:inline="javascript">
     lucide.createIcons();
 

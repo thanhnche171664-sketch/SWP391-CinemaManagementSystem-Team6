@@ -122,8 +122,6 @@ public class UserService {
     public void updateCustomer(CustomerDTO dto) {
         User customer = userRepository.findById(dto.getUser_id())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-        customer.setFullName(dto.getFull_name());
-        customer.setPhone(dto.getPhone());
         customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
         userRepository.save(customer);
     }
