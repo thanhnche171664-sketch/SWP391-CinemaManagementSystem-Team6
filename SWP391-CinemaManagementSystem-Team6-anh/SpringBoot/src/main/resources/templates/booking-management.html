@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý đặt vé - Cinema System</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<div class="layout">
+    <div th:replace="~{fragments/sidebar :: sidebar('tickets')}"></div>
+
+    <main class="content">
+        <div class="header">
+            <div>
+                <h1>Danh sách đặt vé</h1>
+                <p>Toàn bộ giao dịch đặt vé theo hệ thống/chi nhánh.</p>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="search-box has-icon">
+                <span class="search-icon">
+                    <i data-lucide="search"></i>
+                </span>
+                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm theo khách hàng hoặc phim...">
+            </div>
+
+            <select id="statusFilter" onchange="filterTable()" class="filter-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="pending">pending</option>
+                <option value="paid">paid</option>
+                <option value="cancelled">cancelled</option>
+            </select>
+        </div>
+
+        <div class="table-card">
+            <table class="data-table" id="bookingTable">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Thời gian</th>
+                    <th>Khách hàng</th>
+                    <th>Phim</th>
+                    <th>Suất chiếu</th>
+                    <th>Chi nhánh</th>
+                    <th>Trạng thái</th>
+                    <th>Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th class="text-right">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${bookingList}">
+                    <td class="mono text-muted" th:text="${b.bookingId}"></td>
+                    <td th:text="${#temporals.format(b.bookingTime, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                        <div class="font-bold" th:text="${b.customerName}"></div>
+                        <div class="text-muted" th:text="${b.customerEmail}"></div>
+                    </td>
+                    <td th:text="${b.movieTitle}"></td>
+                    <td th:text="${#temporals.format(b.showtimeStart, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${b.branchName}"></td>
+                    <td>
+                        <span class="status-badge" th:classappend="' status-' + ${b.status}"
+                              th:text="${b.status}"></span>
+                    </td>
+                    <td th:text="${b.totalAmount} + ' VND'"></td>
+                    <td>
+                        <div th:if="${b.paymentStatus != null}">
+                            <div th:text="${b.paymentMethod} + ' / ' + ${b.paymentStatus}"></div>
+                            <div class="text-muted" th:text="${b.paymentAmount} + ' VND'"></div>
+                        </div>
+                        <span th:if="${b.paymentStatus == null}" class="text-muted">Chưa thanh toán</span>
+                    </td>
+                    <td class="text-right">
+                        <a th:href="@{'/admin/bookings/' + ${b.bookingId}}" class="icon-btn">
+                            <i data-lucide="eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    lucide.createIcons();
+
+    function filterTable() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const statusValue = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('#bookingTable tbody tr');
+
+        rows.forEach(row => {
+            const customer = row.cells[2].innerText.toLowerCase();
+            const movie = row.cells[3].innerText.toLowerCase();
+            const status = row.cells[6].innerText.trim();
+
+            const matchesSearch = customer.includes(searchText) || movie.includes(searchText);
+            const matchesStatus = statusValue === "" || status === statusValue;
+
+            row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+        });
+    }
+</script>
+</body>
+</html>
