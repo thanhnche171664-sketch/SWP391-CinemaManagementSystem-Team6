@@ -68,7 +68,7 @@
                         <span th:if="${movie.posterUrl == null}" class="empty-poster">No image</span>
                     </td>
                     <td th:text="${movie.title}"></td>
-                    <td class="text-muted" th:text="${movie.genre}"></td>
+                    <td class="text-muted" th:text="${movie.genreNames}"></td>
                     <td class="text-muted" th:text="${movie.duration} + ' phút'"></td>
                     <td class="text-muted" th:text="${movie.ageRating}"></td>
                     <td>
@@ -111,7 +111,9 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Thể loại</label>
-                    <input type="text" th:field="*{genre}" id="form-genre" class="form-input">
+                    <select multiple th:field="*{genreIds}" id="form-genres" class="form-select">
+                        <option th:each="g : ${genreList}" th:value="${g.genreId}" th:text="${g.genreName}"></option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Thời lượng (phút)</label>
@@ -176,6 +178,10 @@
         document.getElementById('modalTitle').innerText = "Thêm phim mới";
         document.getElementById('movieForm').reset();
         document.getElementById('form-id').value = "";
+        const genreSelect = document.getElementById('form-genres');
+        Array.from(genreSelect.options).forEach(option => {
+            option.selected = false;
+        });
         document.getElementById('movieModal').classList.remove('hidden');
     }
 
@@ -183,7 +189,11 @@
         document.getElementById('modalTitle').innerText = "Cập nhật phim";
         document.getElementById('form-id').value = movie.movieId;
         document.getElementById('form-title').value = movie.title || "";
-        document.getElementById('form-genre').value = movie.genre || "";
+        const genreSelect = document.getElementById('form-genres');
+        const selectedIds = (movie.genreIds || []).map(String);
+        Array.from(genreSelect.options).forEach(option => {
+            option.selected = selectedIds.includes(option.value);
+        });
         document.getElementById('form-duration').value = movie.duration || "";
         document.getElementById('form-ageRating').value = movie.ageRating || "";
         document.getElementById('form-status').value = movie.status || "upcoming";

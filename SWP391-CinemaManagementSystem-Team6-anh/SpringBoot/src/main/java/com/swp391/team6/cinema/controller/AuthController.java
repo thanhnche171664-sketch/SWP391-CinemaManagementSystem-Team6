@@ -5,6 +5,11 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -58,6 +64,18 @@ public class AuthController {
         User user = (User) result.get("user");
         session.setAttribute("loggedInUser", user);
         session.setAttribute("userRole", user.getRole().toString());
+        
+        // Đồng bộ SecurityContext để qua được Spring Security filter
+        List<SimpleGrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+        );
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
         
         redirectAttributes.addFlashAttribute("success", message);
         
