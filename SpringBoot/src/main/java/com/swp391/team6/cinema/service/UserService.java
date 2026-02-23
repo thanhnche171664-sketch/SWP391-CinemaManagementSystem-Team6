@@ -15,4 +15,23 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
+
+    public void updateProfile(User updatedUser) {
+        User user = userRepository.findById(updatedUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Nếu email thay đổi → check trùng
+        if (!user.getEmail().equals(updatedUser.getEmail())) {
+            if (userRepository.existsByEmail(updatedUser.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+            user.setEmail(updatedUser.getEmail());
+        }
+
+        user.setFullName(updatedUser.getFullName());
+        user.setPhone(updatedUser.getPhone());
+
+        userRepository.save(user);
+    }
+
 }
