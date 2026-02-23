@@ -67,18 +67,22 @@ public class UserService {
             user = userRepository.findById(dto.getUser_id()).orElse(new User());
         } else {
             user = new User();
-            user.setPasswordHash("123456");
+            user.setPasswordHash(passwordEncoder.encode("123456"));
         }
 
         user.setFullName(dto.getFull_name());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
-        user.setRole(User.UserRole.valueOf(dto.getRole()));
+        User.UserRole role = User.UserRole.valueOf(dto.getRole());
+        user.setRole(role);
         user.setBranchId(dto.getBranch_id());
         user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
+        if (role != User.UserRole.CUSTOMER && (user.getIsVerify() == null || !user.getIsVerify())) {
+            user.setIsVerify(true);
+        }
 
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            user.setPasswordHash(dto.getPassword());
+            user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         }
 
         userRepository.save(user);
@@ -144,15 +148,31 @@ public class UserService {
         
         User user = userOptional.get();
         
-        // Kiểm tra password
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+        // Kiểm tra password (hỗ trợ legacy plain text)
+        String rawPassword = password == null ? "" : password;
+        String storedPassword = user.getPasswordHash();
+        boolean passwordMatches = false;
+        if (storedPassword != null) {
+            passwordMatches = passwordEncoder.matches(rawPassword, storedPassword);
+            if (!passwordMatches && storedPassword.equals(rawPassword)) {
+                passwordMatches = true;
+                user.setPasswordHash(passwordEncoder.encode(rawPassword));
+                if (user.getRole() != User.UserRole.CUSTOMER &&
+                    (user.getIsVerify() == null || !user.getIsVerify())) {
+                    user.setIsVerify(true);
+                }
+                userRepository.save(user);
+            }
+        }
+        if (!passwordMatches) {
             result.put("success", false);
             result.put("message", "Mật khẩu không chính xác!");
             return result;
         }
         
-        // Kiểm tra tài khoản chưa verify
-        if (user.getIsVerify() == null || !user.getIsVerify()) {
+        // Kiểm tra tài khoản chưa verify (chỉ áp dụng cho CUSTOMER)
+        if (user.getRole() == User.UserRole.CUSTOMER &&
+            (user.getIsVerify() == null || !user.getIsVerify())) {
             result.put("success", false);
             result.put("message", "Tài khoản chưa được xác thực! Vui lòng kiểm tra email để verify.");
             return result;

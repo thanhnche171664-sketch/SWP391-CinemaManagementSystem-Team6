@@ -51,7 +51,7 @@
                         <h5 class="card-title" th:text="${movie.title}">Movie Title</h5>
                         <p class="card-text" th:text="${movie.description}">Movie description...</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-secondary" th:text="${movie.genre}">Genre</span>
+                            <span class="badge bg-secondary" th:text="${movie.genreNames}">Genre</span>
                             <span class="text-muted" th:text="${movie.duration} + ' min'">120 min</span>
                         </div>
                     </div>

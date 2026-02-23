@@ -1,6 +1,7 @@
 package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.dto.MovieDTO;
+import com.swp391.team6.cinema.service.GenreService;
 import com.swp391.team6.cinema.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -19,12 +20,14 @@ import java.util.List;
 public class MovieManagementController {
 
     private final MovieService movieService;
+    private final GenreService genreService;
 
     @GetMapping
     public String list(Model model) {
         List<MovieDTO> movies = movieService.getAllMovies(true);
         model.addAttribute("movieList", movies);
         model.addAttribute("newMovie", new MovieDTO());
+        model.addAttribute("genreList", genreService.getAllGenres());
         return "movie-management";
     }
 
