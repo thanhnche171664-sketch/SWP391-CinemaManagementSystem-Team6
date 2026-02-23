@@ -14,6 +14,9 @@
         <a th:classappend="${active == 'movies'} ? 'active'"
            th:href="@{/admin/movies}">Quản lý phim</a>
 
+        <a th:classappend="${active == 'genres'} ? 'active'"
+           th:href="@{/admin/genres}">Quản lý thể loại</a>
+
         <a th:classappend="${active == 'branches'} ? 'active'"
            th:href="@{/branches}">Quản lý rạp</a>
 

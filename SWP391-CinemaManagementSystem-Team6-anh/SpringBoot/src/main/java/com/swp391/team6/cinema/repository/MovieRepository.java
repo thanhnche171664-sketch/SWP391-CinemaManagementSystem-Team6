@@ -16,8 +16,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT m FROM Movie m WHERE m.title LIKE %:keyword%")
     List<Movie> searchByTitle(@Param("keyword") String keyword);
     
-    List<Movie> findByGenre(String genre);
-
     List<Movie> findByIsHiddenFalse();
 
     List<Movie> findByStatusAndIsHiddenFalse(Movie.MovieStatus status);
