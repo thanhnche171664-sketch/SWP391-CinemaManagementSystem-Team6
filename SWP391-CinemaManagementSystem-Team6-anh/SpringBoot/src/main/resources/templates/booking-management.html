@@ -52,7 +52,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="b : ${bookingList}">
+                <tr th:each="b : ${bookingList}"
+                    th:attr="data-status=${#strings.toLowerCase(b.status)},
+                             data-customer=${b.customerName != null ? #strings.toLowerCase(b.customerName) : ''},
+                             data-movie=${b.movieTitle != null ? #strings.toLowerCase(b.movieTitle) : ''}">
                     <td class="mono text-muted" th:text="${b.bookingId}"></td>
                     <td th:text="${#temporals.format(b.bookingTime, 'dd/MM/yyyy HH:mm')}"></td>
                     <td>
@@ -95,9 +98,9 @@
         const rows = document.querySelectorAll('#bookingTable tbody tr');
 
         rows.forEach(row => {
-            const customer = row.cells[2].innerText.toLowerCase();
-            const movie = row.cells[3].innerText.toLowerCase();
-            const status = row.cells[6].innerText.trim();
+            const customer = row.dataset.customer || "";
+            const movie = row.dataset.movie || "";
+            const status = row.dataset.status || "";
 
             const matchesSearch = customer.includes(searchText) || movie.includes(searchText);
             const matchesStatus = statusValue === "" || status === statusValue;
