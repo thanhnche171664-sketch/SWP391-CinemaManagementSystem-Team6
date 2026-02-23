@@ -22,9 +22,12 @@
             <a class="btn-add" href="/branches/new">+ Thêm rạp mới</a>
         </header>
 
-        <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm rạp...">
-        </div>
+        <form class="search-box" th:action="@{/branches/search}" method="get">
+            <input type="text"
+                   name="keyword"
+                   placeholder="Tìm kiếm theo tên rạp"
+                   th:value="${keyword}">
+        </form>
 
         <div class="branch-list">
 
@@ -32,13 +35,34 @@
 
                 <div class="branch-header">
                     <div>
-                        <h2 th:text="${branch.branchName}">CGV Vincom</h2>
+                        <h2 th:text="${branch.branchName}">Tên rạp</h2>
+                        <p th:text="${branch.city}">Thành phố</p>
                         <p th:text="${branch.address}">Địa chỉ</p>
+
+                        <span class="status"
+                              th:classappend="${branch.status.name() == 'active'
+                                  ? 'active' : 'inactive'}"
+                              th:text="${branch.status.name() == 'active'
+                                  ? 'Đang hoạt động'
+                                  : 'Ngưng hoạt động'}">
+                        </span>
                     </div>
 
                     <div class="actions">
-                        <a th:href="@{/branches/edit/{id}(id=${branch.branchId})}">✏️</a>
-                        <a th:href="@{/branches/delete/{id}(id=${branch.branchId})}" class="danger">🗑️</a>
+
+                        <a th:href="@{/branches/edit/{id}(id=${branch.branchId})}"
+                           title="Chỉnh sửa" style="color:#aaa">Chỉnh sửa</a>
+
+                        <a th:href="@{/branches/toggle-status/{id}(id=${branch.branchId})}"
+                           th:title="${branch.status.name() == 'active'
+                               ? 'Ngưng hoạt động'
+                               : 'Kích hoạt'}"
+                           th:text="${branch.status.name() == 'active'
+                               ? '🚫'
+                               : '✅'}"
+                           class="status-btn">
+                        </a>
+
                     </div>
                 </div>
 
@@ -50,15 +74,15 @@
                             <span th:text="${room.totalSeats}">0</span> ghế
                         </p>
                     </div>
+
+                    <p th:if="${#lists.isEmpty(branch.rooms)}"
+                       style="color:#aaa;margin-top:10px">
+                        Chưa có phòng chiếu
+                    </p>
                 </div>
-
-
             </div>
-
         </div>
-
     </main>
-
 </div>
 
 </body>

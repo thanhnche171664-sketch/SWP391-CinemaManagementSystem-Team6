@@ -7,10 +7,10 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,54 +18,42 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CinemaBranchRepository branchRepository;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
                 User.UserRole.MANAGER,
                 User.UserRole.STAFF
         );
-
-        List<User> users = userRepository.findByRoleIn(staffRoles);
-
-        return users.stream()
+        return userRepository.findByRoleIn(staffRoles).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    private StaffDTO convertToDTO(User user) {
-        StaffDTO dto = new StaffDTO();
-
-        dto.setUser_id(user.getUserId());
-        dto.setFull_name(user.getFullName());
-        dto.setEmail(user.getEmail());
-        dto.setPhone(user.getPhone());
-
-        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
-        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
-
-        if (user.getBranch() != null) {
-            dto.setBranch_id(user.getBranch().getBranchId());
-            dto.setBranch_name(user.getBranch().getBranchName());
-        } else {
-            dto.setBranch_name("Toàn hệ thống");
-        }
-
-        dto.setCreated_at(user.getCreatedAt());
-
-        return dto;
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
     }
+
+    public void updateProfile(User updatedUser){
+            User user = userRepository.findById(updatedUser.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        }
 
     public void saveStaff(StaffDTO dto) {
         User user;
         if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id()).orElse(new User());
+            user = userRepository.findById(dto.getUser_id())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+
+            if (!user.getRole().equals(User.UserRole.ADMIN) && "ADMIN".equals(dto.getRole())) {
+                throw new RuntimeException("Không được phép nâng cấp lên quyền ADMIN");
+            }
         } else {
+            if ("ADMIN".equals(dto.getRole())) {
+                throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
+            }
             user = new User();
             user.setPasswordHash("123456");
         }
@@ -100,9 +88,26 @@ public class UserService {
         return branchRepository.findAll();
     }
 
+    private StaffDTO convertToDTO(User user) {
+        StaffDTO dto = new StaffDTO();
+        dto.setUser_id(user.getUserId());
+        dto.setFull_name(user.getFullName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
+        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
+        if (user.getBranch() != null) {
+            dto.setBranch_id(user.getBranch().getBranchId());
+            dto.setBranch_name(user.getBranch().getBranchName());
+        } else {
+            dto.setBranch_name("Toàn hệ thống");
+        }
+        dto.setCreated_at(user.getCreatedAt());
+        return dto;
+    }
+
     public List<CustomerDTO> findAllCustomers() {
         List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
-
         return userRepository.findByRoleIn(roles).stream()
                 .map(this::convertToCustomerDTO)
                 .collect(Collectors.toList());
@@ -126,56 +131,5 @@ public class UserService {
         customer.setPhone(dto.getPhone());
         customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
         userRepository.save(customer);
-    }
-    
-    /**
-     * Xác thực đăng nhập
-     * @return Map chứa: success (boolean), message (String), user (User nếu thành công)
-     */
-    public Map<String, Object> authenticateUser(String email, String password) {
-        Map<String, Object> result = new HashMap<>();
-        
-        // Tìm user theo email
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        
-        if (userOptional.isEmpty()) {
-            result.put("success", false);
-            result.put("message", "Email không tồn tại!");
-            return result;
-        }
-        
-        User user = userOptional.get();
-        
-        // Kiểm tra password
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-            result.put("success", false);
-            result.put("message", "Mật khẩu không chính xác!");
-            return result;
-        }
-        
-        // Kiểm tra tài khoản chưa verify
-        if (user.getIsVerify() == null || !user.getIsVerify()) {
-            result.put("success", false);
-            result.put("message", "Tài khoản chưa được xác thực! Vui lòng kiểm tra email để verify.");
-            return result;
-        }
-        
-        // Kiểm tra tài khoản bị khóa
-        if (user.getStatus() == User.UserStatus.inactive) {
-            result.put("success", false);
-            result.put("message", "Tài khoản đã bị khóa bởi Admin. Vui lòng liên hệ hỗ trợ.");
-            return result;
-        }
-        
-        // Đăng nhập thành công
-        result.put("success", true);
-        result.put("message", "Đăng nhập thành công!");
-        result.put("user", user);
-        
-        return result;
-    }
-    
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
     }
 }
