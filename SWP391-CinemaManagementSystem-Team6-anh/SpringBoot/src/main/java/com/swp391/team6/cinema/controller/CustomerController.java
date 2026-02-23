@@ -1,8 +1,10 @@
 package com.swp391.team6.cinema.controller;
 
 
+import com.swp391.team6.cinema.dto.BookingDTO;
 import com.swp391.team6.cinema.dto.CustomerDTO;
 import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.repository.UserRepository;
 import com.swp391.team6.cinema.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin/customers")
 public class CustomerController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public String list(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
@@ -41,5 +47,11 @@ public class CustomerController {
     public String toggle(@PathVariable Long id) {
         userService.toggleStatus(id);
         return "redirect:/admin/customers";
+    }
+
+    @GetMapping("/api/bookings/{id}")
+    @ResponseBody
+    public List<BookingDTO> getCustomerBookingsApi(@PathVariable Long id) {
+        return userService.findBookingsByCustomerId(id);
     }
 }

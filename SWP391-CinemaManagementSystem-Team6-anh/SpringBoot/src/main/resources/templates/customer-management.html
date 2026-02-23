@@ -15,6 +15,8 @@
             color: #bbb; text-decoration: none; border-radius: 8px;
         }
         .sidebar nav a.active, .sidebar nav a:hover { background: #fff; color: #000; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -66,15 +68,30 @@
                     </td>
                     <td class="p-4 text-gray-400 text-sm" th:text="${#temporals.format(c.created_at, 'dd/MM/yyyy')}"></td>
                     <td class="p-4">
-                        <a th:href="@{'/admin/customers/toggle/' + ${c.user_id}}" class="inline-flex items-center gap-2 group">
+                        <div class="inline-flex items-center gap-2">
                             <span th:class="${c.status == 'active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'} + ' w-2 h-2 rounded-full'"></span>
-                            <span th:text="${c.status == 'active' ? 'Hoạt động' : 'Tạm khóa'}" class="text-sm font-medium text-gray-300 group-hover:text-white transition"></span>
-                        </a>
+                            <span th:text="${c.status == 'active' ? 'Hoạt động' : 'Tạm khóa'}" class="text-sm font-medium text-gray-300"></span>
+                        </div>
                     </td>
                     <td class="p-4 text-right">
-                        <button type="button" th:onclick="prepareEdit([[${c}]])" class="text-gray-500 hover:text-white transition">
-                            <i data-lucide="edit-3" class="w-5 h-5"></i>
-                        </button>
+                        <div class="flex justify-end items-center gap-4">
+                            <button type="button"
+                                    th:data-id="${c.user_id}"
+                                    th:data-name="${c.full_name}"
+                                    onclick="showHistory(this.getAttribute('data-id'), this.getAttribute('data-name'))"
+                                    class="text-gray-500 hover:text-blue-400 transition" title="Lịch sử đặt vé">
+                                <i data-lucide="ticket" class="w-5 h-5"></i>
+                            </button>
+
+                            <button type="button"
+                                    th:data-id="${c.user_id}"
+                                    th:data-name="${c.full_name}"
+                                    th:data-status="${c.status}"
+                                    onclick="handleEditClick(this)"
+                                    class="text-gray-500 hover:text-white transition" title="Sửa trạng thái">
+                                <i data-lucide="edit-3" class="w-5 h-5"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
@@ -84,40 +101,59 @@
 </div>
 
 <div id="customerModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
-    <div class="bg-[#111] border border-[#333] rounded-3xl p-8 w-full max-w-lg shadow-2xl transition-all">
+    <div class="bg-[#111] border border-[#333] rounded-3xl p-8 w-full max-w-lg shadow-2xl">
         <h2 class="text-2xl font-bold mb-6 text-white border-b border-[#222] pb-4 uppercase tracking-tighter">Cập nhật Trạng thái</h2>
         <form th:action="@{/admin/customers/update}" th:object="${editedCustomer}" method="POST" class="space-y-6">
             <input type="hidden" th:field="*{user_id}" id="form-id">
-
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Họ tên khách hàng (Chỉ xem)</label>
-                <input type="text" th:field="*{full_name}" id="form-name" readonly
-                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-gray-500 outline-none cursor-not-allowed opacity-60">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Họ tên khách hàng</label>
+                <input type="text" th:field="*{full_name}" id="form-name" readonly class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-gray-500 outline-none opacity-60">
             </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Số điện thoại (Chỉ xem)</label>
-                <input type="text" th:field="*{phone}" id="form-phone" readonly
-                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-gray-500 outline-none cursor-not-allowed opacity-60">
-            </div>
-
             <div>
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-widest">Trạng thái tài khoản</label>
-                <select th:field="*{status}" id="form-status"
-                        class="w-full bg-[#1a1a1a] border border-white rounded-xl p-3 text-white outline-none focus:ring-2 focus:ring-blue-500 transition cursor-pointer">
+                <select th:field="*{status}" id="form-status" class="w-full bg-[#1a1a1a] border border-white rounded-xl p-3 text-white outline-none cursor-pointer">
                     <option value="active">Hoạt động</option>
                     <option value="inactive">Tạm khóa</option>
                 </select>
-                <p class="text-[10px] text-blue-400 mt-2 italic">* Đây là trường duy nhất bạn có quyền thay đổi.</p>
             </div>
-
             <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-[#222]">
                 <button type="button" onclick="closeModal()" class="px-6 py-2.5 text-gray-400 font-bold hover:text-white transition uppercase text-sm">Hủy</button>
-                <button type="submit" class="px-8 py-2.5 bg-blue-600 text-white rounded-xl font-black hover:bg-blue-700 transition uppercase text-sm shadow-lg shadow-blue-900/20">Xác nhận thay đổi</button>
+                <button type="submit" class="px-8 py-2.5 bg-blue-600 text-white rounded-xl font-black hover:bg-blue-700 transition uppercase text-sm">Xác nhận</button>
             </div>
         </form>
     </div>
 </div>
+
+<div id="bookingHistoryModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[60]">
+    <div class="bg-[#111] border border-[#333] rounded-3xl p-8 w-full max-w-5xl shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center mb-6 border-b border-[#222] pb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-white uppercase tracking-tighter">Lịch sử giao dịch</h2>
+                <p class="text-blue-500 text-sm font-medium" id="historyCustomerName"></p>
+            </div>
+            <button onclick="closeHistoryModal()" class="text-gray-500 hover:text-white transition p-2">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="overflow-y-auto flex-1 pr-2 custom-scrollbar">
+            <table class="w-full text-left">
+                <thead class="sticky top-0 bg-[#111] border-b border-[#222] z-10">
+                <tr>
+                    <th class="p-4 text-gray-500 text-xs uppercase font-bold tracking-widest">Mã đơn</th>
+                    <th class="p-4 text-gray-500 text-xs uppercase font-bold tracking-widest">Phim & Rạp</th>
+                    <th class="p-4 text-gray-500 text-xs uppercase font-bold tracking-widest">Ghế</th>
+                    <th class="p-4 text-gray-500 text-xs uppercase font-bold tracking-widest text-right">Tổng tiền</th>
+                    <th class="p-4 text-gray-500 text-xs uppercase font-bold tracking-widest text-right">Ngày đặt</th>
+                </tr>
+                </thead>
+                <tbody id="bookingHistoryTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
     lucide.createIcons();
 
@@ -125,27 +161,65 @@
         const searchText = document.getElementById('searchInput').value.toLowerCase();
         const statusValue = document.getElementById('statusFilter').value;
         const rows = document.querySelectorAll('#customerTableBody tr');
-
         rows.forEach(row => {
             const name = row.cells[1].innerText.toLowerCase();
             const contact = row.cells[2].innerText.toLowerCase();
             const status = row.cells[4].innerText.trim();
-
             const matchesSearch = name.includes(searchText) || contact.includes(searchText);
             const matchesStatus = statusValue === "" || status.includes(statusValue);
-
             row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
         });
     }
 
-    function prepareEdit(c) {
-        document.getElementById('form-id').value = c.user_id;
-        document.getElementById('form-name').value = c.full_name;
-        document.getElementById('form-phone').value = c.phone;
-        document.getElementById('form-status').value = c.status;
+    async function showHistory(userId, fullName) {
+        document.getElementById('historyCustomerName').innerText = "Khách hàng: " + fullName;
+        const tableBody = document.getElementById('bookingHistoryTableBody');
 
-        const modal = document.getElementById('customerModal');
-        modal.classList.remove('hidden');
+        tableBody.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-gray-500 animate-pulse">Đang tải lịch sử giao dịch...</td></tr>';
+        document.getElementById('bookingHistoryModal').classList.remove('hidden');
+
+        try {
+            const response = await fetch(`/admin/customers/api/bookings/${userId}`);
+            const bookings = await response.json();
+
+            if (bookings.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-gray-600 italic">Khách hàng này chưa có đơn hàng nào.</td></tr>';
+            } else {
+                tableBody.innerHTML = bookings.map(b => `
+                    <tr class="border-b border-[#1a1a1a] hover:bg-[#161616] transition">
+                        <td class="p-4 font-mono text-blue-400 text-sm">#${b.booking_id}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-white">${b.movie_title}</div>
+                            <div class="text-[10px] text-gray-500 uppercase mt-1">${b.branch_name}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded border border-blue-500/20">${b.seat_names}</span>
+                        </td>
+                        <td class="p-4 font-bold text-green-500 text-right">${new Intl.NumberFormat().format(b.total_amount)} đ</td>
+                        <td class="p-4 text-right text-gray-500 text-xs font-mono">${b.booking_time.replace('T', ' ').substring(0, 16)}</td>
+                    </tr>
+                `).join('');
+            }
+        } catch (error) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-20 text-center text-red-500 text-sm">Không thể tải dữ liệu. Vui lòng thử lại sau!</td></tr>';
+        }
+        lucide.createIcons();
+    }
+
+    function closeHistoryModal() {
+        document.getElementById('bookingHistoryModal').classList.add('hidden');
+    }
+
+    // Hàm xử lý nút sửa: Nhận nguyên element để đọc data-attributes
+    function handleEditClick(btn) {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const status = btn.getAttribute('data-status');
+
+        document.getElementById('form-id').value = id;
+        document.getElementById('form-name').value = name;
+        document.getElementById('form-status').value = status;
+        document.getElementById('customerModal').classList.remove('hidden');
     }
 
     function closeModal() {
@@ -153,8 +227,8 @@
     }
 
     window.onclick = function(e) {
-        const modal = document.getElementById('customerModal');
-        if (e.target === modal) closeModal();
+        if (e.target.id === 'customerModal') closeModal();
+        if (e.target.id === 'bookingHistoryModal') closeHistoryModal();
     }
 </script>
 </body>
