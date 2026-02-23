@@ -1,10 +1,7 @@
 package com.swp391.team6.cinema.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +9,7 @@ import java.util.List;
 @Table(name = "users")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor 
 public class User {
 
     @Id
@@ -39,11 +36,15 @@ public class User {
     @Column(name = "branch_id")
     private Long branchId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", insertable = false, updatable = false)
+    private CinemaBranch branch;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private UserStatus status = UserStatus.active;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

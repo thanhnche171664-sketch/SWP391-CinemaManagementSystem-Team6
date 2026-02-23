@@ -12,4 +12,9 @@ public interface CinemaBranchRepository extends JpaRepository<CinemaBranch, Long
     List<CinemaBranch> findByCity(String city);
     
     List<CinemaBranch> findByStatus(CinemaBranch.BranchStatus status);
+
+    List<CinemaBranch> findByBranchNameContainingIgnoreCaseOrCityContainingIgnoreCase(
+            String branchName,
+            String city
+    );
 }

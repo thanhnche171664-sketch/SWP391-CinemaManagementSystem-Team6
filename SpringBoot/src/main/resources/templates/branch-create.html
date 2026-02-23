@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm rạp mới</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+</head>
+<body>
+
+<div class="layout">
+
+    <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
+
+    <main class="content">
+
+        <header class="header">
+            <div>
+                <h1>Thêm rạp chiếu mới</h1>
+                <p>Tạo mới rạp chiếu phim trong hệ thống</p>
+            </div>
+        </header>
+
+        <div class="form-wrapper">
+
+            <form th:action="@{/branches}"
+                  th:object="${branch}"
+                  method="post"
+                  class="branch-card form-card">
+
+                <div class="form-group">
+                    <label>Tên rạp</label>
+                    <input type="text"
+                           th:field="*{branchName}"
+                           placeholder="VD: CGV Vincom Quận 1"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Thành phố</label>
+                    <input type="text"
+                           th:field="*{city}"
+                           placeholder="VD: Hà Nội"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Địa chỉ</label>
+                    <input type="text"
+                           th:field="*{address}"
+                           placeholder="VD: 72 Lê Thánh Tôn, Quận 1"
+                           required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-add">Lưu rạp</button>
+                    <a href="/branches" class="btn-cancel">Hủy</a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>
