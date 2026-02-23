@@ -7,10 +7,10 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +21,9 @@ public class UserService {
     
     @Autowired
     private CinemaBranchRepository branchRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
@@ -123,5 +126,56 @@ public class UserService {
         customer.setPhone(dto.getPhone());
         customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
         userRepository.save(customer);
+    }
+    
+    /**
+     * Xác thực đăng nhập
+     * @return Map chứa: success (boolean), message (String), user (User nếu thành công)
+     */
+    public Map<String, Object> authenticateUser(String email, String password) {
+        Map<String, Object> result = new HashMap<>();
+        
+        // Tìm user theo email
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        
+        if (userOptional.isEmpty()) {
+            result.put("success", false);
+            result.put("message", "Email không tồn tại!");
+            return result;
+        }
+        
+        User user = userOptional.get();
+        
+        // Kiểm tra password
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            result.put("success", false);
+            result.put("message", "Mật khẩu không chính xác!");
+            return result;
+        }
+        
+        // Kiểm tra tài khoản chưa verify
+        if (user.getIsVerify() == null || !user.getIsVerify()) {
+            result.put("success", false);
+            result.put("message", "Tài khoản chưa được xác thực! Vui lòng kiểm tra email để verify.");
+            return result;
+        }
+        
+        // Kiểm tra tài khoản bị khóa
+        if (user.getStatus() == User.UserStatus.inactive) {
+            result.put("success", false);
+            result.put("message", "Tài khoản đã bị khóa bởi Admin. Vui lòng liên hệ hỗ trợ.");
+            return result;
+        }
+        
+        // Đăng nhập thành công
+        result.put("success", true);
+        result.put("message", "Đăng nhập thành công!");
+        result.put("user", user);
+        
+        return result;
+    }
+    
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }
