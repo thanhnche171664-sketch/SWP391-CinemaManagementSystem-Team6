@@ -24,8 +24,7 @@
                     <p>We've sent a 6-digit code to your email</p>
                     <div class="timer-wrapper">
                         <span class="timer-text">Code expires in: </span>
-                        <span class="timer" id="timer">60</span>
-                        <span class="timer-text">s</span>
+                        <span class="timer" id="timer">5:00</span>
                     </div>
                 </div>
 
@@ -42,12 +41,12 @@
                     <div class="form-group">
                         <label for="otp">OTP Code</label>
                         <div class="otp-inputs">
-                            <input type="text" class="otp-input" maxlength="1" data-index="0" autocomplete="off">
-                            <input type="text" class="otp-input" maxlength="1" data-index="1" autocomplete="off">
-                            <input type="text" class="otp-input" maxlength="1" data-index="2" autocomplete="off">
-                            <input type="text" class="otp-input" maxlength="1" data-index="3" autocomplete="off">
-                            <input type="text" class="otp-input" maxlength="1" data-index="4" autocomplete="off">
-                            <input type="text" class="otp-input" maxlength="1" data-index="5" autocomplete="off">
+                            <input type="text" class="otp-input" maxlength="1" data-index="0" autocomplete="off" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" data-index="1" autocomplete="off" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" data-index="2" autocomplete="off" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" data-index="3" autocomplete="off" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" data-index="4" autocomplete="off" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" class="otp-input" maxlength="1" data-index="5" autocomplete="off" inputmode="numeric" pattern="[0-9]">
                         </div>
                         <input type="hidden" name="otp" id="otp">
                     </div>
@@ -85,6 +84,6 @@
         </div>
     </div>
 
-    <script th:src="@{/js/auth-otp.js?v=1}"></script>
+    <script th:src="@{/js/auth-otp.js?v=4}"></script>
 </body>
 </html>

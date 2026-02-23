@@ -52,6 +52,24 @@ public class ViewController {
         return "redirect:/admin/customers"; // Hoặc trang dashboard admin
     }
     
+    @GetMapping("/admin/dashboard")
+    public String adminDashboardPage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        System.out.println("[DEBUG] /admin/dashboard called");
+        
+        User user = (User) session.getAttribute("loggedInUser");
+        System.out.println("[DEBUG] User from session: " + (user != null ? user.getEmail() : "null"));
+        
+        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+            System.out.println("[DEBUG] Access denied - redirecting to login");
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
+            return "redirect:/auth/login";
+        }
+        
+        System.out.println("[DEBUG] Access granted - redirecting to /admin/customers");
+        model.addAttribute("user", user);
+        return "redirect:/admin/customers"; // Redirect tới customer management
+    }
+    
     @GetMapping("/manager")
     public String managerDashboard(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
