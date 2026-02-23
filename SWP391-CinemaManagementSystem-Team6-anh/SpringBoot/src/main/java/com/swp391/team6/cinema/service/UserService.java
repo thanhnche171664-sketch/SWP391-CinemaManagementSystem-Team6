@@ -134,6 +134,26 @@ public class UserService {
         userRepository.save(customer);
     }
 
+    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            if (passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+
+                user.setPasswordHash(passwordEncoder.encode(newPassword));
+                userRepository.save(user);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
 
     @Autowired
     private BookingRepository bookingRepository;
