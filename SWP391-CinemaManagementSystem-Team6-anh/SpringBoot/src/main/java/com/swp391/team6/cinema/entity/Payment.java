@@ -35,6 +35,15 @@ public class Payment {
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
 
+    @Column(name = "order_code", length = 64, unique = true)
+    private String orderCode;
+
+    @Column(name = "provider_transaction_id", length = 128)
+    private String providerTransactionId;
+
+    @Column(name = "raw_response", columnDefinition = "TEXT")
+    private String rawResponse;
+
     @Column(name = "payment_time")
     private LocalDateTime paymentTime = LocalDateTime.now();
 
@@ -43,6 +52,6 @@ public class Payment {
     }
 
     public enum PaymentStatus {
-        success, failed
+        pending, success, failed
     }
 }
