@@ -1,12 +1,16 @@
 // OTP Verification Page Script
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('[OTP] Script loaded and initialized');
+    
     const otpInputs = document.querySelectorAll('.otp-input');
     const otpHiddenInput = document.getElementById('otp');
     const otpForm = document.getElementById('otpForm');
     const resendBtn = document.getElementById('resendBtn');
     const timerElement = document.getElementById('timer');
     
-    let timeLeft = 60;
+    console.log('[OTP] Found', otpInputs.length, 'input fields');
+    
+    let timeLeft = 300; // 5 minutes
     let resendCooldown = 60;
     let timerInterval;
     let resendInterval;
@@ -16,29 +20,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // OTP Input handling
     otpInputs.forEach((input, index) => {
+        console.log('[OTP] Setting up input', index);
+        
         input.addEventListener('input', function(e) {
-            const value = e.target.value;
+            console.log('[OTP] Input event on index', index, 'value:', e.target.value);
+            
+            let value = e.target.value;
+            
+            // Only keep last character if multiple entered
+            if (value.length > 1) {
+                value = value.slice(-1);
+                e.target.value = value;
+            }
             
             // Only allow numbers
-            if (!/^\d$/.test(value)) {
+            if (value && !/^\d$/.test(value)) {
                 e.target.value = '';
+                console.log('[OTP] Non-numeric value rejected');
                 return;
             }
 
             // Mark as filled
             if (value) {
                 e.target.classList.add('filled');
+                console.log('[OTP] Input filled, moving to next...');
+                
+                // Auto focus next input immediately
+                if (index < otpInputs.length - 1) {
+                    const nextInput = otpInputs[index + 1];
+                    nextInput.focus();
+                    nextInput.select();
+                    console.log('[OTP] Focused input', index + 1);
+                }
             } else {
                 e.target.classList.remove('filled');
             }
 
-            // Auto focus next input
-            if (value && index < otpInputs.length - 1) {
-                otpInputs[index + 1].focus();
-            }
-
             // Update hidden input
             updateOtpValue();
+        });
+        
+        // Prevent non-numeric input
+        input.addEventListener('keypress', function(e) {
+            if (!/^\d$/.test(e.key)) {
+                e.preventDefault();
+                console.log('[OTP] Non-numeric key rejected:', e.key);
+            }
         });
 
         input.addEventListener('keydown', function(e) {
@@ -65,14 +92,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
             
             if (pastedData.length === 6) {
+                // Clear all inputs first
+                otpInputs.forEach(inp => {
+                    inp.value = '';
+                    inp.classList.remove('filled');
+                });
+                
+                // Fill with pasted data
                 otpInputs.forEach((inp, i) => {
-                    inp.value = pastedData[i] || '';
                     if (pastedData[i]) {
+                        inp.value = pastedData[i];
                         inp.classList.add('filled');
                     }
                 });
                 updateOtpValue();
-                otpInputs[5].focus();
+                
+                // Focus last input
+                setTimeout(() => {
+                    otpInputs[5].focus();
+                }, 50);
+            } else if (pastedData.length > 0) {
+                // Partial paste - fill from current position
+                const startIndex = parseInt(e.target.dataset.index);
+                for (let i = 0; i < pastedData.length && (startIndex + i) < 6; i++) {
+                    otpInputs[startIndex + i].value = pastedData[i];
+                    otpInputs[startIndex + i].classList.add('filled');
+                }
+                updateOtpValue();
+                
+                // Focus next empty or last
+                const nextIndex = Math.min(startIndex + pastedData.length, 5);
+                setTimeout(() => {
+                    otpInputs[nextIndex].focus();
+                }, 50);
             }
         });
     });
@@ -81,11 +133,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateOtpValue() {
         const otpValue = Array.from(otpInputs).map(input => input.value).join('');
         otpHiddenInput.value = otpValue;
+        console.log('[OTP] Updated hidden value:', otpValue);
     }
 
     // Countdown timer
     function startTimer() {
-        timeLeft = 60;
+        timeLeft = 300; // 5 minutes
+        console.log('[OTP] Timer started: 5 minutes');
         updateTimerDisplay();
         
         if (timerInterval) {
@@ -99,15 +153,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 timerElement.classList.add('expired');
+                console.log('[OTP] Timer expired');
                 showModal('OTP Expired', 'Your OTP has expired. Please request a new one.', 'error');
             }
         }, 1000);
     }
 
     function updateTimerDisplay() {
-        timerElement.textContent = timeLeft;
-        if (timeLeft <= 10) {
-            timerElement.style.color = 'var(--error-color)';
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 30) {
+            timerElement.style.color = '#f56565'; // Red color
+        } else {
+            timerElement.style.color = '#d97706'; // Orange color
         }
     }
 
@@ -139,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submit
     otpForm.addEventListener('submit', function(e) {
         const otpValue = otpHiddenInput.value;
+        console.log('[OTP] Form submit - OTP value:', otpValue);
         if (otpValue.length !== 6) {
             e.preventDefault();
             showModal('Incomplete OTP', 'Please enter all 6 digits', 'error');
@@ -146,7 +207,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Auto focus first input
-    otpInputs[0].focus();
+    console.log('[OTP] Auto-focusing first input');
+    if (otpInputs.length > 0) {
+        otpInputs[0].focus();
+        console.log('[OTP] First input focused');
+    }
 
     // Auto hide alerts
     const alerts = document.querySelectorAll('.alert');

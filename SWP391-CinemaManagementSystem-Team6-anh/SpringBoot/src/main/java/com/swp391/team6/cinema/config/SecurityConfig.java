@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -22,7 +23,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error", 
+                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/styles/**", "/images/**", "/error", 
                                 "/home/**", "/movies/**", "/static/**").permitAll()
                 .requestMatchers("/admin/bookings/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -30,7 +31,11 @@ public class SecurityConfig {
                 .requestMatchers("/staff/**").hasAnyRole("ADMIN", "MANAGER", "STAFF")
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(1)
+            )
+            .formLogin(form -> form.disable())  // Disable Spring Security form login - dùng custom
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/auth/login")
                 .userInfoEndpoint(userInfo -> userInfo
