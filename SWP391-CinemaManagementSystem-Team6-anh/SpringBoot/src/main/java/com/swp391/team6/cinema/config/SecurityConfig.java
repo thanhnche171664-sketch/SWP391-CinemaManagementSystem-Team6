@@ -23,8 +23,9 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/styles/**", "/images/**", "/error", 
+                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/styles/**", "/images/**", "/error",
                                 "/home/**", "/movies/**", "/static/**").permitAll()
+                .requestMatchers("/payos/webhook").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/staff/**").hasAnyRole("ADMIN", "MANAGER", "STAFF")

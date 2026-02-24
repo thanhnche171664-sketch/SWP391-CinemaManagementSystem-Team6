@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.repository;
 
+import com.swp391.team6.cinema.entity.Booking;
 import com.swp391.team6.cinema.entity.BookingSeat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,10 @@ public interface BookingSeatRepository extends JpaRepository<BookingSeat, Long> 
     List<BookingSeat> findByBookingBookingId(Long bookingId);
     
     List<BookingSeat> findBySeatSeatId(Long seatId);
+
+    List<BookingSeat> findBySeatSeatIdInAndBookingShowtimeShowtimeIdAndBookingStatusIn(
+            List<Long> seatIds,
+            Long showtimeId,
+            List<Booking.BookingStatus> statuses
+    );
 }
