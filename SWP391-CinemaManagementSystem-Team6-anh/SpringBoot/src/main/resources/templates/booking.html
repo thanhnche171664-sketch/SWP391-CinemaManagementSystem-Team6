@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Booking - ' + ${movie.title}">Booking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">Cinema Management System</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/movies}">Movies</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/showtimes}">Showtimes</a>
+                </li>
+                <li class="nav-item" th:if="${user == null}">
+                    <a class="nav-link" th:href="@{/auth/login}">Login</a>
+                </li>
+                <li class="nav-item" th:if="${user != null}">
+                    <span class="nav-link disabled" th:text="${user.fullName}">User</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div th:if="${error != null}" class="alert alert-danger" role="alert"
+         th:text="${error}">
+        Error message
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 th:text="${movie.title}">Movie Title</h2>
+            <p class="mb-1">
+                <strong>Branch:</strong>
+                <span th:text="${branch.branchName}">Branch Name</span>
+            </p>
+            <p class="mb-1">
+                <strong>Room:</strong>
+                <span th:text="${room.roomName}">Room</span>
+            </p>
+            <p class="mb-1">
+                <strong>Showtime:</strong>
+                <span th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')}">Date Time</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <p class="mb-1"><strong>Selected seats:</strong> <span id="selectedSeatCount">0</span></p>
+            <p class="mb-1"><strong>Seats:</strong> <span id="selectedSeatLabels">None</span></p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <strong>Select Your Seats</strong>
+                </div>
+                <div class="card-body">
+                    <div class="seat-legend mb-3">
+                        <span class="badge bg-secondary me-2">Available</span>
+                        <span class="badge bg-success me-2">Selected</span>
+                        <span class="badge bg-danger me-2">Booked</span>
+                    </div>
+                    <div class="seat-map">
+                        <div class="row g-2">
+                            <div class="col-auto mb-2" th:each="seat : ${seats}">
+                                <button type="button"
+                                        class="btn btn-sm seat-button"
+                                        th:classappend="${#lists.contains(bookedSeatIds, seat.seatId)} ? ' btn-danger disabled' : ' btn-outline-secondary'"
+                                        th:data-seat-id="${seat.seatId}"
+                                        th:data-seat-label="${seat.seatRow + seat.seatNumber}"
+                                        th:disabled="${#lists.contains(bookedSeatIds, seat.seatId)}"
+                                        th:text="${seat.seatRow + seat.seatNumber}">
+                                    A1
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <span class="text-muted">Screen This Way</span>
+                            <div class="border-top mt-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mt-4 mt-md-0">
+            <form th:action="@{/booking/{id}(id=${showtime.showtimeId})}" method="post" id="bookingForm">
+                <input type="hidden" name="_csrf" th:value="${_csrf?.token}"/>
+                <div id="selectedSeatsContainer"></div>
+                <button type="submit" class="btn btn-primary w-100 mb-2">Proceed to Payment</button>
+                <a th:href="@{/movies/{id}(id=${movie.movieId})}" class="btn btn-secondary w-100">Back to Movie</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white text-center py-3 mt-4">
+    <div class="container">
+        <p>&copy; 2026 Cinema Management System - Team 6. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/booking.js}"></script>
+</body>
+</html>
+
