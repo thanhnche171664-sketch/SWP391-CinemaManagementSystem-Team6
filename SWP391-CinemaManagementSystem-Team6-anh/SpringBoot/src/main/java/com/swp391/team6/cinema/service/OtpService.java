@@ -40,56 +40,39 @@ public class OtpService {
      */
     @Transactional
     public void sendOtp(String email) throws MessagingException {
-        // Normalize email
-        String normalizedEmail = email.trim().toLowerCase();
-        
-        System.out.println("[DEBUG] Sending OTP to email: " + normalizedEmail);
-        
         // Delete old OTPs for this email
-        otpCodeRepository.deleteByEmail(normalizedEmail);
+        otpCodeRepository.deleteByEmail(email);
 
         // Generate new OTP
         String otpCode = generateOtpCode();
-        OtpCode otp = new OtpCode(normalizedEmail, otpCode);
+        OtpCode otp = new OtpCode(email, otpCode);
         otpCodeRepository.save(otp);
-        
-        System.out.println("[DEBUG] OTP saved to database - Code: " + otpCode + ", Expiry: " + otp.getExpiryTime());
 
         // Send email
-        sendOtpEmail(normalizedEmail, otpCode);
+        sendOtpEmail(email, otpCode);
     }
 
     /**
      * Verify OTP code
      */
     public boolean verifyOtp(String email, String code) {
-        // Normalize input
-        String normalizedEmail = email.trim().toLowerCase();
-        String normalizedCode = code.trim();
-        
-        System.out.println("[DEBUG] Verifying OTP for email: " + normalizedEmail + ", code: " + normalizedCode);
-        
-        Optional<OtpCode> otpOptional = otpCodeRepository.findByEmailAndCodeAndIsUsedFalse(normalizedEmail, normalizedCode);
+        Optional<OtpCode> otpOptional = otpCodeRepository.findByEmailAndCodeAndIsUsedFalse(email, code);
 
         if (otpOptional.isEmpty()) {
-            System.out.println("[DEBUG] OTP not found or already used for email: " + normalizedEmail);
             return false;
         }
 
         OtpCode otp = otpOptional.get();
-        System.out.println("[DEBUG] OTP found - Created: " + otp.getCreatedAt() + ", Expiry: " + otp.getExpiryTime() + ", Current time: " + LocalDateTime.now());
 
         // Check if expired
         if (otp.isExpired()) {
-            System.out.println("[DEBUG] OTP expired for email: " + normalizedEmail);
             return false;
         }
 
         // Mark as used
         otp.setIsUsed(true);
         otpCodeRepository.save(otp);
-        
-        System.out.println("[DEBUG] OTP verified successfully for email: " + normalizedEmail);
+
         return true;
     }
 
@@ -150,7 +133,7 @@ public class OtpService {
                 "<div class='otp-code'>" + otpCode + "</div>" +
                 "</div>" +
                 "<div class='warning'>" +
-                "<strong>⏱️ Important:</strong> This OTP will expire in <strong>5 minutes</strong>." +
+                "<strong>⏱️ Important:</strong> This OTP will expire in <strong>60 seconds</strong>." +
                 "</div>" +
                 "<p>If you didn't request a password reset, please ignore this email.</p>" +
                 "</div>" +

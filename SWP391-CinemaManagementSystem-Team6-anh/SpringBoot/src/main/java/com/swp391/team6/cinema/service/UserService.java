@@ -7,10 +7,10 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,42 +18,54 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-
+    
     @Autowired
     private CinemaBranchRepository branchRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
                 User.UserRole.MANAGER,
                 User.UserRole.STAFF
         );
-        return userRepository.findByRoleIn(staffRoles).stream()
+
+        List<User> users = userRepository.findByRoleIn(staffRoles);
+
+        return users.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
-    }
+    private StaffDTO convertToDTO(User user) {
+        StaffDTO dto = new StaffDTO();
 
-    public void updateProfile(User updatedUser){
-            User user = userRepository.findById(updatedUser.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+        dto.setUser_id(user.getUserId());
+        dto.setFull_name(user.getFullName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+
+        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
+        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
+
+        if (user.getBranch() != null) {
+            dto.setBranch_id(user.getBranch().getBranchId());
+            dto.setBranch_name(user.getBranch().getBranchName());
+        } else {
+            dto.setBranch_name("Toàn hệ thống");
         }
+
+        dto.setCreated_at(user.getCreatedAt());
+
+        return dto;
+    }
 
     public void saveStaff(StaffDTO dto) {
         User user;
         if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
-
-            if (!user.getRole().equals(User.UserRole.ADMIN) && "ADMIN".equals(dto.getRole())) {
-                throw new RuntimeException("Không được phép nâng cấp lên quyền ADMIN");
-            }
+            user = userRepository.findById(dto.getUser_id()).orElse(new User());
         } else {
-            if ("ADMIN".equals(dto.getRole())) {
-                throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
-            }
             user = new User();
             user.setPasswordHash(passwordEncoder.encode("123456"));
         }
@@ -92,26 +104,9 @@ public class UserService {
         return branchRepository.findAll();
     }
 
-    private StaffDTO convertToDTO(User user) {
-        StaffDTO dto = new StaffDTO();
-        dto.setUser_id(user.getUserId());
-        dto.setFull_name(user.getFullName());
-        dto.setEmail(user.getEmail());
-        dto.setPhone(user.getPhone());
-        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
-        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
-        if (user.getBranch() != null) {
-            dto.setBranch_id(user.getBranch().getBranchId());
-            dto.setBranch_name(user.getBranch().getBranchName());
-        } else {
-            dto.setBranch_name("Toàn hệ thống");
-        }
-        dto.setCreated_at(user.getCreatedAt());
-        return dto;
-    }
-
     public List<CustomerDTO> findAllCustomers() {
         List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
+
         return userRepository.findByRoleIn(roles).stream()
                 .map(this::convertToCustomerDTO)
                 .collect(Collectors.toList());
@@ -136,7 +131,6 @@ public class UserService {
         customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
         userRepository.save(customer);
     }
-<<<<<<< HEAD
     
     /**
      * Xác thực đăng nhập
@@ -205,6 +199,3 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 }
-=======
-}
->>>>>>> main

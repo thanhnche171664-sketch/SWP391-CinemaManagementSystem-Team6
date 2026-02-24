@@ -38,11 +38,8 @@ public class ForgotPasswordController {
             RedirectAttributes redirectAttributes,
             Model model
     ) {
-        // Normalize email
-        String normalizedEmail = email.trim().toLowerCase();
-        
         // Check if email exists
-        Optional<User> userOptional = userRepository.findByEmail(normalizedEmail);
+        Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
             model.addAttribute("error", "Email not found in our system");
             return "auth/forgot-password";
@@ -50,10 +47,10 @@ public class ForgotPasswordController {
 
         try {
             // Send OTP
-            otpService.sendOtp(normalizedEmail);
+            otpService.sendOtp(email);
 
             // Store email in session
-            session.setAttribute("resetEmail", normalizedEmail);
+            session.setAttribute("resetEmail", email);
             session.setMaxInactiveInterval(300); // 5 minutes session timeout
 
             redirectAttributes.addFlashAttribute("success", "OTP has been sent to your email");

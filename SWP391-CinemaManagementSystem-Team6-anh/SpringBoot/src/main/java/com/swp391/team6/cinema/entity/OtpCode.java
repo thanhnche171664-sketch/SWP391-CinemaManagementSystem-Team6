@@ -34,10 +34,10 @@ public class OtpCode {
     private Boolean isUsed = false;
 
     public OtpCode(String email, String code) {
-        this.email = email.trim().toLowerCase(); // Normalize email
-        this.code = code.trim(); // Trim code
+        this.email = email;
+        this.code = code;
         this.createdAt = LocalDateTime.now();
-        this.expiryTime = LocalDateTime.now().plusMinutes(5); // OTP expires in 5 minutes
+        this.expiryTime = LocalDateTime.now().plusSeconds(60); // OTP expires in 60 seconds
         this.isUsed = false;
     }
 

@@ -42,7 +42,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             // Redirect based on role
             switch (user.getRole()) {
                 case ADMIN:
-                    response.sendRedirect("/admin/dashboard");
+                    response.sendRedirect("/admin");
                     break;
                 case MANAGER:
                     response.sendRedirect("/manager");
