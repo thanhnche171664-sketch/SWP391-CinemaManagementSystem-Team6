@@ -22,9 +22,10 @@ public class ViewController {
     private final com.swp391.team6.cinema.repository.ShowtimeRepository showtimeRepository;
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(HttpSession session, Model model) {
         List<Movie> movies = movieService.getVisibleMoviesByStatus(Movie.MovieStatus.now_showing);
         model.addAttribute("movies", movies);
+        model.addAttribute("user", session.getAttribute("loggedInUser"));
         return "index";
     }
     
@@ -99,18 +100,20 @@ public class ViewController {
     }
 
     @GetMapping("/movies")
-    public String movies(Model model) {
+    public String movies(HttpSession session, Model model) {
         List<Movie> movies = movieService.getVisibleMovies();
         model.addAttribute("movies", movies);
+        model.addAttribute("user", session.getAttribute("loggedInUser"));
         return "movies";
     }
 
     @GetMapping("/movies/{id}")
-    public String movieDetail(@PathVariable Long id, Model model) {
+    public String movieDetail(@PathVariable Long id, HttpSession session, Model model) {
         Movie movie = movieService.getVisibleMovieById(id);
         model.addAttribute("movie", movie);
         List<Showtime> showtimes = showtimeRepository.findByMovieMovieId(id);
         model.addAttribute("showtimes", showtimes);
+        model.addAttribute("user", session.getAttribute("loggedInUser"));
         return "movie-detail";
     }
 
