@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PricingRepository extends JpaRepository<Pricing, Long> {
@@ -13,4 +14,6 @@ public interface PricingRepository extends JpaRepository<Pricing, Long> {
     List<Pricing> findByBranchBranchId(Long branchId);
     
     List<Pricing> findBySeatType(Seat.SeatType seatType);
+
+    Optional<Pricing> findFirstByBranchBranchIdAndSeatType(Long branchId, Seat.SeatType seatType);
 }

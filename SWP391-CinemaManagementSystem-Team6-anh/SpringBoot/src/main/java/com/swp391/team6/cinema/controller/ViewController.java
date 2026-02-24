@@ -1,6 +1,7 @@
 package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.entity.Movie;
+import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.MovieService;
 import jakarta.servlet.http.HttpSession;
@@ -18,6 +19,7 @@ import java.util.List;
 public class ViewController {
 
     private final MovieService movieService;
+    private final com.swp391.team6.cinema.repository.ShowtimeRepository showtimeRepository;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -107,7 +109,8 @@ public class ViewController {
     public String movieDetail(@PathVariable Long id, Model model) {
         Movie movie = movieService.getVisibleMovieById(id);
         model.addAttribute("movie", movie);
-        model.addAttribute("showtimes", List.of());
+        List<Showtime> showtimes = showtimeRepository.findByMovieMovieId(id);
+        model.addAttribute("showtimes", showtimes);
         return "movie-detail";
     }
 
