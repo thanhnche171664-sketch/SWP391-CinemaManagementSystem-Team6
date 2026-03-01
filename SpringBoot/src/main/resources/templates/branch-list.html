@@ -73,7 +73,15 @@
                         <p>
                             <span th:text="${room.totalSeats}">0</span> ghế
                         </p>
+                        <button class="room-edit-btn"
+                                type="button"
+                                th:onclick="|window.location.href='/rooms/${room.roomId}'|"
+                                title="Sửa phòng">
+                            ✏️
+                        </button>
                     </div>
+
+
 
                     <p th:if="${#lists.isEmpty(branch.rooms)}"
                        style="color:#aaa;margin-top:10px">

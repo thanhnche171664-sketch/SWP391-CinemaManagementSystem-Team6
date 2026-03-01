@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.repository;
 
+import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.entity.Seat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,10 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     List<Seat> findByRoomRoomId(Long roomId);
     
     List<Seat> findBySeatType(Seat.SeatType seatType);
+
+    List<Seat> findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(Long roomId);
+
+    List<Seat> findByRoom(Room room);
+
+    void deleteByRoom(Room room);
 }
