@@ -47,15 +47,6 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "email_verified", nullable = false)
-    private boolean emailVerified = false;
-
-    @Column(name = "verification_token", length = 255)
-    private String verificationToken;
-
-    @Column(name = "verification_token_expiry")
-    private LocalDateTime verificationTokenExpiry;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Booking> bookings;
 
