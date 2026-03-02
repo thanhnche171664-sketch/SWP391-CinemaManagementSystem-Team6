@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${movie.title} + ' - CinemaHub'">Chi tiết phim</title>
+    <link rel="stylesheet" th:href="@{/styles/auth.css}">
+    <style>
+        .page-wrap { min-height: 100vh; background: #0a0a0a; color: #fff; display: flex; flex-direction: column; }
+        .main-wrap { flex: 1; padding: 24px; max-width: 1000px; margin: 0 auto; width: 100%; }
+        .detail { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 32px; }
+        .detail img { width: 220px; border-radius: 12px; object-fit: cover; }
+        .detail .meta { flex: 1; min-width: 200px; }
+        .detail h1 { font-size: 1.75rem; margin-bottom: 8px; }
+        .detail .genre, .detail .duration { color: #888; margin-bottom: 8px; }
+        .detail .desc { color: #ccc; line-height: 1.6; margin-top: 16px; }
+        .showtimes h2 { margin-bottom: 16px; font-size: 1.25rem; }
+        .st-table { width: 100%; border-collapse: collapse; }
+        .st-table th, .st-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .st-table a { color: #e50914; text-decoration: none; font-weight: 600; }
+        .st-table a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="page-wrap">
+    <header class="auth-header">
+        <a th:href="@{/movies}" class="auth-logo">
+            <span class="auth-logo-icon">&#127917;</span>
+            <span>CinemaHub</span>
+        </a>
+        <nav class="auth-nav">
+            <a th:href="@{/movies}">Phim</a>
+            <a th:href="@{/bookings}">Vé của tôi</a>
+            <a th:href="@{/login}">Đăng nhập</a>
+        </nav>
+    </header>
+    <main class="main-wrap">
+        <div class="detail">
+            <img th:src="${movie.posterUrl}" th:alt="${movie.title}" onerror="this.src='https://via.placeholder.com/220x330?text=No+Poster'" />
+            <div class="meta">
+                <h1 th:text="${movie.title}">Tên phim</h1>
+                <p class="genre" th:text="${movie.genre}">Thể loại</p>
+                <p class="duration" th:text="${movie.duration + ' phút'}">Thời lượng</p>
+                <p class="desc" th:text="${movie.description}" th:if="${movie.description}">Mô tả</p>
+            </div>
+        </div>
+        <section class="showtimes">
+            <h2>Suất chiếu</h2>
+            <table class="st-table" th:if="${!#lists.isEmpty(showtimes)}">
+                <thead>
+                    <tr>
+                        <th>Rạp / Phòng</th>
+                        <th>Giờ chiếu</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="st : ${showtimes}">
+                        <td th:text="${st.room.branch.branchName + ' - ' + st.room.roomName}">Rạp - Phòng</td>
+                        <td th:text="${#temporals.format(st.startTime, 'dd/MM/yyyy HH:mm')}">Ngày giờ</td>
+                        <td><a th:href="@{/booking/select-seats(showtimeId=${st.showtimeId})}">Chọn ghế</a></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p th:if="${#lists.isEmpty(showtimes)}" style="color: #888;">Chưa có suất chiếu.</p>
+        </section>
+    </main>
+</body>
+</html>

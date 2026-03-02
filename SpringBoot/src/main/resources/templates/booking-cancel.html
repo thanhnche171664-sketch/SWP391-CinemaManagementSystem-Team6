@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đã hủy thanh toán - CinemaHub</title>
+    <link rel="stylesheet" th:href="@{/styles/auth.css}">
+    <style>
+        .page-wrap { min-height: 100vh; background: #0a0a0a; color: #fff; display: flex; flex-direction: column; }
+        .main-wrap { flex: 1; padding: 24px; max-width: 480px; margin: 0 auto; width: 100%; text-align: center; }
+        .main-wrap h1 { font-size: 1.25rem; margin-bottom: 16px; }
+        .main-wrap p { color: #888; margin-bottom: 24px; }
+        .main-wrap a { color: #e50914; text-decoration: none; font-weight: 600; margin: 0 12px; }
+    </style>
+</head>
+<body class="page-wrap">
+    <header class="auth-header">
+        <a th:href="@{/movies}" class="auth-logo">
+            <span class="auth-logo-icon">&#127917;</span>
+            <span>CinemaHub</span>
+        </a>
+        <nav class="auth-nav">
+            <a th:href="@{/movies}">Phim</a>
+            <a th:href="@{/bookings}">Vé của tôi</a>
+        </nav>
+    </header>
+    <main class="main-wrap">
+        <h1>Bạn đã hủy thanh toán</h1>
+        <p>Bạn có thể tiếp tục xem phim và đặt vé khi sẵn sàng.</p>
+        <a th:href="@{/movies}">Xem phim</a>
+        <a th:href="@{/bookings}">Vé của tôi</a>
+    </main>
+</body>
+</html>
