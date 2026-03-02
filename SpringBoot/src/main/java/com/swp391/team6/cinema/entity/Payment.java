@@ -38,6 +38,9 @@ public class Payment {
     @Column(name = "payment_time")
     private LocalDateTime paymentTime = LocalDateTime.now();
 
+    @Column(name = "external_order_code")
+    private Long externalOrderCode;
+
     public enum PaymentMethod {
         cash, card, online
     }
