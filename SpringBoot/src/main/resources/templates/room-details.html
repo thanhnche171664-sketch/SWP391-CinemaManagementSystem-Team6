@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý rạp chiếu</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
     <link rel="stylesheet" th:href="@{/styles/admin-room.css}">
 </head>
 <body>
@@ -35,7 +36,9 @@
                                 (${seat.seatType.name() == 'COUPLE'} ? 'seat-couple' : 'seat-normal')
                              ">
 
-                            <span class="seat-icon">💺</span>
+                            <img th:src="@{/images/armchair.png}"
+                                 class="seat-icon"
+                                 alt="seat">
 
                         </div>
                     </div>

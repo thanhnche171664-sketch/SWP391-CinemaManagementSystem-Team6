@@ -13,4 +13,5 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     
     List<Room> findByStatus(Room.RoomStatus status);
 
+    List<Room> findByRoomNameContainingIgnoreCase(String keyword);
 }
