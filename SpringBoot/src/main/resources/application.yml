@@ -2,9 +2,55 @@ spring:
   datasource:
     jdbc-url: jdbc:mysql://localhost:3306/swp391
     username: root
-    password: Dlinh123*
+    password: 1234
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    # Email Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: thanhnche171664@fpt.edu.vn
+    password: mggu virp mfxv levq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # OAuth2 Google Configuration
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 264245226222-cjk7tg1ns7it42g9nob13jbroqj61ffn.apps.googleusercontent.com
+            client-secret: GOCSPX-_ZfeWy83YGj5Td2bpqX60v_7XQB
+            scope: profile,email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Google
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.swp391.team6: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+payos:
+  client-id: d05dfd7d-9da1-4632-812a-7278316af30a
+  api-key: e8d436fd-0364-45ce-8caf-15c2ec64cf66
+  checksum-key: e43cad73fa0f4347b038d64dcd06cda1399f7c3e718a952d9049f2d8c82e7141
+  base-url: https://api-merchant.payos.vn
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  verification-token-expiry-hours: 24
