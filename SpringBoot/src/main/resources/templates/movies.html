@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phim đang chiếu - CinemaHub</title>
+    <link rel="stylesheet" th:href="@{/styles/auth.css}">
+    <style>
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; padding: 24px 0; }
+        .movie-card { background: rgba(22,22,22,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; }
+        .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .movie-card .info { padding: 16px; }
+        .movie-card h3 { font-size: 1rem; margin-bottom: 8px; }
+        .movie-card .genre { color: #888; font-size: 0.9rem; }
+        .movie-card a.btn { display: block; margin-top: 12px; padding: 10px; background: linear-gradient(135deg, #e50914, #b20710); color: #fff; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; }
+        .movie-card a.btn:hover { opacity: 0.9; color: #fff; }
+        .page-wrap { min-height: 100vh; background: #0a0a0a; color: #fff; display: flex; flex-direction: column; }
+        .main-wrap { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    </style>
+</head>
+<body class="page-wrap">
+    <header class="auth-header">
+        <a th:href="@{/movies}" class="auth-logo">
+            <span class="auth-logo-icon">&#127917;</span>
+            <span>CinemaHub</span>
+        </a>
+        <nav class="auth-nav">
+            <a th:href="@{/bookings}">Vé của tôi</a>
+            <a th:href="@{/login}">Đăng nhập</a>
+            <a th:href="@{/register}">Đăng ký</a>
+        </nav>
+    </header>
+    <main class="main-wrap">
+        <h1 style="margin-bottom: 8px;">Phim đang chiếu</h1>
+        <p style="color: #888; margin-bottom: 24px;">Chọn phim để xem suất chiếu và đặt vé</p>
+        <div class="movie-grid" th:if="${!#lists.isEmpty(movies)}">
+            <div class="movie-card" th:each="m : ${movies}">
+                <img th:src="${m.posterUrl}" th:alt="${m.title}" onerror="this.src='https://via.placeholder.com/200x300?text=No+Poster'" />
+                <div class="info">
+                    <h3 th:text="${m.title}">Tên phim</h3>
+                    <p class="genre" th:text="${m.genre}">Thể loại</p>
+                    <a th:href="@{/movies/{id}(id=${m.movieId})}" class="btn">Xem suất chiếu</a>
+                </div>
+            </div>
+        </div>
+        <p th:if="${#lists.isEmpty(movies)}" style="color: #888;">Chưa có phim đang chiếu.</p>
+    </main>
+</body>
+</html>
