@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng nhập - CinemaHub</title>
+    <link rel="stylesheet" th:href="@{/styles/auth.css}">
+</head>
+<body class="auth-page">
+
+    <header class="auth-header">
+        <a th:href="@{/login}" class="auth-logo">
+            <span class="auth-logo-icon">🎬</span>
+            <span>CinemaHub</span>
+        </a>
+        <nav class="auth-nav">
+            <a th:href="@{/register}">Đăng ký</a>
+        </nav>
+    </header>
+
+    <main class="auth-main">
+        <div class="auth-main-inner">
+            <div class="auth-card">
+                <h1>Đăng nhập</h1>
+                <p class="subtitle">Vào tài khoản để đặt vé và xem thông tin</p>
+
+                <div th:if="${param.verified}" class="auth-alert success">
+                    Email đã được xác thực. Bạn có thể đăng nhập.
+                </div>
+                <div th:if="${param.error}" class="auth-alert danger">
+                    <span th:if="${param.error[0] == 'invalid_token'}">Link xác thực không hợp lệ hoặc đã hết hạn.</span>
+                    <span th:if="${param.error[0] != 'invalid_token'}">Email, mật khẩu không đúng hoặc tài khoản chưa xác thực email.</span>
+                </div>
+                <div th:if="${param.logout}" class="auth-alert info">
+                    Bạn đã đăng xuất.
+                </div>
+
+                <form th:action="@{/login}" method="post" class="auth-form">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required
+                               placeholder="your@email.com" autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mật khẩu</label>
+                        <input type="password" id="password" name="password" required
+                               placeholder="Nhập mật khẩu" autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-submit">Đăng nhập</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

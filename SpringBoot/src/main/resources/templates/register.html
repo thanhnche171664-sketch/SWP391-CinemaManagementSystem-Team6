@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng ký - CinemaHub</title>
+    <link rel="stylesheet" th:href="@{/styles/auth.css}">
+</head>
+<body class="auth-page">
+
+    <header class="auth-header">
+        <a th:href="@{/login}" class="auth-logo">
+            <span class="auth-logo-icon">🎬</span>
+            <span>CinemaHub</span>
+        </a>
+        <nav class="auth-nav">
+            <a th:href="@{/login}">Đăng nhập</a>
+        </nav>
+    </header>
+
+    <main class="auth-main">
+        <div class="auth-main-inner">
+            <div class="auth-card">
+                <h1>Đăng ký tài khoản</h1>
+                <p class="subtitle">Tạo tài khoản để đặt vé nhanh và nhận ưu đãi</p>
+
+                <div th:if="${error}" class="auth-alert danger">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <form th:action="@{/register}" method="post" class="auth-form">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    <div class="form-group">
+                        <label for="fullName">Họ và tên</label>
+                        <input type="text" id="fullName" name="fullName" required
+                               th:value="${fullName}" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required
+                               th:value="${email}" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mật khẩu</label>
+                        <input type="password" id="password" name="password" required
+                               minlength="6" placeholder="Ít nhất 6 ký tự">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="text" id="phone" name="phone"
+                               th:value="${phone}" placeholder="0912345678">
+                    </div>
+                    <button type="submit" class="btn-submit">Đăng ký</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Đã có tài khoản? <a th:href="@{/login}">Đăng nhập</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

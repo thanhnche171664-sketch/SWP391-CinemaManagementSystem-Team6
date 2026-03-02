@@ -1,7 +1,11 @@
 package com.swp391.team6.cinema.controller;
-import com.swp391.team6.cinema.service.UserService; // Thay đổi tùy theo package thực tế
-import com.swp391.team6.cinema.entity.User;        // Thay đổi tùy theo package thực tế
+
+import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.security.CustomUserDetails;
+import com.swp391.team6.cinema.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,14 +24,22 @@ public class UserController {
             @RequestParam(value = "edit", defaultValue = "false") boolean edit,
             Model model) {
 
-        // demo: giả lập user đang login
-        String email = "admin@gmail.com";
-
-        User user = userService.getUserByEmail(email);
+        User user = getCurrentUser();
+        if (user == null) {
+            return "redirect:/login";
+        }
         model.addAttribute("user", user);
         model.addAttribute("edit", edit);
 
         return "profile";
+    }
+
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) auth.getPrincipal()).getUser();
+        }
+        return null;
     }
 
 

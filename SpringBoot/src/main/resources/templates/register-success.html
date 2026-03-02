@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng ký thành công - CinemaHub</title>
+    <link rel="stylesheet" th:href="@{/styles/auth.css}">
+</head>
+<body class="auth-page">
+
+    <header class="auth-header">
+        <a th:href="@{/login}" class="auth-logo">
+            <span class="auth-logo-icon">🎬</span>
+            <span>CinemaHub</span>
+        </a>
+        <nav class="auth-nav">
+            <a th:href="@{/login}">Đăng nhập</a>
+        </nav>
+    </header>
+
+    <main class="auth-main">
+        <div class="auth-main-inner">
+            <div class="auth-success-card">
+                <div class="icon-success">✓</div>
+                <h1>Đăng ký thành công!</h1>
+                <p>Vui lòng kiểm tra email để xác thực tài khoản. Bạn sẽ có thể đăng nhập sau khi xác thực.</p>
+                <a th:href="@{/login}" class="btn-primary">Đi tới trang đăng nhập</a>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

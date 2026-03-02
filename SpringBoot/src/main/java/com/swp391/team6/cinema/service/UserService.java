@@ -7,6 +7,7 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -21,6 +22,9 @@ public class UserService {
 
     @Autowired
     private CinemaBranchRepository branchRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
@@ -55,7 +59,7 @@ public class UserService {
                 throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
             }
             user = new User();
-            user.setPasswordHash("123456");
+            user.setPasswordHash(passwordEncoder.encode("123456"));
         }
 
         user.setFullName(dto.getFull_name());
@@ -66,7 +70,7 @@ public class UserService {
         user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
 
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            user.setPasswordHash(dto.getPassword());
+            user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         }
 
         userRepository.save(user);
