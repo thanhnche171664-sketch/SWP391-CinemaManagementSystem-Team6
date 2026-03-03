@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="IU-253.31033.145">
+    <data-source name="cinema_db@localhost" uuid="878a6904-5b68-4b66-85c6-2397bec68979">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="cinema_update@localhost" uuid="ea44ac05-f815-4487-9fa8-efb891930a71">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>
