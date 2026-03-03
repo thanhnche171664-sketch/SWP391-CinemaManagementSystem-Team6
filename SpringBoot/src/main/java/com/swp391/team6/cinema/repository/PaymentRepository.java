@@ -11,5 +11,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     
     List<Payment> findByBookingBookingId(Long bookingId);
     
+    List<Payment> findByBookingBookingIdOrderByPaymentTimeDesc(Long bookingId);
+
     List<Payment> findByPaymentStatus(Payment.PaymentStatus paymentStatus);
 }
