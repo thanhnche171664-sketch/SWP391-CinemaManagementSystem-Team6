@@ -1,20 +1,21 @@
 package com.swp391.team6.cinema.service;
 
 import com.swp391.team6.cinema.dto.ChangePasswordDTO;
+import com.swp391.team6.cinema.dto.BookingDTO;
 import com.swp391.team6.cinema.dto.CustomerDTO;
 import com.swp391.team6.cinema.dto.StaffDTO;
+import com.swp391.team6.cinema.entity.Booking;
 import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.repository.BookingRepository;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
-
 @Service
 public class UserService {
 
@@ -27,69 +28,65 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private BookingRepository bookingRepository;
+
+
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
                 User.UserRole.MANAGER,
                 User.UserRole.STAFF
         );
-        return userRepository.findByRoleIn(staffRoles).stream()
-                .map(this::convertToDTO)
+
+        return userRepository.findByRoleIn(staffRoles)
+                .stream()
+                .map(this::convertToStaffDTO)
                 .collect(Collectors.toList());
     }
 
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
-    }
+    private StaffDTO convertToStaffDTO(User user) {
+        StaffDTO dto = new StaffDTO();
+        dto.setUser_id(user.getUserId());
+        dto.setFull_name(user.getFullName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setRole(user.getRole().name());
+        dto.setStatus(user.getStatus().name());
 
-    public void updateProfile(User updatedUser){
-            User user = userRepository.findById(updatedUser.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        }
-    public void changePassword(String email, ChangePasswordDTO dto) throws Exception {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new Exception("Không tìm thấy người dùng!"));
-
-
-        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPasswordHash())) {
-            throw new Exception("Mật khẩu cũ không chính xác!");
-        }
-
-
-        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new Exception("Mật khẩu mới và xác nhận không khớp!");
-        }
-
-
-        user.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.save(user);
-    }
-    public void saveStaff(StaffDTO dto) {
-        User user;
-        if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
-
-            if (!user.getRole().equals(User.UserRole.ADMIN) && "ADMIN".equals(dto.getRole())) {
-                throw new RuntimeException("Không được phép nâng cấp lên quyền ADMIN");
-            }
+        if (user.getBranch() != null) {
+            dto.setBranch_id(user.getBranch().getBranchId());
+            dto.setBranch_name(user.getBranch().getBranchName());
         } else {
-            if ("ADMIN".equals(dto.getRole())) {
-                throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
-            }
-            user = new User();
-            user.setPasswordHash("123456");
+            dto.setBranch_name("Toàn hệ thống");
+        }
+        return dto;
+    }
+
+    public void saveStaff(StaffDTO dto) {
+        User user = (dto.getUser_id() != null)
+                ? userRepository.findById(dto.getUser_id()).orElse(new User())
+                : new User();
+
+        if (user.getUserId() == null) {
+            user.setPasswordHash(passwordEncoder.encode("123456"));
         }
 
         user.setFullName(dto.getFull_name());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
         user.setRole(User.UserRole.valueOf(dto.getRole()));
-        user.setBranchId(dto.getBranch_id());
         user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
+        user.setIsVerify(true);
+
+        if (dto.getBranch_id() != null) {
+            CinemaBranch branch = branchRepository.findById(dto.getBranch_id()).orElse(null);
+            user.setBranch(branch);
+        } else {
+            user.setBranch(null);
+        }
 
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            user.setPasswordHash(dto.getPassword());
+            user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         }
 
         userRepository.save(user);
@@ -97,8 +94,9 @@ public class UserService {
 
     public void toggleStatus(Long id) {
         userRepository.findById(id).ifPresent(user -> {
-            user.setStatus(user.getStatus() == User.UserStatus.active ?
-                    User.UserStatus.inactive : User.UserStatus.active);
+            user.setStatus(user.getStatus() == User.UserStatus.active
+                    ? User.UserStatus.inactive
+                    : User.UserStatus.active);
             userRepository.save(user);
         });
     }
@@ -107,31 +105,9 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public List<CinemaBranch> findAllBranches() {
-        return branchRepository.findAll();
-    }
-
-    private StaffDTO convertToDTO(User user) {
-        StaffDTO dto = new StaffDTO();
-        dto.setUser_id(user.getUserId());
-        dto.setFull_name(user.getFullName());
-        dto.setEmail(user.getEmail());
-        dto.setPhone(user.getPhone());
-        dto.setRole(user.getRole() != null ? user.getRole().name() : "");
-        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : "inactive");
-        if (user.getBranch() != null) {
-            dto.setBranch_id(user.getBranch().getBranchId());
-            dto.setBranch_name(user.getBranch().getBranchName());
-        } else {
-            dto.setBranch_name("Toàn hệ thống");
-        }
-        dto.setCreated_at(user.getCreatedAt());
-        return dto;
-    }
-
     public List<CustomerDTO> findAllCustomers() {
-        List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
-        return userRepository.findByRoleIn(roles).stream()
+        return userRepository.findByRoleIn(List.of(User.UserRole.CUSTOMER))
+                .stream()
                 .map(this::convertToCustomerDTO)
                 .collect(Collectors.toList());
     }
@@ -148,11 +124,60 @@ public class UserService {
     }
 
     public void updateCustomer(CustomerDTO dto) {
-        User customer = userRepository.findById(dto.getUser_id())
+        User user = userRepository.findById(dto.getUser_id())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-        customer.setFullName(dto.getFull_name());
-        customer.setPhone(dto.getPhone());
-        customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
-        userRepository.save(customer);
+        user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
+        userRepository.save(user);
+    }
+
+    public void changePassword(String email, ChangePasswordDTO dto) throws Exception {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("Không tìm thấy người dùng"));
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPasswordHash())) {
+            throw new Exception("Mật khẩu cũ không chính xác");
+        }
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new Exception("Mật khẩu mới không khớp");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    public List<BookingDTO> findBookingsByCustomerId(Long userId) {
+        return bookingRepository.findByUserUserId(userId)
+                .stream()
+                .map(this::convertToBookingDTO)
+                .collect(Collectors.toList());
+    }
+
+    private BookingDTO convertToBookingDTO(Booking b) {
+        BookingDTO dto = new BookingDTO();
+        dto.setBooking_id(b.getBookingId());
+        dto.setTotal_amount(b.getTotalAmount());
+        dto.setStatus(b.getStatus().name());
+        dto.setBooking_time(b.getBookingTime());
+
+        if (b.getShowtime() != null && b.getShowtime().getMovie() != null) {
+            dto.setMovie_title(b.getShowtime().getMovie().getTitle());
+        }
+
+        if (b.getShowtime() != null && b.getShowtime().getRoom() != null) {
+            dto.setBranch_name(b.getShowtime().getRoom().getBranch().getBranchName());
+        }
+
+        dto.setSeat_names(
+                b.getBookingSeats().stream()
+                        .map(bs -> bs.getSeat().getSeatNumber())
+                        .collect(Collectors.joining(", "))
+        );
+
+        return dto;
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }

@@ -45,7 +45,7 @@
         </div>
 
         <div class="bg-[#111] rounded-2xl border border-[#222] overflow-hidden shadow-2xl">
-            <table class="w-full text-left">
+            <table class="w-full text-left" id="customerTable">
                 <thead class="bg-[#000] border-b border-[#222]">
                 <tr>
                     <th class="p-4 text-gray-500 font-medium uppercase text-xs">ID</th>
@@ -153,7 +153,8 @@
     }
 
     window.onclick = function(e) {
-        if (e.target == document.getElementById('customerModal')) closeModal();
+        const modal = document.getElementById('customerModal');
+        if (e.target === modal) closeModal();
     }
 </script>
 </body>

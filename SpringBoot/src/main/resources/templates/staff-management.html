@@ -6,7 +6,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Tích hợp CSS đồng bộ với Admin Branch */
         body { background: #0f0f0f; color: #fff; }
         .layout { display: flex; height: 100vh; }
         .sidebar { width: 260px; background: #000; padding: 20px; border-right: 1px solid #222; }
@@ -29,7 +28,7 @@
     <div th:replace="~{fragments/sidebar :: sidebar('staff')}"></div>
 
     <div class="content">
-        <div class="header">
+        <div class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-3xl font-bold uppercase tracking-tight">Quản lý nhân viên</h1>
                 <p class="text-gray-400 mt-1">Đội ngũ nhân sự & Phân quyền hệ thống</p>
@@ -41,7 +40,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="relative col-span-1 md:col-span-1">
+            <div class="relative">
                 <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm tên, email..."
                        class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 pl-10 text-white outline-none focus:border-white transition">
                 <i data-lucide="search" class="absolute left-3 top-3.5 w-4 h-4 text-gray-500"></i>
@@ -66,7 +65,7 @@
         </div>
 
         <div class="bg-[#111] rounded-2xl border border-[#222] overflow-hidden shadow-2xl">
-            <table class="w-full text-left">
+            <table class="w-full text-left" id="staffTable">
                 <thead class="bg-[#000] border-b border-[#222]">
                 <tr>
                     <th class="p-4 text-gray-500 font-medium uppercase text-xs">ID</th>
@@ -86,7 +85,7 @@
                     </td>
                     <td class="p-4">
                         <span class="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border"
-                              th:classappend="${staff.role == 'MANAGER' ? 'border-blue-500 text-blue-500' : 'border-green-500 text-green-500'}"
+                              th:classappend="${staff.role == 'ADMIN' ? 'border-red-500 text-red-500' : (staff.role == 'MANAGER' ? 'border-blue-500 text-blue-500' : 'border-green-500 text-green-500')}"
                               th:text="${staff.role}"></span>
                     </td>
                     <td class="p-4 text-gray-300" th:text="${staff.branch_name}"></td>
@@ -144,8 +143,8 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Vai trò</label>
                     <select th:field="*{role}" id="form-role" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
-                        <option value="STAFF">Staff</option>
-                        <option value="MANAGER">Manager</option>
+                        <option value="STAFF">STAFF</option>
+                        <option value="MANAGER">MANAGER</option>
                     </select>
                 </div>
                 <div>
@@ -222,6 +221,13 @@
 
     function closeModal() {
         document.getElementById('staffModal').classList.add('hidden');
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('staffModal');
+        if (event.target == modal) {
+            closeModal();
+        }
     }
 </script>
 </body>

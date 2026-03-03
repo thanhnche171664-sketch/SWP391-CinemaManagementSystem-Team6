@@ -9,10 +9,13 @@
 
 <div class="layout">
 
+    <!-- Sidebar -->
     <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
 
+    <!-- Content -->
     <main class="content">
 
+        <!-- Header -->
         <header class="header">
             <div>
                 <h1>Thêm rạp chiếu mới</h1>
@@ -20,6 +23,7 @@
             </div>
         </header>
 
+        <!-- Form Card -->
         <div class="form-wrapper">
 
             <form th:action="@{/branches}"
@@ -39,7 +43,7 @@
                     <label>Thành phố</label>
                     <input type="text"
                            th:field="*{city}"
-                           placeholder="VD: Hà Nội"
+                           placeholder="VD: Hồ Chí Minh"
                            required>
                 </div>
 
@@ -52,7 +56,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-add">Lưu rạp</button>
+                    <button type="submit" class="btn-add">💾 Lưu rạp</button>
                     <a href="/branches" class="btn-cancel">Hủy</a>
                 </div>
 

@@ -1,0 +1,41 @@
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    color: #aaa;
+    text-align: left;
+    padding: 14px 10px;
+    border-bottom: 1px solid #222;
+}
+
+.table td {
+    padding: 16px 10px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.status-pill {
+    background: #fff;
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.actions {
+    display: flex;
+    gap: 14px;
+}
+
+.actions .icon {
+    width: 22px;
+    opacity: 0.7;
+    transition: 0.2s;
+}
+
+.actions .icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
