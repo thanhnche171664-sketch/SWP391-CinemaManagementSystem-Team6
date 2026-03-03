@@ -130,6 +130,14 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void updateProfile(User user) {
+        User existingUser = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng để cập nhật"));
+        existingUser.setFullName(user.getFullName());
+        existingUser.setPhone(user.getPhone());
+        userRepository.save(existingUser);
+    }
+
     public void changePassword(String email, ChangePasswordDTO dto) throws Exception {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new Exception("Không tìm thấy người dùng"));
