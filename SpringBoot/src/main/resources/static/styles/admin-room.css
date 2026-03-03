@@ -1,0 +1,108 @@
+body {
+    background: #0e0e0e;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.cinema {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Seat map */
+.seat-map {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+/* Mỗi hàng */
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Nhãn A B C */
+.row-label {
+    width: 24px;
+    text-align: center;
+    font-weight: bold;
+    color: #f5c16c;
+}
+
+/* Ghế */
+.seat {
+    width: 42px;
+    height: 42px;
+    background: #2a2a2a;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.seat:hover {
+    transform: scale(1.08);
+}
+
+/* Icon */
+.seat-icon {
+    font-size: 18px;
+    color: #fff;
+}
+
+/* Ghế thường */
+.seat-normal {
+    border: 2px solid #2a2a2a;
+}
+
+/* Ghế VIP */
+.seat-vip {
+    border: 2px solid #ff9800;
+}
+
+/* Ghế đôi */
+.seat-couple {
+    border: 2px solid #ff2ea6;
+}
+
+/* Ghế đang chọn */
+.seat-selected {
+    background: #ffffff;
+}
+
+.seat-selected .seat-icon {
+    color: #000;
+}
+
+/* Ghế đã bán */
+.seat-sold {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.legend div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend .seat {
+    width: 26px;
+    height: 26px;
+}
