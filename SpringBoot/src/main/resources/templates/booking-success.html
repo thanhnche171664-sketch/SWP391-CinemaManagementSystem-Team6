@@ -24,6 +24,10 @@
         <nav class="auth-nav">
             <a th:href="@{/movies}">Phim</a>
             <a th:href="@{/bookings}">Vé của tôi</a>
+            <form method="post" th:action="@{/logout}" th:if="${#request.getAttribute('_csrf') != null}">
+                <input type="hidden" th:name="${#request.getAttribute('_csrf').parameterName}" th:value="${#request.getAttribute('_csrf').token}"/>
+                <button type="submit">Đăng xuất</button>
+            </form>
         </nav>
     </header>
     <main class="main-wrap">

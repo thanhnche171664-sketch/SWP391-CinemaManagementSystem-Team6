@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/profile", true)
+                        .defaultSuccessUrl("/movies", true)
                         .failureUrl("/login?error")
                 )
                 .logout(logout -> logout

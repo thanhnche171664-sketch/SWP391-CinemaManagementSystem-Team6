@@ -15,6 +15,10 @@
         </a>
         <nav class="auth-nav">
             <a th:href="@{/login}">Đăng nhập</a>
+            <form method="post" th:action="@{/logout}" th:if="${#request.getAttribute('_csrf') != null}">
+                <input type="hidden" th:name="${#request.getAttribute('_csrf').parameterName}" th:value="${#request.getAttribute('_csrf').token}"/>
+                <button type="submit">Đăng xuất</button>
+            </form>
         </nav>
     </header>
 

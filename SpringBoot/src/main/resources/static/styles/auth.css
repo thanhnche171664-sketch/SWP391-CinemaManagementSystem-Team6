@@ -60,6 +60,22 @@ body.auth-page {
     background: rgba(255,255,255,0.08);
 }
 
+.auth-nav form { display: inline-block; }
+.auth-nav form button {
+    background: none;
+    border: none;
+    color: #ccc;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+.auth-nav form button:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+}
+
 /* Main content with background */
 .auth-main {
     flex: 1;

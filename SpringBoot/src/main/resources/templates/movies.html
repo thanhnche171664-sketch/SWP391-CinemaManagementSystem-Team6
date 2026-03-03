@@ -28,6 +28,10 @@
             <a th:href="@{/bookings}">Vé của tôi</a>
             <a th:href="@{/login}">Đăng nhập</a>
             <a th:href="@{/register}">Đăng ký</a>
+            <form method="post" th:action="@{/logout}" th:if="${#request.getAttribute('_csrf') != null}">
+                <input type="hidden" th:name="${#request.getAttribute('_csrf').parameterName}" th:value="${#request.getAttribute('_csrf').token}"/>
+                <button type="submit">Đăng xuất</button>
+            </form>
         </nav>
     </header>
     <main class="main-wrap">
