@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.service;
 
+import com.swp391.team6.cinema.dto.ChangePasswordDTO;
 import com.swp391.team6.cinema.dto.CustomerDTO;
 import com.swp391.team6.cinema.dto.StaffDTO;
 import com.swp391.team6.cinema.entity.CinemaBranch;
@@ -7,6 +8,7 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -21,6 +23,9 @@ public class UserService {
 
     @Autowired
     private CinemaBranchRepository branchRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<StaffDTO> findAllStaff() {
         List<User.UserRole> staffRoles = Arrays.asList(
@@ -40,7 +45,25 @@ public class UserService {
             User user = userRepository.findById(updatedUser.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
         }
+    public void changePassword(String email, ChangePasswordDTO dto) throws Exception {
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("Không tìm thấy người dùng!"));
+
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPasswordHash())) {
+            throw new Exception("Mật khẩu cũ không chính xác!");
+        }
+
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new Exception("Mật khẩu mới và xác nhận không khớp!");
+        }
+
+
+        user.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+    }
     public void saveStaff(StaffDTO dto) {
         User user;
         if (dto.getUser_id() != null) {
