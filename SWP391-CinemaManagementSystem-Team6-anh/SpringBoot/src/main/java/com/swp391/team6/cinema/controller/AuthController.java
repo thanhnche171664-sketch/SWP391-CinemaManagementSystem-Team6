@@ -41,30 +41,30 @@ public class AuthController {
      * Xử lý đăng nhập
      */
     @PostMapping("/login")
-    public String login(@ModelAttribute LoginRequest loginRequest, 
-                       HttpSession session,
-                       RedirectAttributes redirectAttributes) {
-        
+    public String login(@ModelAttribute LoginRequest loginRequest,
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
         Map<String, Object> result = userService.authenticateUser(
-            loginRequest.getEmail(), 
-            loginRequest.getPassword()
+                loginRequest.getEmail(),
+                loginRequest.getPassword()
         );
-        
+
         boolean success = (boolean) result.get("success");
         String message = (String) result.get("message");
-        
+
         if (!success) {
             // Đăng nhập thất bại - hiển thị lỗi
             redirectAttributes.addFlashAttribute("error", message);
             redirectAttributes.addFlashAttribute("email", loginRequest.getEmail());
             return "redirect:/auth/login";
         }
-        
+
         // Đăng nhập thành công - lưu user vào session
         User user = (User) result.get("user");
         session.setAttribute("loggedInUser", user);
         session.setAttribute("userRole", user.getRole().toString());
-        
+
         // Đồng bộ SecurityContext để qua được Spring Security filter
         List<SimpleGrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
@@ -76,9 +76,9 @@ public class AuthController {
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 SecurityContextHolder.getContext()
         );
-        
+
         redirectAttributes.addFlashAttribute("success", message);
-        
+
         // Redirect theo role
         switch (user.getRole()) {
             case ADMIN:
