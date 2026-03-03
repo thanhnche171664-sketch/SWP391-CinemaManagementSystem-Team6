@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết đặt vé - Cinema System</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .section {
+            background: linear-gradient(145deg, #111, #000);
+            border-radius: 18px;
+            border: 1px solid #1c1c1c;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            margin-bottom: 12px;
+        }
+        .key-value {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #1c1c1c;
+        }
+        .key-value:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #1f2f26;
+            color: #86efac;
+        }
+        .badge-muted {
+            background: #2a1f1f;
+            color: #fca5a5;
+        }
+        .seat-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .seat-item {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <div th:replace="~{fragments/sidebar :: sidebar('tickets')}"></div>
+
+    <main class="content">
+        <div class="header">
+            <div>
+                <h1>Chi tiết đặt vé</h1>
+                <p>Thông tin thanh toán, mã vé và khách hàng.</p>
+            </div>
+            <a href="/admin/bookings" class="btn-add">Quay lại</a>
+        </div>
+
+        <div class="section">
+            <h3>Thông tin đơn</h3>
+            <div class="key-value">
+                <div>Mã vé</div>
+                <div class="mono" th:text="${booking.bookingId}"></div>
+            </div>
+            <div class="key-value">
+                <div>Thời gian đặt</div>
+                <div th:text="${#temporals.format(booking.bookingTime, 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+            <div class="key-value">
+                <div>Trạng thái</div>
+                <div th:text="${booking.status}"></div>
+            </div>
+            <div class="key-value">
+                <div>Hình thức</div>
+                <div th:text="${booking.bookingType}"></div>
+            </div>
+            <div class="key-value">
+                <div>Tổng tiền</div>
+                <div th:text="${booking.totalAmount} + ' VND'"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Khách hàng</h3>
+            <div class="key-value">
+                <div>Họ tên</div>
+                <div th:text="${booking.customerName}"></div>
+            </div>
+            <div class="key-value">
+                <div>Email</div>
+                <div th:text="${booking.customerEmail}"></div>
+            </div>
+            <div class="key-value">
+                <div>Số điện thoại</div>
+                <div th:text="${booking.customerPhone}"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Suất chiếu</h3>
+            <div class="key-value">
+                <div>Phim</div>
+                <div th:text="${booking.movieTitle}"></div>
+            </div>
+            <div class="key-value">
+                <div>Giờ chiếu</div>
+                <div th:text="${#temporals.format(booking.showtimeStart, 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+            <div class="key-value">
+                <div>Giờ kết thúc</div>
+                <div th:text="${#temporals.format(booking.showtimeEnd, 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+            <div class="key-value">
+                <div>Phòng</div>
+                <div th:text="${booking.roomName}"></div>
+            </div>
+            <div class="key-value">
+                <div>Chi nhánh</div>
+                <div th:text="${booking.branchName}"></div>
+            </div>
+            <div class="key-value">
+                <div>Ghế</div>
+                <div class="seat-list">
+                    <span th:if="${#lists.isEmpty(booking.seats)}" class="text-muted">Chưa có ghế</span>
+                    <span th:each="s : ${booking.seats}" class="seat-item" th:text="${s}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Thanh toán</h3>
+            <div th:if="${#lists.isEmpty(booking.payments)}" class="text-muted">Chưa có thanh toán</div>
+            <table th:if="${!#lists.isEmpty(booking.payments)}" class="data-table">
+                <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Phương thức</th>
+                    <th>Trạng thái</th>
+                    <th>Số tiền</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${booking.payments}">
+                    <td th:text="${#temporals.format(p.paymentTime, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${p.method}"></td>
+                    <td th:text="${p.status}"></td>
+                    <td th:text="${p.amount} + ' VND'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>
