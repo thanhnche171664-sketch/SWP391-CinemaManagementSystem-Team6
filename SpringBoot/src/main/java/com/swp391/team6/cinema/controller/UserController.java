@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import java.security.Principal;
 
 import java.security.Principal;
+
 
 @Controller
 public class UserController {
@@ -19,11 +21,14 @@ public class UserController {
     @GetMapping("/profile")
     public String viewProfile(
             @RequestParam(value = "edit", defaultValue = "false") boolean edit,
-            Model model) {
-
-        String email = "admin@gmail.com";
-
-        User user = userService.getUserByEmail(email);
+            Model model,
+            Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        String email = principal.getName();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email: " + email));
         model.addAttribute("user", user);
         model.addAttribute("edit", edit);
 
