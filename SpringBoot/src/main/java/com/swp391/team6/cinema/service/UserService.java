@@ -21,10 +21,10 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CinemaBranchRepository branchRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -154,6 +154,15 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public void updateProfile(User updatedUser){
+        User user = userRepository.findById(updatedUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -197,25 +206,25 @@ public class UserService {
             return dto;
         }).collect(Collectors.toList());
     }
-    
+
     /**
      * Xác thực đăng nhập
      * @return Map chứa: success (boolean), message (String), user (User nếu thành công)
      */
     public Map<String, Object> authenticateUser(String email, String password) {
         Map<String, Object> result = new HashMap<>();
-        
+
         // Tìm user theo email
         Optional<User> userOptional = userRepository.findByEmail(email);
-        
+
         if (userOptional.isEmpty()) {
             result.put("success", false);
             result.put("message", "Email không tồn tại!");
             return result;
         }
-        
+
         User user = userOptional.get();
-        
+
         // Kiểm tra password (hỗ trợ legacy plain text)
         String rawPassword = password == null ? "" : password;
         String storedPassword = user.getPasswordHash();
@@ -226,7 +235,7 @@ public class UserService {
                 passwordMatches = true;
                 user.setPasswordHash(passwordEncoder.encode(rawPassword));
                 if (user.getRole() != User.UserRole.CUSTOMER &&
-                    (user.getIsVerify() == null || !user.getIsVerify())) {
+                        (user.getIsVerify() == null || !user.getIsVerify())) {
                     user.setIsVerify(true);
                 }
                 userRepository.save(user);
@@ -237,31 +246,32 @@ public class UserService {
             result.put("message", "Mật khẩu không chính xác!");
             return result;
         }
-        
+
         // Kiểm tra tài khoản chưa verify (chỉ áp dụng cho CUSTOMER)
         if (user.getRole() == User.UserRole.CUSTOMER &&
-            (user.getIsVerify() == null || !user.getIsVerify())) {
+                (user.getIsVerify() == null || !user.getIsVerify())) {
             result.put("success", false);
             result.put("message", "Tài khoản chưa được xác thực! Vui lòng kiểm tra email để verify.");
             return result;
         }
-        
+
         // Kiểm tra tài khoản bị khóa
         if (user.getStatus() == User.UserStatus.inactive) {
             result.put("success", false);
             result.put("message", "Tài khoản đã bị khóa bởi Admin. Vui lòng liên hệ hỗ trợ.");
             return result;
         }
-        
+
         // Đăng nhập thành công
         result.put("success", true);
         result.put("message", "Đăng nhập thành công!");
         result.put("user", user);
-        
+
         return result;
     }
-    
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
 }

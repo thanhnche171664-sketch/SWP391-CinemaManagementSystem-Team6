@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý rạp chiếu</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-room.css}">
+</head>
+<body>
+
+    <div class="layout">
+        <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
+
+        <main class="content">
+
+            <header class="header">
+                <div>
+                    <h1>Quản lý phòng chiếu và ghế ngồi</h1>
+                </div>
+
+            </header>
+            <div class="cinema">
+
+                <div class="seat-map">
+
+                    <div th:each="row : ${#lists.sort(#sets.toSet(seats.![seatRow]))}"
+                         class="seat-row">
+
+                        <div class="row-label" th:text="${row}">A</div>
+
+                        <div th:each="seat : ${seats}"
+                             th:if="${seat.seatRow == row}"
+                             class="seat"
+                             th:classappend="
+                                ${seat.seatType.name() == 'VIP'} ? 'seat-vip' :
+                                (${seat.seatType.name() == 'COUPLE'} ? 'seat-couple' : 'seat-normal')
+                             ">
+
+                            <span class="seat-icon">💺</span>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="legend">
+                    <div><span class="seat seat-normal"></span> Ghế thường</div>
+                    <div><span class="seat seat-vip"></span> Ghế VIP</div>
+                    <div><span class="seat seat-couple"></span> Ghế đôi</div>
+                    <div><span class="seat seat-selected"></span> Đang chọn</div>
+                    <div><span class="seat seat-sold"></span> Đã bán</div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</body>
+</html>

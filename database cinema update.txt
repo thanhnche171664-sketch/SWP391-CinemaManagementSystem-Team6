@@ -87,6 +87,23 @@ CREATE TABLE pricing (
   FOREIGN KEY (branch_id) REFERENCES cinema_branches(branch_id)
 );
 
+CREATE TABLE promotions (
+  promotion_id INT AUTO_INCREMENT PRIMARY KEY,
+  promo_code VARCHAR(50) UNIQUE NOT NULL,
+  description VARCHAR(255),
+  discount_type ENUM('percent','amount') NOT NULL,
+  discount_value DECIMAL(10,2) NOT NULL,
+  min_booking_amount DECIMAL(10,2) DEFAULT 0,
+  start_date DATETIME,
+  end_date DATETIME,
+  branch_id INT NULL,
+  usage_limit INT NULL,
+  used_count INT DEFAULT 0,
+  status ENUM('active','inactive') DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (branch_id) REFERENCES cinema_branches(branch_id)
+);
+
 CREATE TABLE bookings (
   booking_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -95,7 +112,9 @@ CREATE TABLE bookings (
   booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status ENUM('pending','paid','cancelled') DEFAULT 'pending',
   total_amount DECIMAL(10,2),
+  promotion_id INT NULL,
   FOREIGN KEY (user_id) REFERENCES users(user_id),
+  FOREIGN KEY (promotion_id) REFERENCES promotions(promotion_id),
   FOREIGN KEY (showtime_id) REFERENCES showtimes(showtime_id)
 );
 
@@ -270,3 +289,12 @@ INSERT INTO notifications (user_id, title, content) VALUES
 (8,'Payment Failed','Please retry payment'),
 (9,'Showtime Reminder','Movie starts soon'),
 (10,'New Movie','New movie released');
+
+INSERT INTO promotions 
+(promo_code, description, discount_type, discount_value, min_booking_amount, start_date, end_date, branch_id, usage_limit)
+VALUES
+('NEWUSER50', 'Giảm 50% cho khách mới', 'percent', 50, 100000, '2026-02-01', '2026-12-31', NULL, 100),
+
+('Q1DISCOUNT20', 'Giảm 20k cho chi nhánh Q1', 'amount', 20000, 80000, '2026-02-01', '2026-06-30', 1, NULL),
+
+('VIP30', 'Giảm 30% cho vé VIP', 'percent', 30, 150000, '2026-02-01', '2026-04-30', NULL, 200);
