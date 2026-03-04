@@ -100,14 +100,45 @@
                             <button th:onclick="prepareEdit([[${staff}]])" class="text-gray-400 hover:text-white transition">
                                 <i data-lucide="edit-2" class="w-5 h-5"></i>
                             </button>
-                            <a th:href="@{'/admin/staff/delete/' + ${staff.user_id}}" onclick="return confirm('Xóa nhân viên này?')" class="text-gray-600 hover:text-red-500 transition">
-                                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                            </a>
+                            <a th:href="@{'/admin/staff/delete/' + ${staff.user_id}}"
+                               onclick="return confirm('Bạn có chắc chắn muốn TẠM KHÓA nhân viên này? (Dữ liệu vẫn sẽ được lưu trữ)')"
+                               class="text-gray-600 hover:text-red-500 transition"
+                               title="Tạm khóa nhân viên">
+                                <i data-lucide="user-minus" class="w-5 h-5"></i> </a>
                         </div>
                     </td>
                 </tr>
                 </tbody>
             </table>
+
+            <div class="p-4 bg-[#000] border-t border-[#222] flex justify-between items-center" th:if="${totalPages > 0}">
+                <div class="text-xs text-gray-500 uppercase font-bold tracking-widest">
+                    Trang <span class="text-white" th:text="${currentPage + 1}"></span> / <span th:text="${totalPages}"></span>
+                </div>
+
+                <div class="flex gap-2">
+                    <a th:href="@{/admin/staff(page=${currentPage - 1})}"
+                       th:classappend="${currentPage == 0} ? 'pointer-events-none opacity-20' : ''"
+                       class="p-2 bg-[#1a1a1a] border border-[#333] rounded-lg hover:bg-white hover:text-black transition">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </a>
+
+                    <div class="flex gap-1">
+                        <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                           th:href="@{/admin/staff(page=${i})}"
+                           th:text="${i + 1}"
+                           th:classappend="${currentPage == i} ? 'bg-blue-600 text-white border-blue-600' : 'bg-[#1a1a1a] border-[#333] text-gray-400'"
+                           class="px-3 py-1.5 border rounded-lg text-sm font-bold transition">
+                        </a>
+                    </div>
+
+                    <a th:href="@{/admin/staff(page=${currentPage + 1})}"
+                       th:classappend="${currentPage + 1 >= totalPages} ? 'pointer-events-none opacity-20' : ''"
+                       class="p-2 bg-[#1a1a1a] border border-[#333] rounded-lg hover:bg-white hover:text-black transition">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

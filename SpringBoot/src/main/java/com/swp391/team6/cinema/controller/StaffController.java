@@ -5,6 +5,7 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,17 +19,28 @@ public class StaffController {
     private UserService userService;
 
     @GetMapping
-    public String showStaffPage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String showStaffPage(@RequestParam(defaultValue = "0") int page,
+                                HttpSession session,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null || (user.getRole() != User.UserRole.ADMIN && user.getRole() != User.UserRole.MANAGER)) {
             redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
             return "redirect:/auth/login";
         }
-        
-        model.addAttribute("staffList", userService.findAllStaff());
+
+        int pageSize = 10;
+        Page<StaffDTO> staffPage = userService.findStaffPaged(page, pageSize);
+
+        model.addAttribute("staffList", staffPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", staffPage.getTotalPages());
+        model.addAttribute("totalItems", staffPage.getTotalElements());
+
         model.addAttribute("branches", userService.findAllBranches());
         model.addAttribute("newStaff", new StaffDTO());
         model.addAttribute("user", user);
+
         return "staff-management";
     }
 
@@ -45,10 +57,9 @@ public class StaffController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteStaff(@PathVariable Long id) {
+    public String deleteStaff(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         userService.deleteStaff(id);
+        redirectAttributes.addFlashAttribute("success", "Đã tạm khóa tài khoản nhân viên.");
         return "redirect:/admin/staff";
     }
-
-
 }

@@ -12,6 +12,10 @@ import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -71,6 +75,7 @@ public class UserService {
         } else {
             user = new User();
             user.setPasswordHash(passwordEncoder.encode("123456"));
+            user.setIsVerify(true);
         }
 
         user.setFullName(dto.getFull_name());
@@ -100,7 +105,10 @@ public class UserService {
     }
 
     public void deleteStaff(Long id) {
-        userRepository.deleteById(id);
+        userRepository.findById(id).ifPresent(user -> {
+            user.setStatus(User.UserStatus.inactive);
+            userRepository.save(user);
+        });
     }
 
     public List<CinemaBranch> findAllBranches() {
@@ -113,6 +121,22 @@ public class UserService {
         return userRepository.findByRoleIn(roles).stream()
                 .map(this::convertToCustomerDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<CustomerDTO> findCustomersPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        List<User.UserRole> customerRoles = Collections.singletonList(User.UserRole.CUSTOMER);
+
+        return userRepository.findByRoleIn(customerRoles, pageable)
+                .map(this::convertToCustomerDTO);
+    }
+
+    public Page<StaffDTO> findStaffPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
+        List<User.UserRole> staffRoles = Arrays.asList(User.UserRole.MANAGER, User.UserRole.STAFF);
+
+        return userRepository.findByRoleIn(staffRoles, pageable)
+                .map(this::convertToDTO);
     }
 
     private CustomerDTO convertToCustomerDTO(User user) {
