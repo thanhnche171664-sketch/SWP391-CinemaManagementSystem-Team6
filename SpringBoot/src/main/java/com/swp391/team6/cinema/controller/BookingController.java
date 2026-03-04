@@ -96,7 +96,10 @@ public class BookingController {
         if (opt.isEmpty()) {
             return "redirect:/bookings";
         }
-        model.addAttribute("booking", opt.get());
+        // Đồng bộ trạng thái từ PayOS khi user quay về (webhook có thể chưa gọi hoặc không gọi được khi chạy local)
+        bookingService.syncPaymentStatusFromPayOSIfPending(bookingId);
+        opt = bookingService.getBookingByIdAndUser(bookingId, user.getUserId());
+        model.addAttribute("booking", opt.orElseThrow());
         return "booking-success";
     }
 

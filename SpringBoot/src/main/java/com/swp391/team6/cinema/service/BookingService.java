@@ -20,19 +20,22 @@ public class BookingService {
     private final SeatRepository seatRepository;
     private final PricingRepository pricingRepository;
     private final PaymentRepository paymentRepository;
+    private final PayOSService payOSService;
 
     public BookingService(ShowtimeRepository showtimeRepository,
                           BookingRepository bookingRepository,
                           BookingSeatRepository bookingSeatRepository,
                           SeatRepository seatRepository,
                           PricingRepository pricingRepository,
-                          PaymentRepository paymentRepository) {
+                          PaymentRepository paymentRepository,
+                          PayOSService payOSService) {
         this.showtimeRepository = showtimeRepository;
         this.bookingRepository = bookingRepository;
         this.bookingSeatRepository = bookingSeatRepository;
         this.seatRepository = seatRepository;
         this.pricingRepository = pricingRepository;
         this.paymentRepository = paymentRepository;
+        this.payOSService = payOSService;
     }
 
     public List<Showtime> getShowtimesByMovie(Long movieId) {
@@ -145,6 +148,27 @@ public class BookingService {
         Booking booking = payment.getBooking();
         booking.setStatus(Booking.BookingStatus.paid);
         bookingRepository.save(booking);
+    }
+
+    /**
+     * If booking is still pending, check PayOS for payment status and update DB if already paid.
+     * Use when user lands on booking-success so they see "Đã thanh toán" even if webhook hasn't run yet.
+     */
+    public void syncPaymentStatusFromPayOSIfPending(Long bookingId) {
+        Optional<Booking> opt = bookingRepository.findById(bookingId);
+        if (opt.isEmpty() || opt.get().getStatus() != Booking.BookingStatus.pending) return;
+        List<Payment> payments = paymentRepository.findByBookingBookingId(bookingId);
+        Optional<Long> orderCode = payments.stream()
+                .map(Payment::getExternalOrderCode)
+                .filter(Objects::nonNull)
+                .findFirst();
+        if (orderCode.isEmpty()) return;
+        try {
+            if (payOSService.isPaymentCompletedByOrderCode(orderCode.get())) {
+                confirmPaymentByOrderCode(orderCode.get());
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public Optional<Booking> getBookingByIdAndUser(Long bookingId, Long userId) {

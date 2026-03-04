@@ -123,6 +123,38 @@ public class PayOSService {
     }
 
     /**
+     * Get payment request status from PayOS by orderCode.
+     * GET /v2/payment-requests/{orderCode}
+     * @return true if PayOS reports the payment as completed (PAID/COMPLETED or amountPaid >= amount)
+     */
+    public boolean isPaymentCompletedByOrderCode(long orderCode) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-client-id", clientId);
+        headers.set("x-api-key", apiKey);
+        String url = baseUrl + "/v2/payment-requests/" + orderCode;
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+            Map<?, ?> body = response.getBody();
+            if (response.getStatusCode().is2xxSuccessful() && body != null && "00".equals(body.get("code"))) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) body.get("data");
+                if (data == null) return false;
+                String status = data.get("status") != null ? data.get("status").toString().toUpperCase() : "";
+                if ("PAID".equals(status) || "COMPLETED".equals(status)) return true;
+                Object amountPaidObj = data.get("amountPaid");
+                Object amountObj = data.get("amount");
+                if (amountPaidObj != null && amountObj != null) {
+                    int amountPaid = amountPaidObj instanceof Number ? ((Number) amountPaidObj).intValue() : Integer.parseInt(amountPaidObj.toString());
+                    int amount = amountObj instanceof Number ? ((Number) amountObj).intValue() : Integer.parseInt(amountObj.toString());
+                    if (amount > 0 && amountPaid >= amount) return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /**
      * Verify webhook signature (data + signature from PayOS).
      * PayOS webhook sends body with orderCode, amount, etc. and a signature to verify.
      */
