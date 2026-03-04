@@ -63,6 +63,7 @@ public class BookingService {
             dto.setCustomerName(booking.getUser().getFullName());
             dto.setCustomerEmail(booking.getUser().getEmail());
             dto.setMovieTitle(booking.getShowtime().getMovie().getTitle());
+            dto.setMovieId(booking.getShowtime().getMovie().getMovieId());
             dto.setShowtimeStart(booking.getShowtime().getStartTime());
             dto.setShowtimeEnd(booking.getShowtime().getEndTime());
             dto.setRoomName(booking.getShowtime().getRoom().getRoomName());
@@ -125,5 +126,13 @@ public class BookingService {
                 payment.getAmount(),
                 payment.getPaymentTime()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingListDTO> getBookingHistoryByCustomer(Long userId) {
+        List<Booking> bookings = bookingRepository.findByUserUserId(userId);
+        return mapToListDTO(bookings).stream()
+                .sorted((b1, b2) -> b2.getBookingTime().compareTo(b1.getBookingTime())) // Sắp xếp mới nhất lên đầu
+                .collect(Collectors.toList());
     }
 }
