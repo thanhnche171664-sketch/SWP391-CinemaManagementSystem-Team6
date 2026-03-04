@@ -2,6 +2,7 @@ package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.entity.Movie;
 import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.service.GenreService;
 import com.swp391.team6.cinema.service.MovieService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class ViewController {
 
     private final MovieService movieService;
+    private final GenreService genreService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -82,6 +84,7 @@ public class ViewController {
     public String movies(Model model) {
         List<Movie> movies = movieService.getVisibleMovies();
         model.addAttribute("movies", movies);
+        model.addAttribute("genreList", genreService.getAllGenres());
         return "movies";
     }
 
