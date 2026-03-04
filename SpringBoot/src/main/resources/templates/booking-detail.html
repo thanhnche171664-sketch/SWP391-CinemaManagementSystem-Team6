@@ -24,7 +24,8 @@
         <nav class="auth-nav">
             <a th:href="@{/movies}">Phim</a>
             <a th:href="@{/bookings}">Vé của tôi</a>
-            <form method="post" th:action="@{/logout}" th:if="${_csrf != null}">
+            <a th:href="@{/login}" th:if="${!isAuthenticated}">Đăng nhập</a>
+            <form method="post" th:action="@{/logout}" th:if="${isAuthenticated and _csrf != null}" style="display: inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit">Đăng xuất</button>
             </form>
@@ -38,7 +39,7 @@
             <p class="row"><strong>Rạp:</strong> <span th:text="${booking.showtime.room.branch.branchName}">Rạp</span></p>
             <p class="row"><strong>Phòng:</strong> <span th:text="${booking.showtime.room.roomName}">Phòng</span></p>
             <p class="row"><strong>Suất chiếu:</strong> <span th:text="${#temporals.format(booking.showtime.startTime, 'dd/MM/yyyy HH:mm')}">Ngày giờ</span></p>
-            <p class="row"><strong>Ghế:</strong> <span th:text="${#lists.isEmpty(booking.bookingSeats)} ? '—' : #strings.listJoin(booking.bookingSeats.![seat.seatRow + seat.seatNumber], ', ')}">A1, A2</span></p>
+            <p class="row"><strong>Ghế:</strong> <span th:text="${#lists.isEmpty(booking.bookingSeats) ? '—' : #strings.listJoin(booking.bookingSeats.![seat.seatRow + seat.seatNumber], ', ')}">A1, A2</span></p>
             <p class="row"><strong>Tổng tiền:</strong> <span th:text="${#numbers.formatDecimal(booking.totalAmount, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">0</span></p>
             <p class="row"><strong>Trạng thái:</strong> <span th:text="${booking.status.name() == 'paid' ? 'Đã thanh toán' : (booking.status.name() == 'pending' ? 'Chờ thanh toán' : 'Đã hủy')}">Trạng thái</span></p>
             <a th:href="@{/bookings}">← Quay lại danh sách vé</a>

@@ -12,4 +12,9 @@ public class CsrfControllerAdvice {
     public CsrfToken csrfToken(HttpServletRequest request) {
         return (CsrfToken) request.getAttribute(CsrfToken.class.getName());
     }
+
+    @ModelAttribute("isAuthenticated")
+    public boolean isAuthenticated(HttpServletRequest request) {
+        return request.getUserPrincipal() != null;
+    }
 }

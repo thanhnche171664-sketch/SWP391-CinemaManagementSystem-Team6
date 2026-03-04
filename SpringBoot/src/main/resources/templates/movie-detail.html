@@ -30,8 +30,8 @@
         <nav class="auth-nav">
             <a th:href="@{/movies}">Phim</a>
             <a th:href="@{/bookings}">Vé của tôi</a>
-            <a th:href="@{/login}">Đăng nhập</a>
-            <form method="post" th:action="@{/logout}" th:if="${_csrf != null}">
+            <a th:href="@{/login}" th:if="${!isAuthenticated}">Đăng nhập</a>
+            <form method="post" th:action="@{/logout}" th:if="${isAuthenticated and _csrf != null}" style="display: inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit">Đăng xuất</button>
             </form>
@@ -49,7 +49,7 @@
         </div>
         <section class="showtimes">
             <h2>Suất chiếu</h2>
-            <table class="st-table" th:if="${!#lists.isEmpty(showtimes)}">
+            <table class="st-table" th:if="${showtimes != null and !#lists.isEmpty(showtimes)}">
                 <thead>
                     <tr>
                         <th>Rạp / Phòng</th>
@@ -65,7 +65,7 @@
                     </tr>
                 </tbody>
             </table>
-            <p th:if="${#lists.isEmpty(showtimes)}" style="color: #888;">Chưa có suất chiếu.</p>
+            <p th:if="${showtimes == null or #lists.isEmpty(showtimes)}" style="color: #888;">Chưa có suất chiếu.</p>
         </section>
     </main>
 </body>

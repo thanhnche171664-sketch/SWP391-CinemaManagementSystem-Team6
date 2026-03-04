@@ -14,8 +14,8 @@
             <span>CinemaHub</span>
         </a>
         <nav class="auth-nav">
-            <a th:href="@{/login}">Đăng nhập</a>
-            <form method="post" th:action="@{/logout}" th:if="${_csrf != null}">
+            <a th:href="@{/login}" th:if="${!isAuthenticated}">Đăng nhập</a>
+            <form method="post" th:action="@{/logout}" th:if="${isAuthenticated and _csrf != null}" style="display: inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit">Đăng xuất</button>
             </form>

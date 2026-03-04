@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 @Service
 public class BookingService {
@@ -35,7 +36,13 @@ public class BookingService {
     }
 
     public List<Showtime> getShowtimesByMovie(Long movieId) {
-        return showtimeRepository.findByMovieAndOpenAndFuture(movieId, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        return showtimeRepository.findByMovieMovieId(movieId).stream()
+                .filter(s -> s.getStatus() == Showtime.ShowtimeStatus.open
+                        && s.getStartTime() != null
+                        && !s.getStartTime().isBefore(now))
+                .sorted(Comparator.comparing(Showtime::getStartTime))
+                .toList();
     }
 
     public Showtime getShowtimeById(Long showtimeId) {

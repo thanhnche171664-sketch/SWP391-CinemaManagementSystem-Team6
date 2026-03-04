@@ -26,9 +26,9 @@
         </a>
         <nav class="auth-nav">
             <a th:href="@{/bookings}">Vé của tôi</a>
-            <a th:href="@{/login}">Đăng nhập</a>
-            <a th:href="@{/register}">Đăng ký</a>
-            <form method="post" th:action="@{/logout}" th:if="${_csrf != null}">
+            <a th:href="@{/login}" th:if="${!isAuthenticated}">Đăng nhập</a>
+            <a th:href="@{/register}" th:if="${!isAuthenticated}">Đăng ký</a>
+            <form method="post" th:action="@{/logout}" th:if="${isAuthenticated and _csrf != null}" style="display: inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit">Đăng xuất</button>
             </form>
@@ -37,7 +37,7 @@
     <main class="main-wrap">
         <h1 style="margin-bottom: 8px;">Phim đang chiếu</h1>
         <p style="color: #888; margin-bottom: 24px;">Chọn phim để xem suất chiếu và đặt vé</p>
-        <div class="movie-grid" th:if="${!#lists.isEmpty(movies)}">
+        <div class="movie-grid" th:if="${movies != null and !#lists.isEmpty(movies)}">
             <div class="movie-card" th:each="m : ${movies}">
                 <img th:src="${m.posterUrl}" th:alt="${m.title}" onerror="this.src='https://via.placeholder.com/200x300?text=No+Poster'" />
                 <div class="info">
@@ -47,7 +47,7 @@
                 </div>
             </div>
         </div>
-        <p th:if="${#lists.isEmpty(movies)}" style="color: #888;">Chưa có phim đang chiếu.</p>
+        <p th:if="${movies == null or #lists.isEmpty(movies)}" style="color: #888;">Chưa có phim đang chiếu.</p>
     </main>
 </body>
 </html>

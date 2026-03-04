@@ -209,6 +209,67 @@ body.auth-page {
     transform: translateY(0);
 }
 
+.auth-link-forgot {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #888;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.auth-link-forgot:hover {
+    color: #e50914;
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 20px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    display: inline-block;
+    width: 40%;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    vertical-align: middle;
+}
+.auth-divider span {
+    padding: 0 12px;
+}
+
+.auth-oauth {
+    margin-top: 8px;
+}
+.auth-oauth-hint {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 10px;
+}
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 20px;
+    background: #1a1a1a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+.btn-google:hover {
+    background: #252525;
+    border-color: rgba(255,255,255,0.3);
+    color: #fff;
+}
+
 /* Footer link */
 .auth-footer {
     text-align: center;

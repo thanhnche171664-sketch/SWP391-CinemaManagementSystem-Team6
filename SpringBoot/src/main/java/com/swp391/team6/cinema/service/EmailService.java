@@ -37,4 +37,20 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendPasswordResetEmail(String toEmail, String token, String userName) throws MessagingException {
+        String resetUrl = baseUrl + "/reset-password?token=" + token;
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setTo(toEmail);
+        helper.setSubject("Đặt lại mật khẩu - CinemaHub");
+        helper.setText(
+                "<p>Xin chào " + (userName != null && !userName.isBlank() ? userName : "bạn") + ",</p>" +
+                "<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào link bên dưới để đặt mật khẩu mới:</p>" +
+                "<p><a href=\"" + resetUrl + "\">" + resetUrl + "</a></p>" +
+                "<p>Link có hiệu lực trong 1 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>",
+                true
+        );
+        mailSender.send(message);
+    }
 }

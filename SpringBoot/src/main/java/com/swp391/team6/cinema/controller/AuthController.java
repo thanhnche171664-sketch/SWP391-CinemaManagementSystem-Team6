@@ -31,6 +31,54 @@ public class AuthController {
         return "register";
     }
 
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage(HttpServletRequest request, Model model) {
+        addCsrfToModel(request, model);
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestParam String email, Model model, RedirectAttributes redirectAttributes) {
+        authService.requestPasswordReset(email);
+        redirectAttributes.addFlashAttribute("message", "Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu.");
+        return "redirect:/forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam(required = false) String token, HttpServletRequest request, Model model) {
+        if (token == null || token.isBlank()) {
+            return "redirect:/forgot-password";
+        }
+        addCsrfToModel(request, model);
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestParam String token,
+                                @RequestParam String password,
+                                @RequestParam String passwordConfirm,
+                                Model model) {
+        if (!password.equals(passwordConfirm)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp.");
+            model.addAttribute("token", token);
+            return "reset-password";
+        }
+        if (password.length() < 6) {
+            model.addAttribute("error", "Mật khẩu cần ít nhất 6 ký tự.");
+            model.addAttribute("token", token);
+            return "reset-password";
+        }
+        try {
+            authService.resetPassword(token, password);
+            return "redirect:/login?reset=1";
+        } catch (RuntimeException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("token", token);
+            return "reset-password";
+        }
+    }
+
     private void addCsrfToModel(HttpServletRequest request, Model model) {
         CsrfToken csrf = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         if (csrf != null) {

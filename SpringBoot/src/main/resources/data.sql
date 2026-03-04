@@ -3,10 +3,12 @@
 -- ==========================================================
 DELETE FROM NOTIFICATIONS;
 DELETE FROM REVIEWS;
+DELETE FROM BOOKING_SEATS;
 DELETE FROM BOOKINGS;
 DELETE FROM SHOWTIMES;
 DELETE FROM ROOMS;
 DELETE FROM USERS;             -- USERS tham chiếu CINEMA_BRANCHES nên xóa trước
+DELETE FROM BRANCH_MOVIES;     -- phải xóa trước CINEMA_BRANCHES và MOVIES (FK)
 DELETE FROM CINEMA_BRANCHES;
 DELETE FROM MOVIES;
 
@@ -18,10 +20,10 @@ DELETE FROM MOVIES;
 INSERT INTO CINEMA_BRANCHES (BRANCH_ID, BRANCH_NAME, ADDRESS) VALUES
     (1, 'Cinema Center - Ha Noi', 'Cau Giay, Ha Noi');
 
--- Chèn Phim
-INSERT INTO MOVIES (MOVIE_ID, TITLE, GENRE, DURATION) VALUES
-                                                          (101, 'Lat Mat 7', 'Family', 138),
-                                                          (102, 'Mai', 'Drama', 131);
+-- Chèn Phim (dùng ID 1, 2 để /movies/1 hiển thị Lật Mặt 7)
+INSERT INTO MOVIES (MOVIE_ID, TITLE, GENRE, DURATION, DESCRIPTION) VALUES
+(1, 'Lật Mặt 7', 'Family', 138, 'Một bộ phim gia đình đầy cảm xúc.'),
+(2, 'Mai', 'Drama', 131, NULL);
 
 -- ==========================================================
 -- 3. CHÈN BẢNG CON (Các bảng phụ thuộc)
@@ -37,3 +39,15 @@ INSERT INTO USERS (FULL_NAME, EMAIL, PASSWORD_HASH, PHONE, ROLE, BRANCH_ID, STAT
 ('Le Khach Hang A', 'customerA@gmail.com', '123456', '0911223344', 'CUSTOMER', NULL, 'active', CURRENT_TIMESTAMP),
 ('Pham Khach Hang B', 'customerB@gmail.com', '123456', '0922334455', 'CUSTOMER', NULL, 'active', CURRENT_TIMESTAMP),
 ('Hoang Bi Khoa', 'blocked@gmail.com', '123456', '0933445566', 'CUSTOMER', NULL, 'inactive', CURRENT_TIMESTAMP);
+
+-- Phòng chiếu (gắn chi nhánh 1)
+INSERT INTO ROOMS (BRANCH_ID, ROOM_NAME, TOTAL_SEATS, STATUS) VALUES
+(1, 'Phòng 1', 50, 'active'),
+(1, 'Phòng 2', 60, 'active');
+
+-- Suất chiếu (phim 1 = Lật Mặt 7, phòng 1 và 2; thời gian tương lai, status = open)
+-- MySQL: END_TIME = START_TIME + 138 phút
+INSERT INTO SHOWTIMES (MOVIE_ID, ROOM_ID, START_TIME, END_TIME, STATUS) VALUES
+(1, 1, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY), DATE_ADD(DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY), INTERVAL 138 MINUTE), 'open'),
+(1, 1, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 2 DAY), DATE_ADD(DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 2 DAY), INTERVAL 138 MINUTE), 'open'),
+(1, 2, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY), DATE_ADD(DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY), INTERVAL 138 MINUTE), 'open');

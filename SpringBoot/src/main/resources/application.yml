@@ -42,6 +42,7 @@ logging:
   level:
     root: INFO
     com.swp391.team6: DEBUG
+    org.springframework.security: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
@@ -54,3 +55,4 @@ payos:
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
   verification-token-expiry-hours: 24
+  password-reset-token-expiry-hours: 1

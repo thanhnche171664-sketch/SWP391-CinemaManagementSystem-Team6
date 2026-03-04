@@ -21,6 +21,9 @@ public class AuthService {
     @Value("${app.verification-token-expiry-hours:24}")
     private int verificationTokenExpiryHours;
 
+    @Value("${app.password-reset-token-expiry-hours:1}")
+    private int passwordResetTokenExpiryHours;
+
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        EmailService emailService) {
@@ -67,6 +70,34 @@ public class AuthService {
         user.setEmailVerified(true);
         user.setVerificationToken(null);
         user.setVerificationTokenExpiry(null);
+        userRepository.save(user);
+    }
+
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        if (user == null) {
+            return;
+        }
+        String token = UUID.randomUUID().toString().replace("-", "");
+        user.setPasswordResetToken(token);
+        user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(passwordResetTokenExpiryHours));
+        userRepository.save(user);
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), token, user.getFullName());
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn."));
+        if (user.getPasswordResetTokenExpiry() != null && user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Link đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu gửi lại.");
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetTokenExpiry(null);
         userRepository.save(user);
     }
 }

@@ -5,13 +5,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 
 /**
  * Adapter that wraps our User entity for Spring Security.
+ * Implements Serializable so the principal can be stored in HTTP session (e.g. after OAuth2 redirect).
  */
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final User user;
 
