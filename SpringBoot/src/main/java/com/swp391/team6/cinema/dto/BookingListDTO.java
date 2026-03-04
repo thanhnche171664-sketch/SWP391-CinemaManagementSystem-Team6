@@ -21,10 +21,12 @@ public class BookingListDTO {
     private String customerName;
     private String customerEmail;
     private String movieTitle;
+    private String moviePosterUrl;
     private LocalDateTime showtimeStart;
     private LocalDateTime showtimeEnd;
     private String roomName;
     private String branchName;
+    private String seatLabels;
     private Payment.PaymentMethod paymentMethod;
     private Payment.PaymentStatus paymentStatus;
     private BigDecimal paymentAmount;
