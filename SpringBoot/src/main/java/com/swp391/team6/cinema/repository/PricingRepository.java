@@ -9,8 +9,9 @@ import java.util.List;
 
 @Repository
 public interface PricingRepository extends JpaRepository<Pricing, Long> {
-    
     List<Pricing> findByBranchBranchId(Long branchId);
-    
+
     List<Pricing> findBySeatType(Seat.SeatType seatType);
+
+    List<Pricing> findByBranchBranchIdAndSeatType(Long branchId, Seat.SeatType seatType);
 }

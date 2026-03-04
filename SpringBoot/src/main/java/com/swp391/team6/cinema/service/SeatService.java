@@ -21,7 +21,6 @@ public class SeatService {
         List<Seat> existingSeats =
                 seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
 
-        //Nếu đã có ghế → trả về luôn
         if (!existingSeats.isEmpty()) {
             return existingSeats;
         }
