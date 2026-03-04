@@ -69,12 +69,27 @@ public class UserService {
     }
 
     public void saveStaff(StaffDTO dto) {
+        if (dto.getEmail() == null || !dto.getEmail().contains("@")) {
+            throw new RuntimeException("Email không hợp lệ!");
+        }
+
+        if (dto.getPhone() == null || !dto.getPhone().matches("\\d{10}")) {
+            throw new RuntimeException("Số điện thoại phải bao gồm đúng 10 chữ số!");
+        }
+
+        Optional<User> userByEmail = userRepository.findByEmail(dto.getEmail());
+        if (userByEmail.isPresent() && !userByEmail.get().getUserId().equals(dto.getUser_id())) {
+            throw new RuntimeException("Email này đã được sử dụng bởi một tài khoản khác!");
+        }
+
         User user;
         if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id()).orElse(new User());
+            user = userRepository.findById(dto.getUser_id())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
         } else {
             user = new User();
-            user.setPasswordHash(passwordEncoder.encode("123456"));
+            String rawPassword = (dto.getPassword() == null || dto.getPassword().isEmpty()) ? "123456" : dto.getPassword();
+            user.setPasswordHash(passwordEncoder.encode(rawPassword));
             user.setIsVerify(true);
         }
 
@@ -85,11 +100,11 @@ public class UserService {
         user.setRole(role);
         user.setBranchId(dto.getBranch_id());
         user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
-        if (role != User.UserRole.CUSTOMER && (user.getIsVerify() == null || !user.getIsVerify())) {
+        if (role != User.UserRole.CUSTOMER) {
             user.setIsVerify(true);
         }
 
-        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+        if (dto.getUser_id() != null && dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         }
 

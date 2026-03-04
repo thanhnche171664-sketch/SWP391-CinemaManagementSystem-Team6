@@ -45,21 +45,42 @@ public class StaffController {
     }
 
     @PostMapping("/save")
-    public String saveStaff(@ModelAttribute("newStaff") StaffDTO staffDTO) {
-        userService.saveStaff(staffDTO);
+    public String saveStaff(@ModelAttribute("newStaff") StaffDTO staffDTO,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            userService.saveStaff(staffDTO);
+            // Thông báo thành công
+            redirectAttributes.addFlashAttribute("success", "Lưu thông tin nhân viên thành công!");
+        } catch (RuntimeException e) {
+            // Bắt lỗi từ Service (trùng email, phone, định dạng sai...)
+            // và gửi thông báo lỗi về trang quản lý
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        } catch (Exception e) {
+            // Các lỗi hệ thống không mong muốn khác
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi hệ thống. Vui lòng thử lại!");
+        }
         return "redirect:/admin/staff";
     }
 
     @GetMapping("/toggle/{id}")
-    public String toggleStatus(@PathVariable Long id) {
-        userService.toggleStatus(id);
+    public String toggleStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            userService.toggleStatus(id);
+            redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái tài khoản.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Không thể cập nhật trạng thái.");
+        }
         return "redirect:/admin/staff";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteStaff(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        userService.deleteStaff(id);
-        redirectAttributes.addFlashAttribute("success", "Đã tạm khóa tài khoản nhân viên.");
+        try {
+            userService.deleteStaff(id);
+            redirectAttributes.addFlashAttribute("success", "Đã tạm khóa tài khoản nhân viên.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi thực hiện thao tác này.");
+        }
         return "redirect:/admin/staff";
     }
 }
