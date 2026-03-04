@@ -21,6 +21,7 @@ public class BookingListDTO {
     private String customerName;
     private String customerEmail;
     private String movieTitle;
+    private Long movieId;
     private LocalDateTime showtimeStart;
     private LocalDateTime showtimeEnd;
     private String roomName;
