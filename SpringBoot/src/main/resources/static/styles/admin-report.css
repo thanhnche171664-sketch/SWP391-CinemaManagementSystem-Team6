@@ -1,0 +1,192 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body {
+    background: #0b0b0b;
+    color: #fff;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background: #000;
+    padding: 20px;
+}
+
+.logo {
+    margin-bottom: 30px;
+}
+
+.sidebar nav a {
+    display: block;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    color: #bbb;
+    text-decoration: none;
+    border-radius: 8px;
+}
+
+.sidebar nav a.active,
+.sidebar nav a:hover {
+    background: #fff;
+    color: #000;
+}
+
+.content {
+    flex: 1;
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.header p {
+    color: #9a9a9a;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.period-select {
+    background: #141414;
+    border: 1px solid #222;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    outline: none;
+    min-width: 140px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.stat-card {
+    background: #101010;
+    border: 1px solid #1d1d1d;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.stat-label {
+    color: #9f9f9f;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.stat-trend {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9f9f9f;
+}
+
+.stat-trend.up {
+    color: #86efac;
+}
+
+.stat-trend.muted {
+    color: #b0b0b0;
+}
+
+.text-muted {
+    color: #9a9a9a;
+}
+
+.report-section {
+    margin-bottom: 22px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.section-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.section-note {
+    font-size: 12px;
+    color: #9a9a9a;
+}
+
+.table-card {
+    background: #0f0f0f;
+    border: 1px solid #1c1c1c;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: #121212;
+}
+
+.data-table th,
+.data-table td {
+    padding: 14px 16px;
+    text-align: left;
+}
+
+.data-table th {
+    color: #bdbdbd;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.data-table td {
+    color: #e6e6e6;
+    border-bottom: 1px solid #1b1b1b;
+}
+
+.data-table tbody tr:hover {
+    background: #141414;
+}
+
+.mono {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+}
+
+.text-right {
+    text-align: right;
+}
