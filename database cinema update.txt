@@ -200,16 +200,16 @@ INSERT INTO users (full_name, email, password_hash, phone, role, branch_id) VALU
 ('Customer E', 'e@gmail.com', 'hash10', '090000010', 'CUSTOMER', NULL);
 
 INSERT INTO movies (title, duration, age_rating, description, release_date, status) VALUES
-('Avengers', 150, 'C13', 'Superhero movie', '2019-04-26', 'now_showing'),
-('Batman', 140, 'C16', 'DC superhero', '2022-03-04', 'now_showing'),
-('Inception', 148, 'C13', 'Mind bending', '2010-07-16', 'now_showing'),
-('Interstellar', 169, 'C13', 'Space movie', '2014-11-07', 'now_showing'),
-('Conjuring', 112, 'C18', 'Horror movie', '2013-07-19', 'now_showing'),
-('Avatar', 162, 'C13', 'Sci-fi epic', '2022-12-16', 'upcoming'),
-('Titanic', 195, 'C13', 'Romance drama', '1997-12-19', 'stopped'),
-('Joker', 122, 'C18', 'Psychological', '2019-10-04', 'now_showing'),
-('Fast X', 140, 'C16', 'Action racing', '2023-05-19', 'now_showing'),
-('Kungfu Panda', 95, 'P', 'Animation', '2024-03-08', 'upcoming');
+('Avengers', 150, '13', 'Superhero movie', '2019-04-26', 'now_showing'),
+('Batman', 140, '16', 'DC superhero', '2022-03-04', 'now_showing'),
+('Inception', 148, '13', 'Mind bending', '2010-07-16', 'now_showing'),
+('Interstellar', 169, '13', 'Space movie', '2014-11-07', 'now_showing'),
+('Conjuring', 112, '18', 'Horror movie', '2013-07-19', 'now_showing'),
+('Avatar', 162, '13', 'Sci-fi epic', '2022-12-16', 'upcoming'),
+('Titanic', 195, '13', 'Romance drama', '1997-12-19', 'stopped'),
+('Joker', 122, '18', 'Psychological', '2019-10-04', 'now_showing'),
+('Fast X', 140, '16', 'Action racing', '2023-05-19', 'now_showing'),
+('Kungfu Panda', 95, '18', 'Animation', '2024-03-08', 'upcoming');
 
 INSERT INTO genres (genre_name) VALUES
 ('Action'),('Comedy'),('Horror'),('Sci-Fi'),('Romance'),

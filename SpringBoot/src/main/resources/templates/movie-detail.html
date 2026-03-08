@@ -48,13 +48,17 @@
                 <p class="lead" th:text="${movie.description}">Movie description goes here...</p>
                 
                 <div class="row mt-4">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <h5>Duration</h5>
                         <p th:text="${movie.duration} + ' minutes'">120 minutes</p>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <h5>Genre</h5>
                         <p th:text="${movie.genreNames}">Action</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Release Date</h5>
+                        <p th:text="${movie.releaseDate != null ? #temporals.format(movie.releaseDate, 'dd/MM/yyyy') : '-'}">-</p>
                     </div>
                 </div>
 
@@ -84,37 +88,6 @@
             </div>
         </div>
 
-        <div class="row mt-5">
-            <div class="col-md-12">
-                <h3>Showtimes</h3>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Room</th>
-                                <th>Branch</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="showtime : ${showtimes}">
-                                <td th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy')}">Date</td>
-                                <td th:text="${#temporals.format(showtime.startTime, 'HH:mm')}">Time</td>
-                                <td th:text="${showtime.room.roomName}">Room</td>
-                                <td th:text="${showtime.room.branch.branchName}">Branch</td>
-                                <td><span class="badge bg-success" th:text="${showtime.status}">Status</span></td>
-                                <td>
-                                    <a th:href="@{/booking/{id}(id=${showtime.showtimeId})}" class="btn btn-sm btn-primary">Book</a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 
     <footer class="bg-dark text-white text-center py-3">

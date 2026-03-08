@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -18,6 +19,7 @@ public class MovieDTO {
     private String description;
     private String posterUrl;
     private String trailerUrl;
+    private LocalDate releaseDate;
     private Movie.MovieStatus status;
     private Boolean hidden;
     private List<Long> genreIds;

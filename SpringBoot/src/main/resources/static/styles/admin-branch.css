@@ -170,6 +170,16 @@ body {
     min-width: 160px;
 }
 
+.filters .search-box input {
+    margin-bottom: 0;
+    border: 1px solid #222;
+    height: 44px;
+}
+
+.filter-select {
+    height: 44px;
+}
+
 .table-card {
     background: linear-gradient(145deg, #111, #000);
     border-radius: 18px;
@@ -441,4 +451,61 @@ body {
 
 .btn-primary:hover {
     opacity: 0.9;
+}
+
+.alert {
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.alert-error {
+    background: #2a1212;
+    color: #fca5a5;
+    border: 1px solid #3a1f1f;
+}
+
+.alert-success {
+    background: #0f2a1b;
+    color: #86efac;
+    border: 1px solid #1f3a2a;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #1f1f1f;
+    background: #0f0f0f;
+    color: #cfcfcf;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.page-link:hover {
+    color: #fff;
+    border-color: #2a2a2a;
+}
+
+.page-link.active {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+    font-weight: 600;
+}
+
+.page-link.disabled {
+    pointer-events: none;
+    opacity: 0.4;
 }

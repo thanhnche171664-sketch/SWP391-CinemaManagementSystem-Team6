@@ -6,11 +6,19 @@ import com.swp391.team6.cinema.entity.Movie;
 import com.swp391.team6.cinema.repository.GenreRepository;
 import com.swp391.team6.cinema.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +27,9 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private static final Set<String> ALLOWED_AGE_RATINGS = new HashSet<>(Arrays.asList(
+            "G", "PG", "PG-13", "C13", "C16", "C18", "P"
+    ));
 
     @Transactional(readOnly = true)
     public List<Movie> getVisibleMovies() {
@@ -51,6 +62,15 @@ public class MovieService {
     }
 
     @Transactional(readOnly = true)
+    public Page<MovieDTO> getMoviesPage(boolean includeHidden, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        Page<Movie> moviePage = includeHidden
+                ? movieRepository.findAll(pageRequest)
+                : movieRepository.findByIsHiddenFalse(pageRequest);
+        return moviePage.map(this::convertToDTO);
+    }
+
+    @Transactional(readOnly = true)
     public MovieDTO getMovieById(Long id, boolean includeHidden) {
         Movie movie = getMovieEntityById(id);
         if (!includeHidden && Boolean.TRUE.equals(movie.getIsHidden())) {
@@ -61,6 +81,7 @@ public class MovieService {
 
     @Transactional
     public MovieDTO createMovie(MovieDTO movieDTO) {
+        validateMovieDTO(movieDTO, null);
         Movie movie = convertToEntity(movieDTO);
         movie.setGenres(resolveGenres(movieDTO.getGenreIds()));
         // Ensure new entity is always inserted
@@ -74,10 +95,11 @@ public class MovieService {
         Movie existingMovie = getMovieEntityById(id);
 
         if (movieDTO.getTitle() != null) {
-            existingMovie.setTitle(movieDTO.getTitle());
+            existingMovie.setTitle(normalizeText(movieDTO.getTitle()));
         }
         if (movieDTO.getDescription() != null) {
-            existingMovie.setDescription(movieDTO.getDescription());
+            String description = normalizeText(movieDTO.getDescription());
+            existingMovie.setDescription(description.isEmpty() ? null : description);
         }
         if (movieDTO.getDuration() != null) {
             existingMovie.setDuration(movieDTO.getDuration());
@@ -86,13 +108,16 @@ public class MovieService {
             existingMovie.setGenres(resolveGenres(movieDTO.getGenreIds()));
         }
         if (movieDTO.getAgeRating() != null) {
-            existingMovie.setAgeRating(movieDTO.getAgeRating());
+            existingMovie.setAgeRating(normalizeText(movieDTO.getAgeRating()));
         }
         if (movieDTO.getPosterUrl() != null) {
-            existingMovie.setPosterUrl(movieDTO.getPosterUrl());
+            existingMovie.setPosterUrl(normalizeText(movieDTO.getPosterUrl()));
         }
         if (movieDTO.getTrailerUrl() != null) {
-            existingMovie.setTrailerUrl(movieDTO.getTrailerUrl());
+            existingMovie.setTrailerUrl(normalizeText(movieDTO.getTrailerUrl()));
+        }
+        if (movieDTO.getReleaseDate() != null) {
+            existingMovie.setReleaseDate(movieDTO.getReleaseDate());
         }
         if (movieDTO.getStatus() != null) {
             existingMovie.setStatus(movieDTO.getStatus());
@@ -100,6 +125,8 @@ public class MovieService {
         if (movieDTO.getHidden() != null) {
             existingMovie.setIsHidden(movieDTO.getHidden());
         }
+
+        validateMovieEntity(existingMovie, id);
 
         Movie updatedMovie = movieRepository.save(existingMovie);
         return convertToDTO(updatedMovie);
@@ -126,6 +153,7 @@ public class MovieService {
         dto.setAgeRating(movie.getAgeRating());
         dto.setPosterUrl(movie.getPosterUrl());
         dto.setTrailerUrl(movie.getTrailerUrl());
+        dto.setReleaseDate(movie.getReleaseDate());
         dto.setStatus(movie.getStatus());
         dto.setHidden(movie.getIsHidden());
         dto.setGenreIds(movie.getGenres()
@@ -138,12 +166,14 @@ public class MovieService {
 
     private Movie convertToEntity(MovieDTO dto) {
         Movie movie = new Movie();
-        movie.setTitle(dto.getTitle());
-        movie.setDescription(dto.getDescription());
+        movie.setTitle(normalizeText(dto.getTitle()));
+        String description = normalizeText(dto.getDescription());
+        movie.setDescription(description.isEmpty() ? null : description);
         movie.setDuration(dto.getDuration());
-        movie.setAgeRating(dto.getAgeRating());
-        movie.setPosterUrl(dto.getPosterUrl());
-        movie.setTrailerUrl(dto.getTrailerUrl());
+        movie.setAgeRating(normalizeText(dto.getAgeRating()));
+        movie.setPosterUrl(normalizeText(dto.getPosterUrl()));
+        movie.setTrailerUrl(normalizeText(dto.getTrailerUrl()));
+        movie.setReleaseDate(dto.getReleaseDate());
         if (dto.getStatus() != null) {
             movie.setStatus(dto.getStatus());
         }
@@ -158,5 +188,70 @@ public class MovieService {
             return new ArrayList<>();
         }
         return genreRepository.findAllById(genreIds);
+    }
+
+    private void validateMovieDTO(MovieDTO dto, Long currentMovieId) {
+        String title = normalizeText(dto.getTitle());
+        if (title.isEmpty()) {
+            throw new IllegalArgumentException("Tên phim không được để trống.");
+        }
+        if (title.length() > 255) {
+            throw new IllegalArgumentException("Tên phim tối đa 255 ký tự.");
+        }
+        Optional<Movie> duplicate = movieRepository.findByTitleIgnoreCase(title);
+        if (duplicate.isPresent() && (currentMovieId == null ||
+                !duplicate.get().getMovieId().equals(currentMovieId))) {
+            throw new IllegalArgumentException("Tên phim đã tồn tại.");
+        }
+
+        String description = normalizeText(dto.getDescription());
+        if (!description.isEmpty() && description.length() > 2000) {
+            throw new IllegalArgumentException("Mô tả tối đa 2000 ký tự.");
+        }
+
+        Integer duration = dto.getDuration();
+        if (duration == null) {
+            throw new IllegalArgumentException("Thời lượng phim là bắt buộc.");
+        }
+        if (duration < 30 || duration > 300) {
+            throw new IllegalArgumentException("Thời lượng phim phải từ 30 đến 300 phút.");
+        }
+
+        if (dto.getGenreIds() == null || dto.getGenreIds().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất một thể loại.");
+        }
+
+        String ageRating = normalizeText(dto.getAgeRating());
+        if (ageRating.isEmpty()) {
+            throw new IllegalArgumentException("Độ tuổi là bắt buộc.");
+        }
+        if (!ALLOWED_AGE_RATINGS.contains(ageRating.toUpperCase())) {
+            throw new IllegalArgumentException("Độ tuổi không hợp lệ. Ví dụ: G, PG, PG-13, C13, C16, C18.");
+        }
+
+        LocalDate releaseDate = dto.getReleaseDate();
+        if (releaseDate == null) {
+            throw new IllegalArgumentException("Ngày phát hành là bắt buộc.");
+        }
+        if (releaseDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày phát hành không được nhỏ hơn ngày hiện tại.");
+        }
+    }
+
+    private void validateMovieEntity(Movie movie, Long currentMovieId) {
+        MovieDTO dto = new MovieDTO();
+        dto.setTitle(movie.getTitle());
+        dto.setDescription(movie.getDescription());
+        dto.setDuration(movie.getDuration());
+        dto.setGenreIds(movie.getGenres().stream()
+                .map(Genre::getGenreId)
+                .collect(Collectors.toList()));
+        dto.setAgeRating(movie.getAgeRating());
+        dto.setReleaseDate(movie.getReleaseDate());
+        validateMovieDTO(dto, currentMovieId);
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? "" : value.trim();
     }
 }
