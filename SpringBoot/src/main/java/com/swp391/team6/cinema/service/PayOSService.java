@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 @Service
@@ -84,6 +86,43 @@ public class PayOSService {
             log.error("PayOS create payment link failed", e);
         }
         return null;
+    }
+
+    /**
+     * Get payment status from PayOS by orderCode. Returns Optional.empty() if API not available or error.
+     * PayOS may expose GET /v2/payment-requests/{id} - we try by orderCode as id.
+     */
+    public Optional<Boolean> getPaymentStatusByOrderCode(long orderCode) {
+        if (clientId == null || clientId.isBlank() || apiKey == null || apiKey.isBlank()) {
+            return Optional.empty();
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-client-id", clientId);
+        headers.set("x-api-key", apiKey);
+        try {
+            ResponseEntity<String> res = restTemplate.exchange(
+                    apiUrl + "/v2/payment-requests/" + orderCode,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    String.class
+            );
+            if (!res.getStatusCode().is2xxSuccessful() || res.getBody() == null) return Optional.empty();
+            JsonNode root = objectMapper.readTree(res.getBody());
+            if (!"00".equals(root.path("code").asText())) return Optional.empty();
+            JsonNode data = root.get("data");
+            if (data == null) return Optional.empty();
+            String status = data.has("status") ? data.get("status").asText().toUpperCase() : "";
+            if ("PAID".equals(status) || "SUCCESS".equals(status) || "COMPLETED".equals(status)) {
+                return Optional.of(true);
+            }
+            if ("CANCELLED".equals(status) || "FAILED".equals(status) || "EXPIRED".equals(status)) {
+                return Optional.of(false);
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            log.debug("PayOS get payment status by orderCode failed (API may not support it): {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /** Verify webhook: build data string from JSON (all keys except signature, sorted), then HMAC. */

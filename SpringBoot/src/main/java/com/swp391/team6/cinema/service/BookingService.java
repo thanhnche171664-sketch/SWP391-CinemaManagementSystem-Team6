@@ -15,10 +15,12 @@ import com.swp391.team6.cinema.repository.SeatRepository;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
 import com.swp391.team6.cinema.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +39,10 @@ public class BookingService {
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
     private final PricingService pricingService;
+    private final PayOSService payOSService;
+
+    @Value("${booking.payment-expiry-minutes:10}")
+    private int paymentExpiryMinutes;
 
     @Transactional(readOnly = true)
     public List<BookingListDTO> getAllBookings() {
@@ -135,6 +141,71 @@ public class BookingService {
         paymentRepository.save(payment);
 
         return booking;
+    }
+
+    /**
+     * If booking is still pending, try to sync payment status from PayOS (e.g. when user returns to success URL
+     * and webhook was not received). Updates Payment and Booking if PayOS reports paid.
+     */
+    @Transactional
+    public void syncPaymentStatusFromPayOS(Long bookingId) {
+        Optional<Payment> paymentOpt = paymentRepository.findByOrderCode(bookingId);
+        if (paymentOpt.isEmpty()) return;
+        Payment payment = paymentOpt.get();
+        if (payment.getPaymentStatus() != Payment.PaymentStatus.pending) return;
+        Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
+        if (bookingOpt.isEmpty() || bookingOpt.get().getStatus() != Booking.BookingStatus.pending) return;
+        var statusOpt = payOSService.getPaymentStatusByOrderCode(bookingId);
+        if (statusOpt.isEmpty()) return;
+        Booking booking = bookingOpt.get();
+        if (Boolean.TRUE.equals(statusOpt.get())) {
+            payment.setPaymentStatus(Payment.PaymentStatus.success);
+            paymentRepository.save(payment);
+            booking.setStatus(Booking.BookingStatus.paid);
+            bookingRepository.save(booking);
+        } else {
+            payment.setPaymentStatus(Payment.PaymentStatus.failed);
+            paymentRepository.save(payment);
+        }
+    }
+
+    /**
+     * Cancel a pending booking (e.g. user cancelled on PayOS). Sets payment to cancelled and booking to cancelled.
+     */
+    @Transactional
+    public void cancelPendingBooking(Long bookingId, Long userId) {
+        Optional<Booking> opt = bookingRepository.findById(bookingId);
+        if (opt.isEmpty()) return;
+        Booking booking = opt.get();
+        if (!booking.getUser().getUserId().equals(userId)) return;
+        if (booking.getStatus() != Booking.BookingStatus.pending) return;
+        cancelPendingBookingInternal(booking);
+    }
+
+    /**
+     * Cancel all pending bookings whose bookingTime is older than paymentExpiryMinutes. Releases seats.
+     */
+    @Transactional
+    public void cancelExpiredPendingBookings() {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(paymentExpiryMinutes);
+        List<Booking> expired = bookingRepository.findByStatusAndBookingTimeBefore(Booking.BookingStatus.pending, cutoff);
+        for (Booking booking : expired) {
+            cancelPendingBookingInternal(booking);
+        }
+    }
+
+    private void cancelPendingBookingInternal(Booking booking) {
+        if (booking.getStatus() != Booking.BookingStatus.pending) return;
+        Long bookingId = booking.getBookingId();
+        List<Payment> payments = paymentRepository.findByBookingBookingIdOrderByPaymentTimeDesc(bookingId);
+        for (Payment p : payments) {
+            if (p.getPaymentStatus() == Payment.PaymentStatus.pending) {
+                p.setPaymentStatus(Payment.PaymentStatus.cancelled);
+                paymentRepository.save(p);
+            }
+        }
+        booking.setStatus(Booking.BookingStatus.cancelled);
+        bookingRepository.save(booking);
     }
 
     /** Update payment with PayOS link id (after creating link). */

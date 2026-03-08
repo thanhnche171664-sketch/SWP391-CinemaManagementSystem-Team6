@@ -32,7 +32,7 @@ public class Payment {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
+    @Column(name = "payment_status", length = 20)
     private PaymentStatus paymentStatus;
 
     @Column(name = "payment_time")
@@ -49,6 +49,6 @@ public class Payment {
     }
 
     public enum PaymentStatus {
-        pending, success, failed
+        pending, success, failed, cancelled
     }
 }

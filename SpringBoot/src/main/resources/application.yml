@@ -61,6 +61,10 @@ logging:
 app:
   url: http://localhost:8080
 
+# Booking: payment time limit (minutes) for pending bookings
+booking:
+  payment-expiry-minutes: 10
+
 payos:
   client-id: 3736ec2f-bd5e-42ec-a724-273e519edc7d
   api-key: 57cc193d-2aa1-4c68-90c0-d1ab7d1154ce

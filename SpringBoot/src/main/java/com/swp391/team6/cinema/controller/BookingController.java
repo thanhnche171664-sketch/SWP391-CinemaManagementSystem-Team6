@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.controller;
 
+import com.swp391.team6.cinema.entity.Booking;
 import com.swp391.team6.cinema.entity.Seat;
 import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.entity.User;
@@ -46,6 +47,7 @@ public class BookingController {
             redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để đặt vé.");
             return "redirect:/auth/login?redirect=/booking/" + showtimeId;
         }
+        bookingService.cancelExpiredPendingBookings();
         Showtime showtime = showtimeRepository.findByIdWithMovieRoomBranch(showtimeId).orElse(null);
         if (showtime == null) {
             redirectAttributes.addFlashAttribute("error", "Suất chiếu không tồn tại.");
@@ -113,7 +115,11 @@ public class BookingController {
             redirectAttributes.addFlashAttribute("error", "Đặt vé không tồn tại.");
             return "redirect:/booking/history";
         }
-        model.addAttribute("booking", detail.get());
+        if (detail.get().getStatus() == Booking.BookingStatus.pending) {
+            bookingService.syncPaymentStatusFromPayOS(bookingId);
+            detail = bookingService.getBookingDetail(bookingId);
+        }
+        detail.ifPresent(b -> model.addAttribute("booking", b));
         model.addAttribute("user", user);
         return "booking-success";
     }
@@ -126,7 +132,11 @@ public class BookingController {
         }
         var detail = bookingService.getBookingDetail(bookingId);
         if (detail.isPresent() && detail.get().getCustomerEmail().equals(user.getEmail())) {
-            model.addAttribute("booking", detail.get());
+            if (detail.get().getStatus() == Booking.BookingStatus.pending) {
+                bookingService.cancelPendingBooking(bookingId, user.getUserId());
+                detail = bookingService.getBookingDetail(bookingId);
+            }
+            detail.ifPresent(b -> model.addAttribute("booking", b));
         }
         model.addAttribute("user", user);
         return "booking-failed";

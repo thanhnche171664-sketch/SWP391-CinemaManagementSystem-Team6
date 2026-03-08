@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByShowtimeShowtimeId(Long showtimeId);
     
     List<Booking> findByStatus(Booking.BookingStatus status);
+
+    List<Booking> findByStatusAndBookingTimeBefore(Booking.BookingStatus status, LocalDateTime bookingTime);
 
     @Query("""
             select distinct b from Booking b
