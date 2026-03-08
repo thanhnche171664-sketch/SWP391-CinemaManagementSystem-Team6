@@ -6,17 +6,24 @@ import com.swp391.team6.cinema.dto.BookingPaymentDTO;
 import com.swp391.team6.cinema.entity.Booking;
 import com.swp391.team6.cinema.entity.BookingSeat;
 import com.swp391.team6.cinema.entity.Payment;
+import com.swp391.team6.cinema.entity.Seat;
+import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.repository.BookingRepository;
 import com.swp391.team6.cinema.repository.BookingSeatRepository;
 import com.swp391.team6.cinema.repository.PaymentRepository;
+import com.swp391.team6.cinema.repository.SeatRepository;
+import com.swp391.team6.cinema.repository.ShowtimeRepository;
+import com.swp391.team6.cinema.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +33,10 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final BookingSeatRepository bookingSeatRepository;
+    private final ShowtimeRepository showtimeRepository;
+    private final SeatRepository seatRepository;
+    private final UserRepository userRepository;
+    private final PricingService pricingService;
 
     @Transactional(readOnly = true)
     public List<BookingListDTO> getAllBookings() {
@@ -49,6 +60,92 @@ public class BookingService {
     public Optional<BookingDetailDTO> getBookingDetailForBranch(Long bookingId, Long branchId) {
         return bookingRepository.findByIdAndBranchIdWithDetails(bookingId, branchId)
                 .map(this::mapToDetailDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingListDTO> getBookingsByUserId(Long userId) {
+        List<Booking> bookings = bookingRepository.findByUserUserIdWithDetailsOrderByBookingTimeDesc(userId);
+        return mapToListDTO(bookings);
+    }
+
+    /** Seat IDs that are already taken for this showtime (pending or paid bookings). */
+    @Transactional(readOnly = true)
+    public Set<Long> getOccupiedSeatIdsForShowtime(Long showtimeId) {
+        List<Booking> bookings = bookingRepository.findByShowtimeShowtimeId(showtimeId).stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.pending || b.getStatus() == Booking.BookingStatus.paid)
+                .toList();
+        Set<Long> occupied = new HashSet<>();
+        for (Booking b : bookings) {
+            List<BookingSeat> seats = bookingSeatRepository.findByBookingBookingId(b.getBookingId());
+            for (BookingSeat bs : seats) {
+                occupied.add(bs.getSeat().getSeatId());
+            }
+        }
+        return occupied;
+    }
+
+    /**
+     * Create a pending booking with seats and a pending payment record. Returns the booking with id set.
+     * Caller should use booking.getBookingId() as orderCode for PayOS and set payment.orderCode, paymentLinkId.
+     */
+    @Transactional
+    public Booking createBooking(Long userId, Long showtimeId, List<Long> seatIds) {
+        Showtime showtime = showtimeRepository.findById(showtimeId)
+                .orElseThrow(() -> new IllegalArgumentException("Showtime not found"));
+        if (showtime.getStatus() != Showtime.ShowtimeStatus.open) {
+            throw new IllegalArgumentException("Showtime is not available for booking");
+        }
+        Long roomId = showtime.getRoom().getRoomId();
+        Long branchId = showtime.getRoom().getBranch().getBranchId();
+        List<Seat> seats = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
+        Set<Long> validSeatIds = seats.stream().map(Seat::getSeatId).collect(Collectors.toSet());
+        Set<Long> occupied = getOccupiedSeatIdsForShowtime(showtimeId);
+        BigDecimal total = BigDecimal.ZERO;
+        List<Seat> selectedSeats = new ArrayList<>();
+        for (Long sid : seatIds) {
+            if (!validSeatIds.contains(sid)) throw new IllegalArgumentException("Invalid seat id: " + sid);
+            if (occupied.contains(sid)) throw new IllegalArgumentException("Seat already taken: " + sid);
+            Seat seat = seats.stream().filter(s -> s.getSeatId().equals(sid)).findFirst().orElseThrow();
+            selectedSeats.add(seat);
+            total = total.add(pricingService.getPrice(branchId, seat.getSeatType(), showtime.getStartTime()));
+        }
+        if (selectedSeats.isEmpty()) throw new IllegalArgumentException("Select at least one seat");
+
+        Booking booking = new Booking();
+        booking.setShowtime(showtime);
+        booking.setUser(userRepository.getReferenceById(userId));
+        booking.setBookingType(Booking.BookingType.online);
+        booking.setStatus(Booking.BookingStatus.pending);
+        booking.setTotalAmount(total);
+        booking = bookingRepository.save(booking);
+
+        for (Seat seat : selectedSeats) {
+            BookingSeat bs = new BookingSeat();
+            bs.setBooking(booking);
+            bs.setSeat(seat);
+            bookingSeatRepository.save(bs);
+        }
+
+        Payment payment = new Payment();
+        payment.setBooking(booking);
+        payment.setMethod(Payment.PaymentMethod.online);
+        payment.setPaymentStatus(Payment.PaymentStatus.pending);
+        payment.setAmount(total);
+        payment.setOrderCode(booking.getBookingId());
+        paymentRepository.save(payment);
+
+        return booking;
+    }
+
+    /** Update payment with PayOS link id (after creating link). */
+    @Transactional
+    public void setPaymentLinkId(Long bookingId, String paymentLinkId) {
+        List<Payment> payments = paymentRepository.findByBookingBookingIdOrderByPaymentTimeDesc(bookingId);
+        if (!payments.isEmpty()) {
+            Payment p = payments.get(0);
+            p.setPaymentLinkId(paymentLinkId);
+            paymentRepository.save(p);
+        }
     }
 
     private List<BookingListDTO> mapToListDTO(List<Booking> bookings) {

@@ -38,11 +38,17 @@ public class Payment {
     @Column(name = "payment_time")
     private LocalDateTime paymentTime = LocalDateTime.now();
 
+    @Column(name = "order_code", unique = true)
+    private Long orderCode;
+
+    @Column(name = "payment_link_id", length = 100)
+    private String paymentLinkId;
+
     public enum PaymentMethod {
         cash, card, online
     }
 
     public enum PaymentStatus {
-        success, failed
+        pending, success, failed
     }
 }

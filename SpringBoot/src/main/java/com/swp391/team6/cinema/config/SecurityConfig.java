@@ -23,7 +23,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error", 
-                                "/home/**", "/movies/**", "/static/**").permitAll()
+                                "/home/**", "/movies/**", "/static/**",
+                                "/api/payment/payos/webhook").permitAll()
+                .requestMatchers("/booking/**", "/showtimes/**").authenticated()
                 .requestMatchers("/admin/bookings/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")

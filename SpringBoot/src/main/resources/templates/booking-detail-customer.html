@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đặt vé - Cinema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">Cinema</a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" th:href="@{/home}">Trang chủ</a>
+            <a class="nav-link" th:href="@{/booking/history}">Lịch sử đặt vé</a>
+            <a class="nav-link" th:href="@{/auth/logout}">Đăng xuất</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <h2>Chi tiết đặt vé</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Mã vé:</strong> <span th:text="${booking.bookingId}"></span></p>
+            <p><strong>Thời gian đặt:</strong> <span th:text="${#temporals.format(booking.bookingTime, 'dd/MM/yyyy HH:mm')}"></span></p>
+            <p><strong>Trạng thái:</strong> <span th:text="${booking.status}"></span></p>
+            <p><strong>Phim:</strong> <span th:text="${booking.movieTitle}"></span></p>
+            <p><strong>Suất chiếu:</strong> <span th:text="${#temporals.format(booking.showtimeStart, 'dd/MM/yyyy HH:mm')}"></span> – <span th:text="${#temporals.format(booking.showtimeEnd, 'dd/MM/yyyy HH:mm')}"></span></p>
+            <p><strong>Phòng:</strong> <span th:text="${booking.roomName}"></span> – <span th:text="${booking.branchName}"></span></p>
+            <p><strong>Ghế:</strong> <span th:text="${#lists.isEmpty(booking.seats) ? 'N/A' : #strings.listJoin(booking.seats, ', ')}"></span></p>
+            <p><strong>Tổng tiền:</strong> <span th:text="${booking.totalAmount} + ' VND'"></span></p>
+        </div>
+    </div>
+    <div th:if="${!#lists.isEmpty(booking.payments)}">
+        <h5>Thanh toán</h5>
+        <table class="table">
+            <tr th:each="p : ${booking.payments}">
+                <td th:text="${#temporals.format(p.paymentTime, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${p.method}"></td>
+                <td th:text="${p.status}"></td>
+                <td th:text="${p.amount} + ' VND'"></td>
+            </tr>
+        </table>
+    </div>
+    <a th:href="@{/booking/history}" class="btn btn-secondary">Quay lại lịch sử</a>
+</div>
+</body>
+</html>

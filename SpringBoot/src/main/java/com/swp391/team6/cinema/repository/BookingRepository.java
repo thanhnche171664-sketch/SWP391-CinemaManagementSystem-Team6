@@ -13,6 +13,20 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     List<Booking> findByUserUserId(Long userId);
+
+    List<Booking> findByUserUserIdOrderByBookingTimeDesc(Long userId);
+
+    @Query("""
+            select b from Booking b
+            join fetch b.user u
+            join fetch b.showtime s
+            join fetch s.movie m
+            join fetch s.room r
+            join fetch r.branch br
+            where u.userId = :userId
+            order by b.bookingTime desc
+            """)
+    List<Booking> findByUserUserIdWithDetailsOrderByBookingTimeDesc(@Param("userId") Long userId);
     
     List<Booking> findByShowtimeShowtimeId(Long showtimeId);
     
