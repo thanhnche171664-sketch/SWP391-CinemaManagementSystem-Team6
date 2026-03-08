@@ -106,7 +106,7 @@
                 
                 <!-- Login Form -->
                 <form th:action="@{/auth/login}" th:object="${loginRequest}" method="post" id="loginForm">
-                    
+                    <input type="hidden" name="redirect" th:value="${redirect}" th:if="${redirect}">
                     <!-- Email Input -->
                     <div class="form-group">
                         <label for="email">

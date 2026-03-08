@@ -13,4 +13,6 @@ public interface PricingRepository extends JpaRepository<Pricing, Long> {
     List<Pricing> findByBranchBranchId(Long branchId);
     
     List<Pricing> findBySeatType(Seat.SeatType seatType);
+
+    java.util.Optional<Pricing> findByBranchBranchIdAndSeatTypeAndTimeRange(Long branchId, Seat.SeatType seatType, String timeRange);
 }

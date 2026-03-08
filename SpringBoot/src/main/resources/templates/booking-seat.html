@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn ghế - Cinema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .screen { text-align: center; margin: 10px 0 20px; font-weight: bold; color: #666; }
+        .seat-map { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .seat-row { display: flex; gap: 6px; align-items: center; }
+        .seat-row .row-label { width: 24px; font-weight: bold; }
+        .seat-option { width: 36px; height: 36px; border-radius: 6px; cursor: pointer; border: 2px solid #dee2e6;
+            display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .seat-option.available { background: #e9ecef; }
+        .seat-option.available:hover { background: #ced4da; }
+        .seat-option.selected { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+        .seat-option.occupied { background: #ccc; cursor: not-allowed; color: #999; }
+        .seat-option input { display: none; }
+        .total-line { font-size: 1.2rem; font-weight: bold; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/public-header :: publicHeader}"></div>
+
+<div class="container py-4">
+    <h2 th:text="${showtime.movie.title}">Movie</h2>
+    <p class="text-muted">
+        <span th:text="${showtime.room.roomName}">Room</span> –
+        <span th:text="${showtime.room.branch.branchName}">Branch</span> –
+        <span th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')}">Time</span>
+    </p>
+
+    <div class="screen">——— MÀN HÌNH ———</div>
+
+    <form id="bookingForm" th:action="@{/booking/create}" method="post">
+        <input type="hidden" name="showtimeId" th:value="${showtime.showtimeId}">
+        <div class="seat-map" id="seatMap">
+            <div th:each="row : ${rows}" class="seat-row">
+                <span class="row-label" th:text="${row}">A</span>
+                <th:block th:each="seat : ${seatsByRow[__${row}__]}">
+                    <label class="seat-option" th:classappend="${occupiedIds.contains(seat.seatId)} ? 'occupied' : 'available'"
+                           th:attr="data-price=${seatPrices != null and seatPrices[seat.seatId] != null ? seatPrices[seat.seatId].intValue() : 0}">
+                        <input type="checkbox" name="seatIds" th:value="${seat.seatId}"
+                               th:disabled="${occupiedIds.contains(seat.seatId)}">
+                        <span th:text="${seat.seatNumber}">1</span>
+                    </label>
+                </th:block>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <p class="total-line">Tổng: <span id="totalAmount">0</span> VND</p>
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>Thanh toán PayOS</button>
+            <a th:href="@{/movies}" class="btn btn-secondary btn-lg">Hủy</a>
+        </div>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    (function() {
+        const form = document.getElementById('bookingForm');
+        const totalEl = document.getElementById('totalAmount');
+        const submitBtn = document.getElementById('submitBtn');
+        const checkboxes = form.querySelectorAll('input[name="seatIds"]:not([disabled])');
+
+        function updateTotal() {
+            let total = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const label = cb.closest('label');
+                    const price = parseInt(label.getAttribute('data-price') || '0', 10);
+                    total += price;
+                }
+            });
+            totalEl.textContent = total.toLocaleString();
+            submitBtn.disabled = total === 0;
+        }
+
+        form.querySelectorAll('.seat-option:not(.occupied)').forEach(label => {
+            label.addEventListener('click', function(e) {
+                if (this.classList.contains('occupied')) return;
+                const cb = this.querySelector('input');
+                if (cb) {
+                    cb.checked = !cb.checked;
+                    this.classList.toggle('selected', cb.checked);
+                    updateTotal();
+                }
+            });
+        });
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const label = this.closest('label');
+                if (label) label.classList.toggle('selected', this.checked);
+                updateTotal();
+            });
+        });
+    })();
+</script>
+</body>
+</html>
