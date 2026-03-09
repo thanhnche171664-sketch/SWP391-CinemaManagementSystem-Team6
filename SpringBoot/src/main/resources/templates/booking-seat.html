@@ -25,6 +25,12 @@
 <div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
 <div class="container py-4">
+    <p class="mb-3">
+        <a th:href="@{/movies/{id}(id=${showtime.movie.movieId})}" class="btn btn-outline-secondary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
+            Quay lại
+        </a>
+    </p>
     <h2 th:text="${showtime.movie.title}">Movie</h2>
     <p class="text-muted">
         <span th:text="${showtime.room.roomName}">Room</span> –
@@ -53,7 +59,7 @@
         <div class="mt-4">
             <p class="total-line">Tổng: <span id="totalAmount">0</span> VND</p>
             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>Thanh toán PayOS</button>
-            <a th:href="@{/movies}" class="btn btn-secondary btn-lg">Hủy</a>
+            <a th:href="@{/movies}" class="btn btn-secondary btn-lg">Quay lại</a>
         </div>
     </form>
 </div>
