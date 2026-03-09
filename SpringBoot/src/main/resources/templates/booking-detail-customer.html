@@ -10,6 +10,9 @@
 <div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
 <div class="container py-4">
+    <p class="mb-3">
+        <a th:href="@{/booking/history}" class="btn btn-outline-secondary btn-sm">← Quay lại lịch sử</a>
+    </p>
     <h2>Chi tiết đặt vé</h2>
     <div class="card mb-4">
         <div class="card-body">
@@ -35,6 +38,7 @@
         </table>
     </div>
     <a th:href="@{/booking/history}" class="btn btn-secondary">Quay lại lịch sử</a>
+    <a th:href="@{/}" class="btn btn-outline-secondary">Về trang chủ</a>
 </div>
 </body>
 </html>

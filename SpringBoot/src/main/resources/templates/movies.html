@@ -5,37 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movies - Cinema Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
     <div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
     <div class="container py-5">
-        <h2 class="mb-4">All Movies</h2>
-        
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <input type="text" class="form-control" id="searchInput" placeholder="Search movies...">
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="statusFilter">
-                    <option value="">All Status</option>
-                    <option value="now_showing">Now Showing</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="stopped">Stopped</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="genreFilter">
-                    <option value="">All Genres</option>
-                    <option value="Action">Action</option>
-                    <option value="Comedy">Comedy</option>
-                    <option value="Drama">Drama</option>
-                    <option value="Horror">Horror</option>
-                    <option value="Sci-Fi">Sci-Fi</option>
-                </select>
-            </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <h2 class="mb-0">All Movies</h2>
+            <a th:href="@{/}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
         </div>
+
+        <form th:action="@{/movies}" method="get" class="row mb-4 g-2">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search" th:value="${search}" placeholder="Tìm kiếm phim...">
+                    <button type="submit" class="btn btn-primary" aria-label="Tìm kiếm">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status" onchange="this.form.submit()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="now_showing" th:selected="${statusFilter == 'now_showing'}">Đang chiếu</option>
+                    <option value="upcoming" th:selected="${statusFilter == 'upcoming'}">Sắp chiếu</option>
+                    <option value="stopped" th:selected="${statusFilter == 'stopped'}">Đã dừng</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="genre" onchange="this.form.submit()">
+                    <option value="">Tất cả thể loại</option>
+                    <option th:each="g : ${genreList}" th:value="${g.genreName}" th:text="${g.genreName}"
+                            th:selected="${genreFilter != null && !genreFilter.isEmpty() && genreFilter == g.genreName}"></option>
+                </select>
+            </div>
+        </form>
 
         <div class="row" id="movieList">
             <div class="col-md-3 mb-4" th:each="movie : ${movies}">
@@ -60,6 +68,7 @@
                 </div>
             </div>
         </div>
+        <div th:if="${#lists.isEmpty(movies)}" class="alert alert-info" role="alert">Không tìm thấy phim nào phù hợp.</div>
     </div>
 
     <footer class="bg-dark text-white text-center py-3">
