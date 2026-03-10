@@ -54,7 +54,7 @@ public class PayOSService {
 
         Payment payment = new Payment();
         payment.setBooking(booking);
-        payment.setMethod(Payment.PaymentMethod.online);
+        payment.setMethod(Payment.PaymentMethod.ONLINE);
         payment.setAmount(booking.getTotalAmount());
         payment.setPaymentStatus(null);
         payment.setExternalOrderCode(orderCode);

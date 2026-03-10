@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Chọn ghế - CinemaHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .seat { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; font-size: 0.8rem; border: 1px solid #ddd; }
+    .available { background-color: #fff; }
+    .selected { background-color: #ef4444; color: white; border-color: #b91c1c; }
+    .occupied { background-color: #9ca3af; cursor: not-allowed; }
+  </style>
+</head>
+<body class="bg-gray-100 p-8">
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
+  <h1 class="text-2xl font-bold mb-4" th:text="${showtime?.movie?.title ?: 'Phim không xác định'}">Tên Phim</h1>
+  <p class="mb-6 text-gray-600"
+     th:text="${showtime != null ? #temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm') : ''} + ' | ' + ${showtime?.room?.roomName ?: 'Phòng không xác định'}">
+    Thông tin suất
+  </p>
+
+  <div class="text-center mb-8 font-bold text-gray-400">MÀN HÌNH</div>
+
+  <form id="seatForm" th:action="@{/staff/booking/booking/create}" method="post" class="flex flex-col items-center">
+    <input type="hidden" name="showtimeId" th:value="${showtime.showtimeId}"/>
+
+    <div class="grid grid-cols-10 gap-2 mb-8">
+      <th:block th:each="seat : ${seats}">
+        <div th:classappend="${occupiedIds.contains(seat.seatId)} ? 'occupied' : 'available'"
+             class="seat transition"
+             th:onclick="toggleSeat(this, [[${seat.seatId}]])"
+             th:id="'seat-' + ${seat.seatId}"
+             th:text="${seat.seatRow + seat.seatNumber}">
+        </div>
+      </th:block>
+    </div>
+
+    <button type="submit" id="submitBtn" disabled class="bg-red-600 text-white px-8 py-3 rounded font-bold disabled:bg-gray-400">
+      Thanh toán
+    </button>
+  </form>
+</div>
+
+<script th:inline="javascript">
+  let selectedSeats = [];
+
+  function toggleSeat(element, seatId) {
+      if (element.classList.contains('occupied')) return;
+
+      if (selectedSeats.includes(seatId)) {
+          selectedSeats = selectedSeats.filter(id => id !== seatId);
+          element.classList.remove('selected');
+      } else {
+          selectedSeats.push(seatId);
+          element.classList.add('selected');
+      }
+
+      updateForm();
+  }
+
+  function updateForm() {
+      const form = document.getElementById('seatForm');
+      document.querySelectorAll('input[name="seatIds"]').forEach(e => e.remove());
+      selectedSeats.forEach(id => {
+          let input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'seatIds';
+          input.value = id;
+          form.appendChild(input);
+      });
+      document.getElementById('submitBtn').disabled = selectedSeats.length === 0;
+  }
+</script>
+</body>
+</html>

@@ -39,10 +39,6 @@ public class BookingController {
         return null;
     }
 
-    // =========================================================================
-    //(QUY TRÌNH ĐẶT VÉ)
-    // =========================================================================
-
     @GetMapping("/select-seats")
     public String selectSeats(@RequestParam Long showtimeId, HttpServletRequest request, Model model) {
         User user = getCurrentUser();
@@ -83,7 +79,7 @@ public class BookingController {
         }
         Optional<Booking> opt = bookingService.getBookingByIdAndUser(bookingId, user.getUserId());
         if (opt.isEmpty() || opt.get().getStatus() != Booking.BookingStatus.pending) {
-            return "redirect:/booking/list";
+            return "redirect:/bookings";
         }
         Booking booking = opt.get();
         String checkoutUrl = payOSService.createPaymentLink(booking, null, null);
@@ -98,8 +94,9 @@ public class BookingController {
         }
         Optional<Booking> opt = bookingService.getBookingByIdAndUser(bookingId, user.getUserId());
         if (opt.isEmpty()) {
-            return "redirect:/booking/list";
+            return "redirect:/bookings";
         }
+        // Đồng bộ trạng thái từ PayOS khi user quay về (webhook có thể chưa gọi hoặc không gọi được khi chạy local)
         bookingService.syncPaymentStatusFromPayOSIfPending(bookingId);
         opt = bookingService.getBookingByIdAndUser(bookingId, user.getUserId());
         model.addAttribute("booking", opt.orElseThrow());
@@ -110,47 +107,5 @@ public class BookingController {
     public String cancel(Model model) {
         model.addAttribute("cancelled", true);
         return "booking-cancel";
-    }
-
-    // =========================================================================
-    // (LỊCH SỬ VÀ CHI TIẾT)
-    // =========================================================================
-
-    @GetMapping("/list")
-    public String list(Model model) {
-        User user = getCurrentUser();
-        if (user == null) {
-            return "redirect:/login";
-        }
-        List<Booking> bookings = bookingService.getBookingsByUser(user.getUserId());
-        model.addAttribute("bookings", bookings);
-        return "bookings";
-    }
-
-    @GetMapping("/detail/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        User user = getCurrentUser();
-        if (user == null) {
-            return "redirect:/login";
-        }
-
-        boolean isAdminOrStaff = user.getRole() == User.UserRole.ADMIN
-                || user.getRole() == User.UserRole.MANAGER
-                || user.getRole() == User.UserRole.STAFF;
-
-        if (isAdminOrStaff) {
-            return bookingService.getBookingDetail(id)
-                    .map(dto -> {
-                        model.addAttribute("booking", dto);
-                        return "booking-detail"; // File templates/booking-detail.html
-                    }).orElse("redirect:/booking/management");
-        } else {
-            return bookingService.getBookingByIdAndUser(id, user.getUserId())
-                    .map(entity -> {
-                        model.addAttribute("booking", entity);
-                        model.addAttribute("isAuthenticated", true);
-                        return "booking/detail-customer"; // File templates/booking/detail-customer.html
-                    }).orElse("redirect:/booking/list");
-        }
     }
 }

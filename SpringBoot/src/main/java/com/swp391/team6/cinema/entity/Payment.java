@@ -42,10 +42,10 @@ public class Payment {
     private Long externalOrderCode;
 
     public enum PaymentMethod {
-        cash, card, online
+        CASH, CARD, ONLINE
     }
 
     public enum PaymentStatus {
-        success, failed
+        success, fail
     }
 }

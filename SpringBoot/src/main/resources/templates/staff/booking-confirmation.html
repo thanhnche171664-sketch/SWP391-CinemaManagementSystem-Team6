@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận đơn hàng - CinemaHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+<main class="max-w-lg mx-auto bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl">
+    <h1 class="text-3xl font-bold mb-6 text-center text-red-500">Xác nhận đặt vé</h1>
+
+    <div class="space-y-4 mb-8 text-gray-200 border-b border-gray-700 pb-6">
+        <div class="flex justify-between">
+            <span class="text-gray-400">Phim:</span>
+            <span class="font-semibold" th:text="${bookingData.movieTitle}">Tên Phim</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-400">Suất chiếu:</span>
+            <span class="font-semibold" th:text="${#temporals.format(bookingData.showtimeStart, 'dd/MM/yyyy HH:mm')}">--:--</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-400">Phòng:</span>
+            <span class="font-semibold" th:text="${bookingData.roomName}">Room 01</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-400">Chi nhánh:</span>
+            <span class="font-semibold" th:text="${bookingData.branchName}">Tên Chi Nhánh</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-400">Ghế đã chọn:</span>
+            <span class="font-semibold text-red-400" th:text="${#strings.listJoin(bookingData.seats, ', ')}">A1, A2</span>
+        </div>
+        <div class="flex justify-between text-xl border-t border-gray-700 pt-4 mt-2">
+            <span class="font-bold">Tổng tiền:</span>
+            <span class="font-bold text-red-500"
+                  th:text="${#numbers.formatDecimal(bookingData.totalAmount, 0, 'POINT', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+        </div>
+    </div>
+
+    <form th:action="@{/staff/booking/confirm}" method="post">
+        <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>
+        <th:block th:each="id : ${seatIds}">
+            <input type="hidden" name="seatIds" th:value="${id}"/>
+        </th:block>
+
+        <div class="mb-6">
+            <label class="block text-sm mb-2 text-gray-400">Phương thức thanh toán:</label>
+            <select name="method" class="w-full p-3 rounded bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-red-500 outline-none">
+                <option value="CASH">Tiền mặt</option>
+                <option value="BANKING">Chuyển khoản</option>
+            </select>
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg transition duration-200">
+            Xác nhận thanh toán
+        </button>
+
+        <a th:href="@{/staff/booking/seats/{id}(id=${showtimeId})}"
+           class="block text-center mt-4 text-gray-400 hover:text-white transition">
+            Quay lại chọn ghế
+        </a>
+    </form>
+</main>
+</body>
+</html>
