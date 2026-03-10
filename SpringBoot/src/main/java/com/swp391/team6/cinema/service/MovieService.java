@@ -81,7 +81,7 @@ public class MovieService {
 
     @Transactional
     public MovieDTO createMovie(MovieDTO movieDTO) {
-        validateMovieDTO(movieDTO, null);
+        validateMovieDTO(movieDTO, null, true);
         Movie movie = convertToEntity(movieDTO);
         movie.setGenres(resolveGenres(movieDTO.getGenreIds()));
         // Ensure new entity is always inserted
@@ -190,7 +190,7 @@ public class MovieService {
         return genreRepository.findAllById(genreIds);
     }
 
-    private void validateMovieDTO(MovieDTO dto, Long currentMovieId) {
+    private void validateMovieDTO(MovieDTO dto, Long currentMovieId, boolean isCreate) {
         String title = normalizeText(dto.getTitle());
         if (title.isEmpty()) {
             throw new IllegalArgumentException("Tên phim không được để trống.");
@@ -233,7 +233,7 @@ public class MovieService {
         if (releaseDate == null) {
             throw new IllegalArgumentException("Ngày phát hành là bắt buộc.");
         }
-        if (releaseDate.isBefore(LocalDate.now())) {
+        if (isCreate && releaseDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Ngày phát hành không được nhỏ hơn ngày hiện tại.");
         }
     }
@@ -248,7 +248,7 @@ public class MovieService {
                 .collect(Collectors.toList()));
         dto.setAgeRating(movie.getAgeRating());
         dto.setReleaseDate(movie.getReleaseDate());
-        validateMovieDTO(dto, currentMovieId);
+        validateMovieDTO(dto, currentMovieId, false);
     }
 
     private String normalizeText(String value) {
