@@ -40,4 +40,30 @@ public class RoomService {
         }
         return roomRepository.findByRoomNameContainingIgnoreCase(keyword);
     }
+
+    public boolean existsByRoomNameAndBranch(String roomName, Long branchId) {
+
+        return roomRepository
+                .existsByRoomNameAndBranch_BranchId(roomName, branchId);
+    }
+
+    public List<Room> searchRooms(String keyword, Long branchId) {
+
+        if (keyword != null && !keyword.isEmpty() && branchId != null) {
+            return roomRepository
+                    .findByRoomNameContainingIgnoreCaseAndBranch_BranchId(keyword, branchId);
+        }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            return roomRepository
+                    .findByRoomNameContainingIgnoreCase(keyword);
+        }
+
+        if (branchId != null) {
+            return roomRepository
+                    .findByBranchBranchId(branchId);
+        }
+
+        return roomRepository.findAll();
+    }
 }

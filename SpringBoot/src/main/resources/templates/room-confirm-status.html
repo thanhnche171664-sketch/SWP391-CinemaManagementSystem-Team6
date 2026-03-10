@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Xác nhận thay đổi trạng thái</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-room.css}">
+</head>
+
+<body>
+
+<div class="confirm-box">
+
+    <h2>Xác nhận</h2>
+
+    <p>
+        Bạn có chắc muốn thay đổi trạng thái phòng
+        <strong th:text="${room.roomName}"></strong> ?
+    </p>
+
+    <div class="confirm-actions">
+
+        <form th:action="@{/rooms/toggle-status}" method="post">
+
+            <input type="hidden" name="id" th:value="${room.roomId}"/>
+
+            <button type="submit" class="btn-confirm">
+                Xác nhận
+            </button>
+
+        </form>
+
+        <a th:href="@{/rooms}" class="btn-cancel">
+            Huỷ
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

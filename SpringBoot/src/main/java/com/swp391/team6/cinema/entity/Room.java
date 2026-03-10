@@ -1,15 +1,15 @@
 package com.swp391.team6.cinema.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
 @Table(name = "rooms")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Room {
@@ -32,6 +32,7 @@ public class Room {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private RoomStatus status = RoomStatus.active;
+
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
     private List<Seat> seats;

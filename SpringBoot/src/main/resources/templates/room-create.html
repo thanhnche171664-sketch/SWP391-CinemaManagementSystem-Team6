@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm phòng chiếu</title>
+
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-room.css}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <div th:replace="fragments/sidebar :: sidebar('rooms')"></div>
+
+    <main class="content">
+
+        <header class="header">
+            <div>
+                <h1>Thêm phòng chiếu</h1>
+                <p>Tạo phòng chiếu mới cho rạp</p>
+            </div>
+        </header>
+
+        <div th:if="${errors != null and !#lists.isEmpty(errors)}" class="error-box">
+            <strong> Vui lòng kiểm tra lại:</strong>
+            <ul>
+                <li th:each="err : ${errors}" th:text="${err}"></li>
+            </ul>
+        </div>
+
+        <form th:action="@{/rooms/create}" method="post" th:object="${room}" class="room-form">
+
+            <div class="form-group">
+                <label>Tên phòng</label>
+
+                <input type="text"
+                       th:field="*{roomName}"
+                       maxlength="255"
+                       required
+                       placeholder="Ví dụ: Room 1">
+
+            </div>
+
+            <div class="form-group">
+                <label>Số ghế</label>
+
+                <input type="number"
+                       th:field="*{totalSeats}"
+                       min="1"
+                       max="120"
+                       required
+                       placeholder="1 - 120">
+
+                <small class="hint">Số ghế từ 1 → 120</small>
+            </div>
+
+            <div class="form-group full">
+                <label>Chi nhánh</label>
+
+                <select th:field="*{branch}" required>
+                    <option value="">-- Chọn chi nhánh --</option>
+
+                    <option th:each="branch : ${branches}"
+                            th:value="${branch.branchId}"
+                            th:text="${branch.branchName}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group full">
+                <button type="submit" class="btn-submit">
+                    + Thêm phòng chiếu
+                </button>
+            </div>
+
+        </form>
+
+    </main>
+
+</div>
+
+</body>
+</html>
