@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.service;
 
+import com.swp391.team6.cinema.dto.ChangePasswordDTO;
 import com.swp391.team6.cinema.dto.CustomerDTO;
 import com.swp391.team6.cinema.dto.StaffDTO;
 import com.swp391.team6.cinema.entity.CinemaBranch;
@@ -39,7 +40,36 @@ public class UserService {
     public void updateProfile(User updatedUser){
             User user = userRepository.findById(updatedUser.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setFullName(updatedUser.getFullName());
+        user.setEmail(updatedUser.getEmail());
+        user.setPhone(updatedUser.getPhone());
+
+        userRepository.save(user);
         }
+
+    public void changePassword(Long userId, ChangePasswordDTO dto) {
+        // 1. Tìm user trong database
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+
+        // 2. Kiểm tra mật khẩu cũ (So sánh trực tiếp vì hiện tại bạn chưa dùng BCrypt)
+        if (!user.getPasswordHash().equals(dto.getOldPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác!");
+        }
+
+        if (dto.getNewPassword().length() < 8) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 8 ký tự!");
+        }
+
+        // 3. Kiểm tra mật khẩu mới và xác nhận mật khẩu có khớp nhau không
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new RuntimeException("Xác nhận mật khẩu mới không khớp!");
+        }
+
+        // 4. Cập nhật và lưu
+        user.setPasswordHash(dto.getNewPassword());
+        userRepository.save(user);
+    }
 
     public void saveStaff(StaffDTO dto) {
         User user;

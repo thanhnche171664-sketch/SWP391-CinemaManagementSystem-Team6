@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Khuyến mãi</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-promotion.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('promotions')"></div>
+
+    <main class="content">
+        <div class="flex-between mb-8">
+            <div>
+                <h1>Quản lý Khuyến mãi</h1>
+                <p class="text-gray-400">Quản lý mã giảm giá và chương trình khuyến mãi hệ thống</p>
+            </div>
+            <div class="flex-gap">
+                <a th:href="@{/admin/promotions/view}" class="btn-dark" style="text-decoration: none;">
+                    <i class="fas fa-sync-alt"></i> Làm mới
+                </a>
+            </div>
+        </div>
+
+        <div class="grid-4 mb-8">
+            <div class="stat-card">
+                <div><p class="stat-label">Tổng khuyến mãi</p><p class="stat-number" th:text="${totalPromotions}">0</p></div>
+                <i class="fas fa-tag stat-icon"></i>
+            </div>
+            <div class="stat-card">
+                <div><p class="stat-label">Đang hoạt động</p><p class="stat-number text-green" th:text="${activeCount}">0</p></div>
+                <i class="fas fa-chart-line stat-icon text-green"></i>
+            </div>
+            <div class="stat-card">
+                <div><p class="stat-label">Sắp diễn ra</p><p class="stat-number text-blue" th:text="${upcomingCount}">1</p></div>
+                <i class="far fa-calendar-alt stat-icon text-blue"></i>
+            </div>
+            <div class="stat-card">
+                <div><p class="stat-label">Tổng giảm giá</p><p class="stat-number text-orange" th:text="${totalDiscountedAmount}">0 đ</p></div>
+                <i class="fas fa-hand-holding-usd stat-icon text-orange"></i>
+            </div>
+        </div>
+
+        <div class="filter-action-bar mb-8" style="display: flex; gap: 1rem; align-items: center;">
+            <div class="flex-gap" style="flex: 1; display: flex; gap: 0.75rem;">
+                <div class="search-wrapper" style="flex: 1; display: flex; align-items: center; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 1rem;">
+                    <i class="fas fa-search" style="color: var(--text-muted);"></i>
+                    <input type="text" placeholder="Tìm kiếm theo mã hoặc tên khuyến mãi..."
+                           style="background: transparent; border: none; color: white; padding: 0.75rem; width: 100%; outline: none;">
+                </div>
+
+                <div class="filter-status-wrapper" style="display: flex; align-items: center; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 1rem;">
+                    <i class="fas fa-filter" style="margin-right: 8px; color: var(--text-muted);"></i>
+                    <select style="background: transparent; border: none; color: white; padding: 0.75rem 0; outline: none; cursor: pointer;">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Đang hoạt động</option>
+                        <option value="upcoming">Sắp diễn ra</option>
+                        <option value="inactive">Tạm dừng</option>
+                    </select>
+                </div>
+            </div>
+
+            <a th:href="@{/admin/promotions/create}" class="btn-white" style="text-decoration: none; white-space: nowrap;">
+                <i class="fas fa-plus mr-2"></i> Thêm khuyến mãi
+            </a>
+        </div>
+
+        <div class="card-dark">
+            <table>
+                <thead>
+                <tr class="table-header">
+                    <th>Mã code</th>
+                    <th>Tên khuyến mãi</th>
+                    <th>Loại/Giá trị</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="promo : ${promotions}">
+                    <td class="font-bold"><i class="fas fa-tag mr-2 opacity-50"></i><span th:text="${promo.promoCode}"></span></td>
+                    <td th:text="${promo.description}"></td>
+                    <td th:text="${promo.discountType.name() == 'percent' ? promo.discountValue + '%' : #numbers.formatDecimal(promo.discountValue, 0, 'COMMA', 0, 'POINT') + 'đ'}"></td>
+                    <td class="text-xs text-gray-400">
+                        <span th:text="${#temporals.format(promo.startDate, 'dd/MM/yyyy')}"></span> - <span th:text="${#temporals.format(promo.endDate, 'dd/MM/yyyy')}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${promo.status.name() == 'active'}" class="status-badge badge-active">ĐANG HOẠT ĐỘNG</span>
+                        <span th:if="${promo.status.name() == 'inactive'}" class="status-badge badge-inactive">TẠM DỪNG</span>
+                    </td>
+                    <td>
+                        <div class="flex-gap">
+                            <a th:href="@{/admin/promotions/edit/{id}(id=${promo.promotionId})}" class="btn-icon"><i class="fas fa-edit"></i></a>
+                            <a th:href="@{/admin/promotions/delete/{id}(id=${promo.promotionId})}"
+                               class="btn-icon text-red"
+                               onclick="return confirm('Bạn có chắc chắn muốn tạm dừng mã khuyến mãi này?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

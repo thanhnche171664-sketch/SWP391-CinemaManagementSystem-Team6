@@ -1,0 +1,363 @@
+/* --- Root Variables --- */
+:root {
+    --bg-main: #0a0a0a;
+    --bg-card: #111111;
+    --bg-input: #1a1a1a;
+    --border-color: #262626;
+    --text-main: #ffffff;
+    --text-muted: #a1a1aa;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-yellow: #f59e0b;
+    --accent-orange: #f97316; /* Mới thêm cho stats */
+    --transition: all 0.2s ease;
+}
+
+/* --- Base Styles --- */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Dashboard Stats Grid (Mới thêm) --- */
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    border-color: #404040;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem 0;
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    opacity: 0.5;
+}
+
+/* --- Typography & Headers --- */
+h1 { font-size: 1.875rem; font-weight: 700; margin: 0; }
+h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; }
+.text-gray-400 { color: var(--text-muted); }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.font-mono { font-family: 'Fira Code', monospace; }
+.font-bold { font-weight: 600; }
+
+/* --- Buttons --- */
+.btn-white {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-white:hover {
+    background-color: #e4e4e7;
+    transform: translateY(-1px);
+}
+
+.btn-dark {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-dark:hover { background-color: #262626; }
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: var(--transition);
+}
+
+/* --- Tables --- */
+.card-dark {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-header {
+    background-color: #161616;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+th, td {
+    padding: 1.25rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover { background-color: #161616; }
+
+/* --- Progress Bar (Mới thêm cho cột Sử dụng) --- */
+.usage-container {
+    width: 100px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: #262626;
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--text-main);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+/* --- Status Badges  --- */
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.badge-active { background-color: #ffffff; color: #000000; }
+.badge-upcoming { background-color: rgba(59, 130, 246, 0.1); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+.badge-inactive { background-color: #262626; color: var(--text-muted); }
+
+/* --- Forms & Grid --- */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.input-field {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Utilities --- */
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.text-green { color: var(--accent-green); }
+.text-blue { color: var(--accent-blue); }
+.text-orange { color: var(--accent-orange); }
+.mr-2 { margin-right: 0.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+
+/* --- Root Variables --- */
+:root {
+    --bg-main: #0a0a0a;
+    --bg-card: #111111;
+    --bg-input: #1a1a1a;
+    --border-color: #262626;
+    --text-main: #ffffff;
+    --text-muted: #a1a1aa;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-orange: #f97316;
+    --transition: all 0.2s ease;
+}
+
+/* --- Base Styles --- */
+body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; }
+.layout { display: flex; min-height: 100vh; }
+.content { flex: 1; padding: 2.5rem; max-width: 1400px; margin: 0 auto; }
+
+/* --- Dashboard Stats Grid --- */
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.stat-card { background-color: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; }
+.stat-label { font-size: 0.875rem; color: var(--text-muted); margin: 0 0 0.5rem 0; }
+.stat-number { font-size: 1.75rem; font-weight: 700; margin: 0; }
+.stat-icon { font-size: 1.5rem; opacity: 0.3; }
+
+/* --- Buttons --- */
+.btn-white { background-color: #ffffff; color: #000000; padding: 0.6rem 1.2rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; display: inline-flex; align-items: center; }
+.btn-dark { background-color: var(--bg-input); color: var(--text-main); padding: 0.6rem 1.2rem; border-radius: 0.5rem; border: 1px solid var(--border-color); cursor: pointer; }
+.btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; }
+.btn-icon:hover { color: var(--text-main); }
+
+/* --- Table & Card --- */
+.card-dark { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+.table-header { background-color: #161616; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+th, td { padding: 1.25rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+tr:hover { background-color: #161616; }
+
+/* --- Progress Bar --- */
+.usage-container { width: 100px; }
+.progress-bar { width: 100%; height: 5px; background-color: #262626; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background-color: var(--text-main); border-radius: 10px; }
+
+/* --- Status Badges --- */
+.status-badge { padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
+.badge-active { background-color: #ffffff; color: #000000; }
+.badge-inactive { background-color: #262626; color: var(--text-muted); }
+
+/* --- Utilities --- */
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-gap { display: flex; gap: 0.75rem; align-items: center; }
+.text-green { color: var(--accent-green); }
+.text-blue { color: var(--accent-blue); }
+.text-orange { color: var(--accent-orange); }
+.text-red { color: var(--accent-red); }
+.mb-8 { margin-bottom: 2rem; }
+.font-bold { font-weight: 700; }
+.opacity-50 { opacity: 0.5; }
+
+/* --- Pagination --- */
+.pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #141414; }
+.btn-page { background: var(--bg-input); border: 1px solid var(--border-color); color: white; padding: 0.5rem; border-radius: 4px; cursor: pointer; }
+.btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
+/* Container của Form (Giống Modal Dark Mode) */
+.form-container-modal {
+    background-color: #000000; /* Đen hoàn toàn như ảnh */
+    padding: 2rem;
+    border-radius: 1rem;
+    max-width: 700px;
+    margin: 2rem auto;
+    color: white;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.promotion-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.promotion-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.promotion-form .full-width {
+    grid-column: span 2;
+    margin-bottom: 1.5rem;
+}
+
+.promotion-form label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Style Input giống ảnh mẫu */
+.promotion-form input,
+.promotion-form select,
+.promotion-form textarea {
+    background-color: #f3f4f6; /* Màu xám nhạt/trắng của input trong ảnh */
+    border: none;
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    color: #1f2937;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.promotion-form input::placeholder {
+    color: #9ca3af;
+}
+
+/* Actions */
+.form-actions-modal {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-cancel {
+    background-color: #111827;
+    color: white;
+    border: none;
+    padding: 0.7rem 2rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.btn-submit {
+    background-color: white;
+    color: black;
+    border: none;
+    padding: 0.7rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.text-red { color: #ef4444; }
