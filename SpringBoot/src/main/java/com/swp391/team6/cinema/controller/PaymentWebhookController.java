@@ -1,35 +1,70 @@
 package com.swp391.team6.cinema.controller;
 
-import com.swp391.team6.cinema.service.BookingService;
-import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swp391.team6.cinema.entity.Booking;
+import com.swp391.team6.cinema.entity.Payment;
+import com.swp391.team6.cinema.repository.BookingRepository;
+import com.swp391.team6.cinema.repository.PaymentRepository;
+import com.swp391.team6.cinema.service.PayOSService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/payment")
+@RequestMapping("/api/payment/payos")
+@RequiredArgsConstructor
+@Slf4j
 public class PaymentWebhookController {
 
-    private final BookingService bookingService;
+    private final PayOSService payOSService;
+    private final PaymentRepository paymentRepository;
+    private final BookingRepository bookingRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PaymentWebhookController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
-
-    @PostMapping(value = "/payos-callback", consumes = "application/json")
-    public Map<String, Object> payosCallback(@RequestBody Map<String, Object> body) {
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> webhook(@RequestBody String rawBody) {
         try {
-            Boolean success = (Boolean) body.get("success");
-            if (Boolean.TRUE.equals(success) && body.get("data") != null) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> data = (Map<String, Object>) body.get("data");
-                Object orderCodeObj = data.get("orderCode");
-                if (orderCodeObj != null) {
-                    long orderCode = orderCodeObj instanceof Number ? ((Number) orderCodeObj).longValue() : Long.parseLong(orderCodeObj.toString());
-                    bookingService.confirmPaymentByOrderCode(orderCode);
-                }
+            JsonNode root = objectMapper.readTree(rawBody);
+            String receivedSignature = root.has("signature") ? root.get("signature").asText() : "";
+            if (!payOSService.verifyWebhookSignature(rawBody, receivedSignature)) {
+                log.warn("PayOS webhook: invalid signature");
+                return ResponseEntity.ok().build();
             }
-        } catch (Exception ignored) {
+            boolean success = root.path("success").asBoolean(false);
+            JsonNode data = root.get("data");
+            if (data == null || !data.has("orderCode")) {
+                return ResponseEntity.ok().build();
+            }
+            long orderCode = data.get("orderCode").asLong();
+            Optional<Payment> paymentOpt = paymentRepository.findByOrderCode(orderCode);
+            if (paymentOpt.isEmpty()) {
+                log.warn("PayOS webhook: payment not found for orderCode={}", orderCode);
+                return ResponseEntity.ok().build();
+            }
+            Payment payment = paymentOpt.get();
+            if (payment.getPaymentStatus() == Payment.PaymentStatus.success) {
+                return ResponseEntity.ok().build();
+            }
+            if (success) {
+                payment.setPaymentStatus(Payment.PaymentStatus.success);
+                paymentRepository.save(payment);
+                Booking booking = payment.getBooking();
+                booking.setStatus(Booking.BookingStatus.paid);
+                bookingRepository.save(booking);
+            } else {
+                payment.setPaymentStatus(Payment.PaymentStatus.failed);
+                paymentRepository.save(payment);
+            }
+        } catch (Exception e) {
+            log.error("PayOS webhook processing failed", e);
         }
-        return Map.of("success", true);
+        return ResponseEntity.ok().build();
     }
 }

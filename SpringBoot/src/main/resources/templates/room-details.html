@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý rạp chiếu</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
     <link rel="stylesheet" th:href="@{/styles/admin-room.css}">
 </head>
 <body>
@@ -14,9 +15,9 @@
 
             <header class="header">
                 <div>
+                    <a th:href="@{/rooms}" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: #86efac; text-decoration: none; font-size: 14px;">← Quay lại</a>
                     <h1>Quản lý phòng chiếu và ghế ngồi</h1>
                 </div>
-
             </header>
             <div class="cinema">
 
@@ -35,7 +36,9 @@
                                 (${seat.seatType.name() == 'COUPLE'} ? 'seat-couple' : 'seat-normal')
                              ">
 
-                            <span class="seat-icon">💺</span>
+                            <img th:src="@{/images/armchair.png}"
+                                 class="seat-icon"
+                                 alt="seat">
 
                         </div>
                     </div>

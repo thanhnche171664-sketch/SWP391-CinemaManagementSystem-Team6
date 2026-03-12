@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+</head>
+<body>
+    <nav th:fragment="publicHeader" class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">Cinema Management System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/movies}">Movies</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/showtimes}">Showtimes</a></li>
+                    <li class="nav-item" th:if="${user != null}"><a class="nav-link" th:href="@{/booking/history}">Lịch sử đặt vé</a></li>
+                    <li class="nav-item" th:if="${user != null}"><span class="nav-link text-light" th:text="${user.fullName != null && !user.fullName.isEmpty() ? user.fullName : user.email}">User</span></li>
+                    <li class="nav-item" th:if="${user != null}"><a class="nav-link" th:href="@{/auth/logout}">Đăng xuất</a></li>
+                    <li class="nav-item" th:if="${user == null}"><a class="nav-link" th:href="@{/auth/login}">Đăng nhập</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</body>
+</html>

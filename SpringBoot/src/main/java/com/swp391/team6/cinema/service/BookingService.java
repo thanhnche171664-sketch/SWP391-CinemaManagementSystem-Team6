@@ -3,166 +3,46 @@ package com.swp391.team6.cinema.service;
 import com.swp391.team6.cinema.dto.BookingDetailDTO;
 import com.swp391.team6.cinema.dto.BookingListDTO;
 import com.swp391.team6.cinema.dto.BookingPaymentDTO;
-import com.swp391.team6.cinema.entity.*;
-import com.swp391.team6.cinema.repository.*;
+import com.swp391.team6.cinema.entity.Booking;
+import com.swp391.team6.cinema.entity.BookingSeat;
+import com.swp391.team6.cinema.entity.Payment;
+import com.swp391.team6.cinema.entity.Seat;
+import com.swp391.team6.cinema.entity.Showtime;
+import com.swp391.team6.cinema.repository.BookingRepository;
+import com.swp391.team6.cinema.repository.BookingSeatRepository;
+import com.swp391.team6.cinema.repository.PaymentRepository;
+import com.swp391.team6.cinema.repository.SeatRepository;
+import com.swp391.team6.cinema.repository.ShowtimeRepository;
+import com.swp391.team6.cinema.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BookingService {
 
-    private final ShowtimeRepository showtimeRepository;
     private final BookingRepository bookingRepository;
-    private final BookingSeatRepository bookingSeatRepository;
-    private final SeatRepository seatRepository;
-    private final PricingRepository pricingRepository;
     private final PaymentRepository paymentRepository;
+    private final BookingSeatRepository bookingSeatRepository;
+    private final ShowtimeRepository showtimeRepository;
+    private final SeatRepository seatRepository;
+    private final UserRepository userRepository;
+    private final PricingService pricingService;
     private final PayOSService payOSService;
 
-    // =========================================================================
-    // PHẦN LOGIC ĐẶT VÉ
-    // =========================================================================
-
-    public List<Showtime> getShowtimesByMovie(Long movieId) {
-        LocalDateTime now = LocalDateTime.now();
-        return showtimeRepository.findByMovieMovieId(movieId).stream()
-                .filter(s -> s.getStatus() == Showtime.ShowtimeStatus.open
-                        && s.getStartTime() != null
-                        && !s.getStartTime().isBefore(now))
-                .sorted(Comparator.comparing(Showtime::getStartTime))
-                .toList();
-    }
-
-    public Showtime getShowtimeById(Long showtimeId) {
-        return showtimeRepository.findById(showtimeId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy suất chiếu"));
-    }
-
-    public Set<Long> getOccupiedSeatIds(Long showtimeId) {
-        List<Booking> bookings = bookingRepository.findByShowtimeShowtimeId(showtimeId).stream()
-                .filter(b -> b.getStatus() == Booking.BookingStatus.pending || b.getStatus() == Booking.BookingStatus.paid)
-                .toList();
-        Set<Long> occupied = new HashSet<>();
-        for (Booking b : bookings) {
-            List<BookingSeat> seats = bookingSeatRepository.findByBookingBookingId(b.getBookingId());
-            for (BookingSeat bs : seats) {
-                occupied.add(bs.getSeat().getSeatId());
-            }
-        }
-        return occupied;
-    }
-
-    public List<Seat> getSeatsWithAvailability(Long showtimeId) {
-        Showtime showtime = getShowtimeById(showtimeId);
-        Long roomId = showtime.getRoom().getRoomId();
-        List<Seat> seats = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
-        return seats;
-    }
-
-    public Set<Long> getAvailableSeatIds(Long showtimeId) {
-        Showtime showtime = getShowtimeById(showtimeId);
-        Long roomId = showtime.getRoom().getRoomId();
-        List<Seat> seats = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
-        Set<Long> allIds = seats.stream().map(Seat::getSeatId).collect(Collectors.toSet());
-        Set<Long> occupied = getOccupiedSeatIds(showtimeId);
-        allIds.removeAll(occupied);
-        return allIds;
-    }
-
-    private BigDecimal getPriceForSeat(Showtime showtime, Seat seat) {
-        Long branchId = showtime.getRoom().getBranch().getBranchId();
-        List<Pricing> list = pricingRepository.findByBranchBranchIdAndSeatType(branchId, seat.getSeatType());
-        if (list == null || list.isEmpty()) {
-            return BigDecimal.ZERO;
-        }
-        return list.get(0).getPrice();
-    }
-
-    @Transactional
-    public Booking createBooking(Long showtimeId, List<Long> seatIds, User user) {
-        if (seatIds == null || seatIds.isEmpty()) {
-            throw new RuntimeException("Vui lòng chọn ít nhất một ghế");
-        }
-        Showtime showtime = getShowtimeById(showtimeId);
-        Set<Long> available = getAvailableSeatIds(showtimeId);
-        for (Long seatId : seatIds) {
-            if (!available.contains(seatId)) {
-                throw new RuntimeException("Ghế đã được đặt hoặc không hợp lệ");
-            }
-        }
-
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        List<Seat> seats = new ArrayList<>();
-        for (Long seatId : seatIds) {
-            Seat seat = seatRepository.findById(seatId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy ghế"));
-            totalAmount = totalAmount.add(getPriceForSeat(showtime, seat));
-            seats.add(seat);
-        }
-
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setShowtime(showtime);
-        booking.setStatus(Booking.BookingStatus.pending);
-        booking.setTotalAmount(totalAmount);
-        booking = bookingRepository.save(booking);
-
-        for (Seat seat : seats) {
-            BookingSeat bs = new BookingSeat();
-            bs.setBooking(booking);
-            bs.setSeat(seat);
-            bookingSeatRepository.save(bs);
-        }
-        return booking;
-    }
-
-    @Transactional
-    public void confirmPaymentByOrderCode(Long orderCode) {
-        Payment payment = paymentRepository.findByExternalOrderCode(orderCode)
-                .orElseThrow(() -> new RuntimeException("Payment not found for orderCode: " + orderCode));
-        payment.setPaymentStatus(Payment.PaymentStatus.success);
-        paymentRepository.save(payment);
-        Booking booking = payment.getBooking();
-        booking.setStatus(Booking.BookingStatus.paid);
-        bookingRepository.save(booking);
-    }
-
-    public void syncPaymentStatusFromPayOSIfPending(Long bookingId) {
-        Optional<Booking> opt = bookingRepository.findById(bookingId);
-        if (opt.isEmpty() || opt.get().getStatus() != Booking.BookingStatus.pending) return;
-        List<Payment> payments = paymentRepository.findByBookingBookingId(bookingId);
-        Optional<Long> orderCode = payments.stream()
-                .map(Payment::getExternalOrderCode)
-                .filter(Objects::nonNull)
-                .findFirst();
-        if (orderCode.isEmpty()) return;
-        try {
-            if (payOSService.isPaymentCompletedByOrderCode(orderCode.get())) {
-                confirmPaymentByOrderCode(orderCode.get());
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
-    public Optional<Booking> getBookingByIdAndUser(Long bookingId, Long userId) {
-        return bookingRepository.findById(bookingId)
-                .filter(b -> b.getUser().getUserId().equals(userId));
-    }
-
-    public List<Booking> getBookingsByUser(Long userId) {
-        return bookingRepository.findByUserUserId(userId);
-    }
-
-    // =========================================================================
-    // PHẦN LOGIC QUẢN LÝ / ADMIN
-    // =========================================================================
+    @Value("${booking.payment-expiry-minutes:10}")
+    private int paymentExpiryMinutes;
 
     @Transactional(readOnly = true)
     public List<BookingListDTO> getAllBookings() {
@@ -186,6 +66,157 @@ public class BookingService {
     public Optional<BookingDetailDTO> getBookingDetailForBranch(Long bookingId, Long branchId) {
         return bookingRepository.findByIdAndBranchIdWithDetails(bookingId, branchId)
                 .map(this::mapToDetailDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingListDTO> getBookingsByUserId(Long userId) {
+        List<Booking> bookings = bookingRepository.findByUserUserIdWithDetailsOrderByBookingTimeDesc(userId);
+        return mapToListDTO(bookings);
+    }
+
+    /** Seat IDs that are already taken for this showtime (pending or paid bookings). */
+    @Transactional(readOnly = true)
+    public Set<Long> getOccupiedSeatIdsForShowtime(Long showtimeId) {
+        List<Booking> bookings = bookingRepository.findByShowtimeShowtimeId(showtimeId).stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.pending || b.getStatus() == Booking.BookingStatus.paid)
+                .toList();
+        Set<Long> occupied = new HashSet<>();
+        for (Booking b : bookings) {
+            List<BookingSeat> seats = bookingSeatRepository.findByBookingBookingId(b.getBookingId());
+            for (BookingSeat bs : seats) {
+                occupied.add(bs.getSeat().getSeatId());
+            }
+        }
+        return occupied;
+    }
+
+    /**
+     * Create a pending booking with seats and a pending payment record. Returns the booking with id set.
+     * Caller should use booking.getBookingId() as orderCode for PayOS and set payment.orderCode, paymentLinkId.
+     */
+    @Transactional
+    public Booking createBooking(Long userId, Long showtimeId, List<Long> seatIds) {
+        Showtime showtime = showtimeRepository.findById(showtimeId)
+                .orElseThrow(() -> new IllegalArgumentException("Showtime not found"));
+        if (showtime.getStatus() != Showtime.ShowtimeStatus.open) {
+            throw new IllegalArgumentException("Showtime is not available for booking");
+        }
+        Long roomId = showtime.getRoom().getRoomId();
+        Long branchId = showtime.getRoom().getBranch().getBranchId();
+        List<Seat> seats = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
+        Set<Long> validSeatIds = seats.stream().map(Seat::getSeatId).collect(Collectors.toSet());
+        Set<Long> occupied = getOccupiedSeatIdsForShowtime(showtimeId);
+        BigDecimal total = BigDecimal.ZERO;
+        List<Seat> selectedSeats = new ArrayList<>();
+        for (Long sid : seatIds) {
+            if (!validSeatIds.contains(sid)) throw new IllegalArgumentException("Invalid seat id: " + sid);
+            if (occupied.contains(sid)) throw new IllegalArgumentException("Seat already taken: " + sid);
+            Seat seat = seats.stream().filter(s -> s.getSeatId().equals(sid)).findFirst().orElseThrow();
+            selectedSeats.add(seat);
+            total = total.add(pricingService.getPrice(branchId, seat.getSeatType(), showtime.getStartTime()));
+        }
+        if (selectedSeats.isEmpty()) throw new IllegalArgumentException("Select at least one seat");
+
+        Booking booking = new Booking();
+        booking.setShowtime(showtime);
+        booking.setUser(userRepository.getReferenceById(userId));
+        booking.setBookingType(Booking.BookingType.online);
+        booking.setStatus(Booking.BookingStatus.pending);
+        booking.setTotalAmount(total);
+        booking = bookingRepository.save(booking);
+
+        for (Seat seat : selectedSeats) {
+            BookingSeat bs = new BookingSeat();
+            bs.setBooking(booking);
+            bs.setSeat(seat);
+            bookingSeatRepository.save(bs);
+        }
+
+        Payment payment = new Payment();
+        payment.setBooking(booking);
+        payment.setMethod(Payment.PaymentMethod.online);
+        payment.setPaymentStatus(Payment.PaymentStatus.pending);
+        payment.setAmount(total);
+        payment.setOrderCode(booking.getBookingId());
+        paymentRepository.save(payment);
+
+        return booking;
+    }
+
+    /**
+     * If booking is still pending, try to sync payment status from PayOS (e.g. when user returns to success URL
+     * and webhook was not received). Updates Payment and Booking if PayOS reports paid.
+     */
+    @Transactional
+    public void syncPaymentStatusFromPayOS(Long bookingId) {
+        Optional<Payment> paymentOpt = paymentRepository.findByOrderCode(bookingId);
+        if (paymentOpt.isEmpty()) return;
+        Payment payment = paymentOpt.get();
+        if (payment.getPaymentStatus() != Payment.PaymentStatus.pending) return;
+        Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
+        if (bookingOpt.isEmpty() || bookingOpt.get().getStatus() != Booking.BookingStatus.pending) return;
+        var statusOpt = payOSService.getPaymentStatusByOrderCode(bookingId);
+        if (statusOpt.isEmpty()) return;
+        Booking booking = bookingOpt.get();
+        if (Boolean.TRUE.equals(statusOpt.get())) {
+            payment.setPaymentStatus(Payment.PaymentStatus.success);
+            paymentRepository.save(payment);
+            booking.setStatus(Booking.BookingStatus.paid);
+            bookingRepository.save(booking);
+        } else {
+            payment.setPaymentStatus(Payment.PaymentStatus.failed);
+            paymentRepository.save(payment);
+        }
+    }
+
+    /**
+     * Cancel a pending booking (e.g. user cancelled on PayOS). Sets payment to cancelled and booking to cancelled.
+     */
+    @Transactional
+    public void cancelPendingBooking(Long bookingId, Long userId) {
+        Optional<Booking> opt = bookingRepository.findById(bookingId);
+        if (opt.isEmpty()) return;
+        Booking booking = opt.get();
+        if (!booking.getUser().getUserId().equals(userId)) return;
+        if (booking.getStatus() != Booking.BookingStatus.pending) return;
+        cancelPendingBookingInternal(booking);
+    }
+
+    /**
+     * Cancel all pending bookings whose bookingTime is older than paymentExpiryMinutes. Releases seats.
+     */
+    @Transactional
+    public void cancelExpiredPendingBookings() {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(paymentExpiryMinutes);
+        List<Booking> expired = bookingRepository.findByStatusAndBookingTimeBefore(Booking.BookingStatus.pending, cutoff);
+        for (Booking booking : expired) {
+            cancelPendingBookingInternal(booking);
+        }
+    }
+
+    private void cancelPendingBookingInternal(Booking booking) {
+        if (booking.getStatus() != Booking.BookingStatus.pending) return;
+        Long bookingId = booking.getBookingId();
+        List<Payment> payments = paymentRepository.findByBookingBookingIdOrderByPaymentTimeDesc(bookingId);
+        for (Payment p : payments) {
+            if (p.getPaymentStatus() == Payment.PaymentStatus.pending) {
+                p.setPaymentStatus(Payment.PaymentStatus.cancelled);
+                paymentRepository.save(p);
+            }
+        }
+        booking.setStatus(Booking.BookingStatus.cancelled);
+        bookingRepository.save(booking);
+    }
+
+    /** Update payment with PayOS link id (after creating link). */
+    @Transactional
+    public void setPaymentLinkId(Long bookingId, String paymentLinkId) {
+        List<Payment> payments = paymentRepository.findByBookingBookingIdOrderByPaymentTimeDesc(bookingId);
+        if (!payments.isEmpty()) {
+            Payment p = payments.get(0);
+            p.setPaymentLinkId(paymentLinkId);
+            paymentRepository.save(p);
+        }
     }
 
     private List<BookingListDTO> mapToListDTO(List<Booking> bookings) {

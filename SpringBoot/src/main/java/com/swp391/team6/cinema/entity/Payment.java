@@ -32,20 +32,23 @@ public class Payment {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
+    @Column(name = "payment_status", length = 20)
     private PaymentStatus paymentStatus;
 
     @Column(name = "payment_time")
     private LocalDateTime paymentTime = LocalDateTime.now();
 
-    @Column(name = "external_order_code")
-    private Long externalOrderCode;
+    @Column(name = "order_code", unique = true)
+    private Long orderCode;
+
+    @Column(name = "payment_link_id", length = 100)
+    private String paymentLinkId;
 
     public enum PaymentMethod {
-        CASH, CARD, ONLINE
+        cash, card, online
     }
 
     public enum PaymentStatus {
-        success, fail
+        pending, success, failed, cancelled
     }
 }

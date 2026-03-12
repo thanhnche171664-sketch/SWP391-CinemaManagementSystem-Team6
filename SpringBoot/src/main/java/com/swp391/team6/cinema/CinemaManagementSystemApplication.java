@@ -2,8 +2,10 @@ package com.swp391.team6.cinema;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class CinemaManagementSystemApplication {
 
     public static void main(String[] args) {

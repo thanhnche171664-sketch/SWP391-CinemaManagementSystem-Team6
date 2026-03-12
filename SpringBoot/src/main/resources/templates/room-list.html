@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý phòng chiếu</title>
+
+  <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+  <link rel="stylesheet" th:href="@{/styles/admin-room-list.css}">
+</head>
+<body>
+
+<div class="layout">
+  <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
+
+  <main class="content">
+    <header class="header">
+      <div>
+        <h1>Quản lý rạp chiếu</h1>
+        <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
+
+        <div class="tabs">
+          <a th:href="@{/branches}" class="tab">Rạp chiếu</a>
+          <a th:href="@{/rooms}" class="tab active">Phòng chiếu</a>
+          <a th:href="@{/seats}" class="tab">Cấu hình ghế</a>
+        </div>
+      </div>
+
+      <a class="btn-add" th:href="@{/rooms/new}">+ Thêm phòng mới</a>
+    </header>
+
+    <form class="search-box" th:action="@{/rooms}" method="get">
+      <input type="text"
+             name="keyword"
+             placeholder="Tìm kiếm phòng..."
+             th:value="${keyword}">
+    </form>
+
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Tên phòng</th>
+        <th>Rạp chiếu</th>
+        <th>Tổng ghế</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="room : ${rooms}">
+        <td th:text="${room.roomName}"></td>
+
+        <td th:text="${room.branch != null ? room.branch.branchName : '—'}"></td>
+
+        <td th:text="${room.totalSeats + ' ghế'}"></td>
+
+        <td>
+                    <span class="status-pill"
+                          th:classappend="${room.status == 'ACTIVE'} ? ' active' : ' inactive'"
+                          th:text="${room.status == 'ACTIVE'} ? 'Hoạt động' : 'Ngưng hoạt động'">
+                    </span>
+        </td>
+
+        <td class="actions">
+          <a th:href="@{/rooms/edit/{id}(id=${room.roomId})}">
+            <img th:src="@{/images/edit.png}" class="icon">
+          </a>
+          <a th:href="@{/rooms/delete/{id}(id=${room.roomId})}">
+            <img th:src="@{/images/delete.png}" class="icon">
+          </a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </main>
+</div>
+
+</body>
+</html>

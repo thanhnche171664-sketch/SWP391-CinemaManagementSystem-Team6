@@ -11,7 +11,6 @@ body {
     align-items: center;
 }
 
-/* Seat map */
 .seat-map {
     display: flex;
     flex-direction: column;
@@ -19,14 +18,12 @@ body {
     margin-bottom: 30px;
 }
 
-/* Mỗi hàng */
 .seat-row {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* Nhãn A B C */
 .row-label {
     width: 24px;
     text-align: center;
@@ -34,7 +31,6 @@ body {
     color: #f5c16c;
 }
 
-/* Ghế */
 .seat {
     width: 42px;
     height: 42px;
@@ -51,28 +47,24 @@ body {
     transform: scale(1.08);
 }
 
-/* Icon */
 .seat-icon {
-    font-size: 18px;
-    color: #fff;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    pointer-events: none;
 }
-
-/* Ghế thường */
 .seat-normal {
     border: 2px solid #2a2a2a;
 }
 
-/* Ghế VIP */
 .seat-vip {
     border: 2px solid #ff9800;
 }
 
-/* Ghế đôi */
 .seat-couple {
     border: 2px solid #ff2ea6;
 }
 
-/* Ghế đang chọn */
 .seat-selected {
     background: #ffffff;
 }
@@ -81,14 +73,12 @@ body {
     color: #000;
 }
 
-/* Ghế đã bán */
 .seat-sold {
     background: #555;
     cursor: not-allowed;
     opacity: 0.5;
 }
 
-/* Legend */
 .legend {
     display: flex;
     gap: 24px;
