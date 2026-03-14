@@ -246,14 +246,10 @@ public class UserService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * Xác thực đăng nhập
-     * @return Map chứa: success (boolean), message (String), user (User nếu thành công)
-     */
+
     public Map<String, Object> authenticateUser(String email, String password) {
         Map<String, Object> result = new HashMap<>();
 
-        // Tìm user theo email
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
@@ -264,7 +260,6 @@ public class UserService {
 
         User user = userOptional.get();
 
-        // Kiểm tra password (hỗ trợ legacy plain text)
         String rawPassword = password == null ? "" : password;
         String storedPassword = user.getPasswordHash();
         boolean passwordMatches = false;

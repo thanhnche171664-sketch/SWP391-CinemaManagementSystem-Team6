@@ -169,4 +169,8 @@ public class MovieService {
         }
         return genreRepository.findAllById(genreIds);
     }
+
+    public List<Genre> getAllGenres() {
+        return genreRepository.findAll();
+    }
 }

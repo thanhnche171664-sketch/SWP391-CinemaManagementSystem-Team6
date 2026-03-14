@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý vé - Cinema System</title>
+  <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .full-page-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    .header { margin-bottom: 30px; }
+
+    .table-container {
+        background: #0a0a0a;
+        border-radius: 18px;
+        border: 1px solid #1c1c1c;
+        padding: 20px;
+    }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td {
+        padding: 16px;
+        text-align: left;
+        border-bottom: 1px solid #1c1c1c;
+        color: #ccc;
+    }
+    .badge {
+        padding: 4px 10px; border-radius: 999px; font-size: 11px;
+        font-weight: bold; text-transform: uppercase;
+    }
+    .bg-success { background: #1f2f26; color: #86efac; }
+    .bg-secondary { background: #2a2a2a; color: #999; }
+
+    .btn-print {
+        background: #2563eb; color: white; border: none;
+        padding: 8px 14px; border-radius: 8px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-print:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body style="background-color: #050505;">
+
+<main class="full-page-content">
+  <div class="header">
+    <h1 style="color: #fff;">Danh sách vé đã đặt</h1>
+    <p style="color: #666;">Danh sách vé tại quầy/chi nhánh của bạn.</p>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+      <tr>
+        <th>Mã vé</th>
+        <th>Khách hàng</th>
+        <th>Phim</th>
+        <th>Thời gian chiếu</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="b : ${bookings}">
+        <td th:text="${b.bookingId}"></td>
+        <td th:text="${b.user.fullName}"></td>
+        <td th:text="${b.showtime.movie.title}"></td>
+        <td th:text="${#temporals.format(b.showtime.startTime, 'dd/MM/yyyy HH:mm')}"></td>
+        <td>
+                        <span th:class="${b.status.toString() == 'paid' ? 'badge bg-success' : 'badge bg-secondary'}"
+                              th:text="${b.status}"></span>
+        </td>
+        <td>
+          <button th:if="${b.status.toString() == 'paid'}"
+                  th:onclick="'printTicket(' + ${b.bookingId} + ')'"
+                  class="btn-print">
+            <i data-lucide="printer" style="width:16px;height:16px"></i> In vé
+          </button>
+
+          <span th:if="${b.status.toString() != 'paid'}" style="color: #444; font-size: 0.8rem;">
+                            Chờ thanh toán
+                        </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  lucide.createIcons();
+
+  function printTicket(bookingId) {
+      const url = '/staff/booking/print/' + bookingId;
+      window.open(url, '_blank', 'width=500,height=600');
+  }
+</script>
+</body>
+</html>

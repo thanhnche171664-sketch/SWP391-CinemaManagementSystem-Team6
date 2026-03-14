@@ -1,3 +1,4 @@
+
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Pricing;
@@ -9,9 +10,9 @@ import java.util.List;
 
 @Repository
 public interface PricingRepository extends JpaRepository<Pricing, Long> {
-    
+
     List<Pricing> findByBranchBranchId(Long branchId);
-    
+
     List<Pricing> findBySeatType(Seat.SeatType seatType);
 
     java.util.Optional<Pricing> findByBranchBranchIdAndSeatTypeAndTimeRange(Long branchId, Seat.SeatType seatType, String timeRange);

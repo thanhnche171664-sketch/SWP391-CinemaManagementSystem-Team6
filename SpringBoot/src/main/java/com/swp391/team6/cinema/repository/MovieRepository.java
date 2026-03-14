@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -25,4 +27,24 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     List<Movie> findVisibleMoviesWithFilters(@Param("keyword") String keyword,
                                              @Param("status") Movie.MovieStatus status,
                                              @Param("genreName") String genreName);
+
+    @Query("SELECT DISTINCT m FROM Movie m JOIN BranchMovie bm ON m.movieId = bm.movie.movieId WHERE bm.branch.branchId = :branchId AND m.status = 'now_showing'")
+    List<Movie> findMoviesByBranchId(@Param("branchId") Long branchId);
+
+    @Query("SELECT DISTINCT m FROM Movie m " +
+            "JOIN BranchMovie bm ON m.movieId = bm.movie.movieId " +
+            "JOIN MovieGenre mg ON m.movieId = mg.movie.movieId " +
+            "JOIN Genre g ON mg.genre.genreId = g.genreId " +
+            "WHERE bm.branch.branchId = :branchId " +
+            "AND m.isHidden = false " +
+            "AND (:keyword IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:status IS NULL OR m.status = :status) " +
+            "AND (:genre IS NULL OR g.genreName = :genre)")
+    Page<Movie> findMoviesForPOS(
+            @Param("branchId") Long branchId,
+            @Param("keyword") String keyword,
+            @Param("status") Movie.MovieStatus status,
+            @Param("genre") String genre,
+            Pageable pageable
+    );
 }

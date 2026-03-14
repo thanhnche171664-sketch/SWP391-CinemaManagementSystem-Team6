@@ -20,7 +20,6 @@ public class UserController {
             @RequestParam(value = "edit", defaultValue = "false") boolean edit,
             Model model) {
 
-        // demo: giả lập user đang login
         String email = "admin@gmail.com";
 
         User user = userService.getUserByEmail(email);

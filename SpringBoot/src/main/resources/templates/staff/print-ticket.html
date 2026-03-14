@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        @page { size: 300px 480px; margin: 5px; }
+        body { font-family: 'Arial', sans-serif; font-size: 13px; color: #000; text-align: center; }
+
+        .ticket-card {
+            width: 270px; border: 1px solid #000; padding: 15px;
+            margin: 0 auto; display: inline-block; text-align: left;
+        }
+
+        /* Header */
+        .brand { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 5px; letter-spacing: 2px; }
+        .divider-thick { border-top: 3px solid #000; margin: 10px 0; }
+
+        /* Body */
+        .movie-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 12px; }
+        .info-row { margin-bottom: 6px; }
+        .label { color: #555; text-transform: uppercase; font-size: 10px; display: block; }
+        .value { font-weight: bold; font-size: 14px; }
+
+        /* Seat section - Điểm nhấn của vé */
+        .seat-box {
+            border: 2px dashed #000; padding: 10px; margin: 15px 0;
+            text-align: center; background: #fdfdfd;
+        }
+        .seat-label { font-size: 10px; color: #777; }
+        .seat-value { font-size: 28px; font-weight: 900; letter-spacing: 3px; }
+
+        /* Footer */
+        .footer-note { font-size: 9px; text-align: center; color: #333; margin-top: 10px; }
+        .barcode-placeholder { text-align: center; font-size: 20px; font-family: 'Courier New', monospace; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="ticket-card">
+    <div class="brand">CINEMAHUB</div>
+    <div class="divider-thick"></div>
+
+    <div class="movie-title" th:text="${booking.showtime.movie.title}">TÊN PHIM</div>
+
+    <div class="info-row"><span class="label">Mã vé:</span><span class="value" th:text="${booking.bookingId}"></span></div>
+    <div class="info-row"><span class="label">Thời gian:</span><span class="value" th:text="${#temporals.format(booking.showtime.startTime, 'HH:mm - dd/MM/yyyy')}"></span></div>
+    <div class="info-row"><span class="label">Phòng chiếu:</span><span class="value" th:text="${booking.showtime.room.roomName}"></span></div>
+    <div class="info-row"><span class="label">Thời lượng:</span><span class="value" th:text="${booking.showtime.movie.duration} + ' phút'"></span></div>
+
+    <div class="seat-box">
+        <div class="seat-label">GHẾ CỦA BẠN</div>
+        <div class="seat-value" th:text="${seatNames}"></div>
+    </div>
+
+    <div class="footer-note">
+        <p>Vui lòng xuất trình vé tại cửa kiểm soát.</p>
+        <p>Chúc quý khách có trải nghiệm tuyệt vời!</p>
+    </div>
+
+    <div class="barcode-placeholder">||||||||||||||||||||</div>
+</div>
+</body>
+</html>

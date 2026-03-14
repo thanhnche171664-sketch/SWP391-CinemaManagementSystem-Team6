@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    
+
     List<Booking> findByUserUserId(Long userId);
 
     List<Booking> findByUserUserIdOrderByBookingTimeDesc(Long userId);
@@ -28,9 +28,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             order by b.bookingTime desc
             """)
     List<Booking> findByUserUserIdWithDetailsOrderByBookingTimeDesc(@Param("userId") Long userId);
-    
+
     List<Booking> findByShowtimeShowtimeId(Long showtimeId);
-    
+
     List<Booking> findByStatus(Booking.BookingStatus status);
 
     List<Booking> findByStatusAndBookingTimeBefore(Booking.BookingStatus status, LocalDateTime bookingTime);

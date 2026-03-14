@@ -1,3 +1,4 @@
+
 package com.swp391.team6.cinema.service;
 
 import jakarta.mail.MessagingException;
@@ -22,13 +23,13 @@ public class EmailService {
 
     public void sendVerificationEmail(String toEmail, String fullName, String token) throws MessagingException {
         String verificationUrl = appUrl + "/auth/verify?token=" + token;
-        
+
         String subject = "Verify Your Cinema Management Account";
         String htmlContent = buildVerificationEmailContent(fullName, verificationUrl);
 
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
-    
+
     public void sendEmail(String to, String subject, String htmlContent) throws MessagingException {
         sendHtmlEmail(to, subject, htmlContent);
     }
