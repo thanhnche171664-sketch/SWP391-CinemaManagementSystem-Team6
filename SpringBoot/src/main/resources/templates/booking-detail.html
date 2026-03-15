@@ -7,21 +7,24 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .section {
-            background: linear-gradient(145deg, #111, #000);
+            background: linear-gradient(145deg, #1f5aa6, #173f75);
             border-radius: 18px;
-            border: 1px solid #1c1c1c;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 20px;
             margin-bottom: 20px;
+            color: #fff;
         }
         .section h3 {
             margin-bottom: 12px;
+            color: #fff;
         }
         .key-value {
             display: grid;
             grid-template-columns: 180px 1fr;
             gap: 10px;
             padding: 6px 0;
-            border-bottom: 1px solid #1c1c1c;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
         }
         .key-value:last-child {
             border-bottom: none;
@@ -45,10 +48,39 @@
             gap: 8px;
         }
         .seat-item {
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 8px;
             padding: 6px 10px;
+            color: #fff;
+        }
+
+        .section .text-muted {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .section .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+
+        .section .data-table thead {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .section .data-table th,
+        .section .data-table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section .data-table th {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
     </style>
 </head>

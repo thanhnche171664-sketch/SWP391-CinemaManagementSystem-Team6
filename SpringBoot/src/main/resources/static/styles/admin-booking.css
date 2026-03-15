@@ -5,9 +5,27 @@
     font-family: "Segoe UI", sans-serif;
 }
 
+:root {
+    --primary-color: #1f5aa6;
+    --secondary-color: #6c7a89;
+    --text-color: #1f3b67;
+    --text-muted: #6a7a93;
+    --surface-color: #ffffff;
+    --surface-muted: #fff5f7;
+    --accent-pink: #ffe9ed;
+    --accent-pink-strong: #fff0f3;
+    --border-soft: #f0c9d1;
+    --success-color: #2f855a;
+    --success-bg: #e7f7ef;
+    --warning-color: #b45309;
+    --warning-bg: #fff4d6;
+    --danger-color: #c6425b;
+    --danger-bg: #ffe9ed;
+}
+
 body {
-    background: #0b0b0b;
-    color: #fff;
+    background: var(--surface-muted);
+    color: var(--text-color);
 }
 
 .layout {
@@ -17,27 +35,37 @@ body {
 
 .sidebar {
     width: 260px;
-    background: #000;
+    background: var(--surface-color);
     padding: 20px;
+    border-right: 1px solid var(--border-soft);
 }
 
 .logo {
     margin-bottom: 30px;
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
 }
 
 .sidebar nav a {
     display: block;
     padding: 12px 15px;
     margin-bottom: 8px;
-    color: #bbb;
+    color: var(--text-muted);
     text-decoration: none;
     border-radius: 8px;
 }
 
 .sidebar nav a.active,
 .sidebar nav a:hover {
-    background: #fff;
-    color: #000;
+    background: var(--accent-pink);
+    color: var(--text-color);
+}
+
+.sidebar nav a.active {
+    background: var(--primary-color);
+    color: #fff;
 }
 
 .content {
@@ -59,7 +87,7 @@ body {
 }
 
 .header p {
-    color: #9a9a9a;
+    color: var(--text-muted);
 }
 
 .filters {
@@ -79,10 +107,10 @@ body {
 .search-box input {
     width: 100%;
     padding: 12px 14px 12px 40px;
-    background: #101010;
-    border: 1px solid #1f1f1f;
+    background: #fff;
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
-    color: #fff;
+    color: var(--text-color);
     outline: none;
 }
 
@@ -91,7 +119,7 @@ body {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #8a8a8a;
+    color: #b07c8a;
 }
 
 .search-icon svg {
@@ -101,10 +129,10 @@ body {
 
 .filter-select {
     padding: 11px 14px;
-    background: #101010;
-    border: 1px solid #1f1f1f;
+    background: #fff;
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
-    color: #fff;
+    color: var(--text-color);
     outline: none;
     min-width: 160px;
 }
@@ -117,14 +145,15 @@ body {
 }
 
 .stat-card {
-    background: #101010;
-    border: 1px solid #1d1d1d;
+    background: #fff;
+    border: 1px solid var(--border-soft);
     border-radius: 14px;
     padding: 14px 16px;
+    box-shadow: 0 10px 24px rgba(31, 90, 166, 0.08);
 }
 
 .stat-label {
-    color: #9a9a9a;
+    color: var(--text-muted);
     font-size: 12px;
     margin-bottom: 8px;
 }
@@ -135,20 +164,20 @@ body {
 }
 
 .stat-value.success {
-    color: #86efac;
+    color: var(--success-color);
 }
 
 .stat-value.warning {
-    color: #facc15;
+    color: var(--warning-color);
 }
 
 .stat-value.danger {
-    color: #f87171;
+    color: var(--danger-color);
 }
 
 .table-card {
-    background: #0f0f0f;
-    border: 1px solid #1c1c1c;
+    background: #fff;
+    border: 1px solid var(--border-soft);
     border-radius: 16px;
     overflow: hidden;
 }
@@ -159,7 +188,7 @@ body {
 }
 
 .data-table thead {
-    background: #121212;
+    background: var(--accent-pink-strong);
 }
 
 .data-table th,
@@ -170,19 +199,19 @@ body {
 }
 
 .data-table th {
-    color: #bdbdbd;
+    color: var(--text-muted);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
 .data-table td {
-    color: #e6e6e6;
-    border-bottom: 1px solid #1b1b1b;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .data-table tbody tr:hover {
-    background: #141414;
+    background: #fff6f7;
 }
 
 .movie-cell {
@@ -196,12 +225,12 @@ body {
     height: 58px;
     border-radius: 10px;
     overflow: hidden;
-    border: 1px solid #222;
-    background: #111;
+    border: 1px solid var(--border-soft);
+    background: #fff1f4;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #777;
+    color: #b08a95;
     font-size: 10px;
     text-align: center;
 }
@@ -239,18 +268,18 @@ body {
 }
 
 .status-paid {
-    background: #153d2c;
-    color: #86efac;
+    background: var(--success-bg);
+    color: var(--success-color);
 }
 
 .status-pending {
-    background: #3a2d12;
-    color: #facc15;
+    background: var(--warning-bg);
+    color: var(--warning-color);
 }
 
 .status-cancelled {
-    background: #3a1f1f;
-    color: #fca5a5;
+    background: var(--danger-bg);
+    color: var(--danger-color);
 }
 
 .payment-pill {
@@ -258,8 +287,8 @@ body {
     align-items: center;
     padding: 4px 10px;
     border-radius: 999px;
-    background: #1f1f1f;
-    color: #bdbdbd;
+    background: var(--accent-pink);
+    color: var(--text-color);
     font-size: 11px;
 }
 
@@ -273,7 +302,7 @@ body {
 .icon-btn {
     border: none;
     background: transparent;
-    color: #9a9a9a;
+    color: #8a96a8;
     padding: 6px;
     border-radius: 8px;
     cursor: pointer;
@@ -284,8 +313,8 @@ body {
 }
 
 .icon-btn:hover {
-    color: #fff;
-    background: #1a1a1a;
+    color: var(--primary-color);
+    background: var(--accent-pink);
 }
 
 .icon-btn svg {
@@ -303,5 +332,5 @@ body {
 }
 
 .text-muted {
-    color: #9a9a9a;
+    color: #8a96a8;
 }

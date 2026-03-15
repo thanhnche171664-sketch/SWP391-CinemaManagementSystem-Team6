@@ -30,27 +30,28 @@
             <span th:text="${success}"></span>
         </div>
 
-        <div class="filters">
+        <form id="filterForm" class="filters" method="get" th:action="@{/admin/movies}">
             <div class="search-box has-icon">
                 <span class="search-icon">
                     <i data-lucide="search"></i>
                 </span>
-                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm theo tiêu đề...">
+                <input type="text" id="searchInput" name="search" th:value="${search}"
+                       onkeyup="handleSearchKey(event)" placeholder="Tìm theo tiêu đề...">
             </div>
 
-            <select id="statusFilter" onchange="filterTable()" class="filter-select">
+            <select id="statusFilter" name="status" onchange="submitFilters()" class="filter-select">
                 <option value="">Tất cả trạng thái</option>
-                <option value="upcoming">upcoming</option>
-                <option value="now_showing">now_showing</option>
-                <option value="stopped">stopped</option>
+                <option value="upcoming" th:selected="${statusFilter == 'upcoming'}">upcoming</option>
+                <option value="now_showing" th:selected="${statusFilter == 'now_showing'}">now_showing</option>
+                <option value="stopped" th:selected="${statusFilter == 'stopped'}">stopped</option>
             </select>
 
-            <select id="hiddenFilter" onchange="filterTable()" class="filter-select">
+            <select id="hiddenFilter" name="hidden" onchange="submitFilters()" class="filter-select">
                 <option value="">Tất cả hiển thị</option>
-                <option value="shown">Shown</option>
-                <option value="hidden">Hidden</option>
+                <option value="shown" th:selected="${hiddenFilter == 'shown'}">Shown</option>
+                <option value="hidden" th:selected="${hiddenFilter == 'hidden'}">Hidden</option>
             </select>
-        </div>
+        </form>
 
         <div class="table-card">
             <table class="data-table" id="movieTable">
@@ -109,19 +110,19 @@
 
         <div class="pagination" th:if="${totalPages > 1}">
             <a class="page-link"
-               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize})}"
+               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
                th:classappend="${currentPage == 0} ? ' disabled' : ''">
                 &laquo;
             </a>
             <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-               th:href="@{/admin/movies(page=${i}, size=${pageSize})}"
+               th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
                th:classappend="${i == currentPage} ? ' active' : ''"
                th:text="${i + 1}">
                 1
             </a>
             <a class="page-link"
-               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize})}"
+               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
                 &raquo;
             </a>
@@ -288,23 +289,15 @@
 
     setTodayMinDate();
 
-    function filterTable() {
-        const searchText = document.getElementById('searchInput').value.toLowerCase();
-        const statusValue = document.getElementById('statusFilter').value;
-        const hiddenValue = document.getElementById('hiddenFilter').value;
-        const rows = document.querySelectorAll('tbody tr');
+    function submitFilters() {
+        document.getElementById('filterForm').submit();
+    }
 
-        rows.forEach(row => {
-            const title = row.cells[2].innerText.toLowerCase();
-            const status = row.cells[7].innerText.trim().toLowerCase();
-            const visibility = row.cells[8].innerText.trim().toLowerCase();
-
-            const matchesSearch = title.includes(searchText);
-            const matchesStatus = statusValue === "" || status === statusValue;
-            const matchesHidden = hiddenValue === "" || visibility === hiddenValue;
-
-            row.style.display = (matchesSearch && matchesStatus && matchesHidden) ? "" : "none";
-        });
+    function handleSearchKey(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submitFilters();
+        }
     }
 
     function openModalAdd() {

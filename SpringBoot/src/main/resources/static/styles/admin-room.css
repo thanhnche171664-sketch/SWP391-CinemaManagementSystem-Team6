@@ -1,6 +1,16 @@
+:root {
+    --primary-color: #1f5aa6;
+    --text-color: #1f3b67;
+    --text-muted: #6a7a93;
+    --surface-muted: #fff5f7;
+    --surface-color: #ffffff;
+    --border-soft: #f0c9d1;
+    --accent-pink: #ffe9ed;
+}
+
 body {
-    background: #0e0e0e;
-    color: #fff;
+    background: var(--surface-muted);
+    color: var(--text-color);
     font-family: 'Segoe UI', sans-serif;
 }
 
@@ -28,19 +38,20 @@ body {
     width: 24px;
     text-align: center;
     font-weight: bold;
-    color: #f5c16c;
+    color: var(--primary-color);
 }
 
 .seat {
     width: 42px;
     height: 42px;
-    background: #2a2a2a;
+    background: var(--surface-color);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all .2s ease;
+    border: 2px solid var(--border-soft);
 }
 
 .seat:hover {
@@ -54,27 +65,27 @@ body {
     pointer-events: none;
 }
 .seat-normal {
-    border: 2px solid #2a2a2a;
+    border: 2px solid #d6e4ff;
 }
 
 .seat-vip {
-    border: 2px solid #ff9800;
+    border: 2px solid #f59e0b;
 }
 
 .seat-couple {
-    border: 2px solid #ff2ea6;
+    border: 2px solid #ec4899;
 }
 
 .seat-selected {
-    background: #ffffff;
+    background: var(--primary-color);
 }
 
 .seat-selected .seat-icon {
-    color: #000;
+    color: #fff;
 }
 
 .seat-sold {
-    background: #555;
+    background: #f0f2f7;
     cursor: not-allowed;
     opacity: 0.5;
 }

@@ -1,6 +1,7 @@
 package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.dto.MovieDTO;
+import com.swp391.team6.cinema.entity.Movie;
 import com.swp391.team6.cinema.service.GenreService;
 import com.swp391.team6.cinema.service.MovieService;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +29,41 @@ public class MovieManagementController {
     @GetMapping
     public String list(Model model,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "8") int size) {
-        Page<MovieDTO> moviePage = movieService.getMoviesPage(true, page, size);
+                       @RequestParam(defaultValue = "8") int size,
+                       @RequestParam(required = false) String search,
+                       @RequestParam(required = false) String status,
+                       @RequestParam(required = false) String hidden) {
+        Movie.MovieStatus statusFilter = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                statusFilter = Movie.MovieStatus.valueOf(status.trim());
+            } catch (IllegalArgumentException ignored) {
+                statusFilter = null;
+            }
+        }
+
+        Boolean hiddenFilter = null;
+        if (hidden != null && !hidden.isBlank()) {
+            if ("shown".equalsIgnoreCase(hidden)) {
+                hiddenFilter = false;
+            } else if ("hidden".equalsIgnoreCase(hidden)) {
+                hiddenFilter = true;
+            }
+        }
+
+        Page<MovieDTO> moviePage = movieService.getMoviesPageWithFilters(
+                page,
+                size,
+                search,
+                statusFilter,
+                hiddenFilter);
         model.addAttribute("movieList", moviePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", moviePage.getTotalPages());
         model.addAttribute("pageSize", size);
+        model.addAttribute("search", search == null ? "" : search);
+        model.addAttribute("statusFilter", status == null ? "" : status);
+        model.addAttribute("hiddenFilter", hidden == null ? "" : hidden);
         model.addAttribute("newMovie", new MovieDTO());
         model.addAttribute("genreList", genreService.getAllGenres());
         return "movie-management";

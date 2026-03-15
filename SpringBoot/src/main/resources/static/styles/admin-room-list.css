@@ -4,20 +4,20 @@
 }
 
 .table th {
-    color: #aaa;
+    color: var(--text-muted);
     text-align: left;
     padding: 14px 10px;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .table td {
     padding: 16px 10px;
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .status-pill {
-    background: #fff;
-    color: #000;
+    background: var(--accent-pink);
+    color: var(--text-color);
     padding: 6px 12px;
     border-radius: 12px;
     font-size: 14px;
@@ -33,6 +33,7 @@
     width: 22px;
     opacity: 0.7;
     transition: 0.2s;
+    color: var(--text-color);
 }
 
 .actions .icon:hover {
