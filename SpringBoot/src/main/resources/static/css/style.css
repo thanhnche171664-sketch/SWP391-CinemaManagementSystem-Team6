@@ -349,6 +349,39 @@ body.movie-detail-page {
     border-radius: 12px;
 }
 
+.movie-detail-page .table {
+    color: #e5e5e5;
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.04);
+    --bs-table-striped-color: #e5e5e5;
+    --bs-table-border-color: #1f1f1f;
+}
+
+.movie-detail-page .table thead th {
+    color: #f5f5f5;
+    border-bottom-color: #1f1f1f;
+}
+
+.movie-detail-page .modal-content {
+    background: #0f0f0f;
+    color: #eaeaea;
+    border: 1px solid #1d1d1d;
+    border-radius: 16px;
+}
+
+.movie-detail-page .modal-header,
+.movie-detail-page .modal-footer {
+    border-color: #1f1f1f;
+}
+
+.movie-detail-page .modal-title {
+    color: #fff;
+}
+
+.movie-detail-page .btn-close {
+    filter: invert(1);
+}
+
 .hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
