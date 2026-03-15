@@ -17,10 +17,28 @@
             <div>
                 <h1>Quản lý rạp chiếu</h1>
                 <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
+                <div class="tabs">
+                    <a th:href="@{/branches}"
+                       class="tab active">
+                        Rạp chiếu
+                    </a>
+
+                    <a th:href="@{/rooms}"
+                       class="tab">
+                        Phòng chiếu
+                    </a>
+
+                    <a th:href="@{/seats}"
+                       class="tab">
+                        Cấu hình ghế
+                    </a>
+                </div>
             </div>
 
             <a class="btn-add" href="/branches/new">+ Thêm rạp mới</a>
         </header>
+
+
 
         <form class="search-box" th:action="@{/branches/search}" method="get">
             <input type="text"
@@ -51,34 +69,46 @@
                     <div class="actions">
 
                         <a th:href="@{/branches/edit/{id}(id=${branch.branchId})}"
-                           title="Chỉnh sửa" style="color:#aaa">Chỉnh sửa</a>
+                           class="edit-link"
+                           title="Chỉnh sửa">
+                            <img th:src="@{/images/edit.png}"
+                                 alt="edit"
+                                 class="edit-icon">
+                        </a>
 
                         <a th:href="@{/branches/toggle-status/{id}(id=${branch.branchId})}"
+                           class="status-btn"
                            th:title="${branch.status.name() == 'active'
-                               ? 'Ngưng hoạt động'
-                               : 'Kích hoạt'}"
+           ? 'Ngưng hoạt động'
+           : 'Kích hoạt'}"
                            th:text="${branch.status.name() == 'active'
-                               ? '🚫'
-                               : '✅'}"
-                           class="status-btn">
+           ? '✅'
+           : '🚫'}">
                         </a>
 
                     </div>
                 </div>
 
                 <div class="rooms">
-                    <div class="room-card"
-                         th:each="room : ${branch.rooms}">
-                        <h4 th:text="${room.roomName}">Phòng</h4>
+                    <div class="room-card" th:each="room : ${branch.rooms}">
+
+                        <div class="room-header">
+                            <h4 th:text="${room.roomName}">Phòng</h4>
+
+                            <button class="room-edit-btn"
+                                    type="button"
+                                    th:onclick="|window.location.href='/rooms/${room.roomId}'|"
+                                    title="Sửa phòng">
+                                <img th:src="@{/images/edit.png}"
+                                     alt="edit"
+                                     class="edit-icon">
+                            </button>
+                        </div>
+
                         <p>
                             <span th:text="${room.totalSeats}">0</span> ghế
                         </p>
-                        <button class="room-edit-btn"
-                                type="button"
-                                th:onclick="|window.location.href='/rooms/${room.roomId}'|"
-                                title="Sửa phòng">
-                            ✏️
-                        </button>
+
                     </div>
 
 

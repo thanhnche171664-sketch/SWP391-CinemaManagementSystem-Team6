@@ -33,4 +33,11 @@ public class RoomService {
     public void deleteById(Long id) {
         roomRepository.deleteById(id);
     }
+
+    public List<Room> searchRooms(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return roomRepository.findAll();
+        }
+        return roomRepository.findByRoomNameContainingIgnoreCase(keyword);
+    }
 }

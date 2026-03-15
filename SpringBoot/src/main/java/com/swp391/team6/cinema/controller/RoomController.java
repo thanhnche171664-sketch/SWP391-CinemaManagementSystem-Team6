@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -31,5 +32,18 @@ public class RoomController {
         model.addAttribute("seats", seats);
 
         return "room-details";
+    }
+
+    @GetMapping("/rooms")
+    public String roomManagement(
+            @RequestParam(required = false) String keyword,
+            Model model
+    ) {
+        model.addAttribute(
+                "rooms",
+                roomService.searchRooms(keyword)
+        );
+        model.addAttribute("keyword", keyword);
+        return "room-list";
     }
 }

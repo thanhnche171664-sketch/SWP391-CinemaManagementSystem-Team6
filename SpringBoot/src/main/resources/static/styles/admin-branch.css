@@ -61,6 +61,35 @@ body {
     color: #aaa;
 }
 
+.tabs {
+    display: inline-flex;
+    background: #0e0e0e;
+    border-radius: 14px;
+    padding: 4px;
+    gap: 4px;
+    margin: 16px 0 20px;
+}
+
+.tab {
+    padding: 10px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #ccc;
+    font-weight: 500;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: #fff;
+}
+
+.tab.active {
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+}
+
 .btn-add {
     background: #fff;
     color: #000;
@@ -107,6 +136,12 @@ body {
     font-size: 18px;
 }
 
+.actions {
+    display: flex;
+    align-items: center; /* ⭐ QUAN TRỌNG */
+    gap: 12px;
+}
+
 .actions .danger {
     color: red;
 }
@@ -126,6 +161,54 @@ body {
 
 .room-card h4 {
     margin-bottom: 6px;
+}
+
+.room-edit-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.room-edit-btn .edit-icon {
+    width: 25px;
+    height: 25px;
+    opacity: 0.7;
+    transition: 0.2s;
+}
+
+.room-edit-btn:hover .edit-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.edit-link .edit-icon {
+    width: 30px;
+    height: 30px;
+    opacity: 0.7;
+    transition: 0.2s;
+}
+
+.edit-link:hover .edit-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.edit-link {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.room-header h4 {
+    margin: 0;
 }
 
 .filters {

@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,4 +21,10 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     List<Showtime> findByStartTimeBetween(LocalDateTime startDate, LocalDateTime endDate);
     
     List<Showtime> findByStatus(Showtime.ShowtimeStatus status);
+
+    @Query("SELECT s FROM Showtime s JOIN FETCH s.room r JOIN FETCH r.branch WHERE s.movie.movieId = :movieId AND s.status = 'open' AND s.startTime > :after ORDER BY s.startTime")
+    List<Showtime> findByMovieIdOpenAfterWithRoomAndBranch(@Param("movieId") Long movieId, @Param("after") LocalDateTime after);
+
+    @Query("SELECT s FROM Showtime s JOIN FETCH s.movie JOIN FETCH s.room r JOIN FETCH r.branch WHERE s.showtimeId = :id")
+    java.util.Optional<Showtime> findByIdWithMovieRoomBranch(@Param("id") Long id);
 }

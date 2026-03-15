@@ -16,9 +16,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     List<Movie> findByStatus(Movie.MovieStatus status);
 
-    @Query("SELECT m FROM Movie m WHERE m.title LIKE %:keyword%")
-    List<Movie> searchByTitle(@Param("keyword") String keyword);
-    
     List<Movie> findByIsHiddenFalse();
 
     Page<Movie> findByIsHiddenFalse(Pageable pageable);
@@ -26,4 +23,13 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     Optional<Movie> findByTitleIgnoreCase(String title);
 
     List<Movie> findByStatusAndIsHiddenFalse(Movie.MovieStatus status);
+
+    @Query("SELECT DISTINCT m FROM Movie m LEFT JOIN FETCH m.genres " +
+           "WHERE m.isHidden = false " +
+           "AND (:keyword IS NULL OR :keyword = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:status IS NULL OR m.status = :status) " +
+           "AND (:genreName IS NULL OR :genreName = '' OR m IN (SELECT m2 FROM Movie m2 JOIN m2.genres g2 WHERE g2.genreName = :genreName))")
+    List<Movie> findVisibleMoviesWithFilters(@Param("keyword") String keyword,
+                                             @Param("status") Movie.MovieStatus status,
+                                             @Param("genreName") String genreName);
 }
