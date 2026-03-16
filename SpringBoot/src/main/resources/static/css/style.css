@@ -368,7 +368,9 @@ body.movie-detail-page {
 }
 
 .home-page .btn-outline-light:hover {
-    background: rgba(47, 128, 237, 0.08);
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
 }
 
 .movie-detail-shell {
