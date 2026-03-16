@@ -485,6 +485,158 @@ body.movie-detail-page {
     border-color: #f3b7c1;
 }
 
+body.booking-history-page,
+body.booking-detail-page {
+    background: var(--surface-muted);
+    color: var(--text-color);
+}
+
+.booking-history-page .navbar,
+.booking-detail-page .navbar {
+    background: var(--surface-color) !important;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.booking-history-page .navbar .navbar-brand,
+.booking-history-page .navbar .nav-link,
+.booking-detail-page .navbar .navbar-brand,
+.booking-detail-page .navbar .nav-link {
+    color: var(--text-color) !important;
+}
+
+.booking-history-page .navbar .nav-link:hover,
+.booking-detail-page .navbar .nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+.history-shell,
+.detail-shell {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.history-subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.history-empty-alert {
+    background: #fff5f7;
+    border: 1px solid var(--border-soft);
+    color: var(--text-color);
+    border-radius: 12px;
+}
+
+.history-table-wrap {
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.history-table {
+    margin-bottom: 0;
+    color: var(--text-color);
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: #fff0f3;
+    --bs-table-striped-color: var(--text-color);
+    --bs-table-border-color: var(--border-soft);
+}
+
+.history-table thead th {
+    background: #fff6f8;
+    color: var(--text-color);
+    border-bottom-color: var(--border-soft);
+    font-weight: 600;
+}
+
+.history-table tbody td {
+    vertical-align: middle;
+    color: var(--text-muted);
+}
+
+.mono-cell {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    color: var(--text-color) !important;
+}
+
+.booking-chip {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: lowercase;
+    background: #eaf2ff;
+    color: #1f5aa6;
+    border: 1px solid #d6e4ff;
+}
+
+.booking-chip.status-pending,
+.booking-chip.payment-pending {
+    background: #fff6dd;
+    color: #a96a08;
+    border-color: #f6e1aa;
+}
+
+.booking-chip.status-paid,
+.booking-chip.payment-success {
+    background: #e7f7ef;
+    color: #2f855a;
+    border-color: #cbeedb;
+}
+
+.booking-chip.status-cancelled,
+.booking-chip.payment-cancelled,
+.booking-chip.payment-failed {
+    background: #fff1f1;
+    color: #d14343;
+    border-color: #f3b7c1;
+}
+
+.history-btn-primary {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+.history-btn-primary:hover {
+    background: #184a8a;
+    border-color: #184a8a;
+    color: #fff;
+}
+
+.history-btn-secondary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.history-btn-secondary:hover {
+    background: rgba(47, 128, 237, 0.08);
+    color: var(--primary-color);
+}
+
+.booking-detail-card {
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 18px;
+    background: #fffdfd;
+}
+
+.booking-detail-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+}
+
+.booking-detail-row strong {
+    color: var(--text-color);
+}
+
 .hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;

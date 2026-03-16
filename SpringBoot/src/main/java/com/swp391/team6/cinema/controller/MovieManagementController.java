@@ -94,4 +94,14 @@ public class MovieManagementController {
         movieService.updateVisibility(id, !hidden);
         return "redirect:/admin/movies";
     }
+
+    @GetMapping("/view/{id}")
+    public String viewMovie(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        MovieDTO movie = movieService.getMovieById(id, true);
+        if (Boolean.TRUE.equals(movie.getHidden())) {
+            redirectAttributes.addFlashAttribute("error", "Phim đã bị ẩn.");
+            return "redirect:/admin/movies";
+        }
+        return "redirect:/movies/" + id;
+    }
 }

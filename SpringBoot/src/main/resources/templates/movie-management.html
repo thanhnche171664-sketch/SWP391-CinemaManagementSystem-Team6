@@ -98,7 +98,7 @@
                             <button type="button" th:onclick="prepareEdit([[${movie}]])" class="icon-btn">
                                 <i data-lucide="edit-3"></i>
                             </button>
-                            <a th:href="@{'/movies/' + ${movie.movieId}}" class="icon-btn">
+                            <a th:href="@{'/admin/movies/view/' + ${movie.movieId}}" class="icon-btn">
                                 <i data-lucide="eye"></i>
                             </a>
                         </div>
