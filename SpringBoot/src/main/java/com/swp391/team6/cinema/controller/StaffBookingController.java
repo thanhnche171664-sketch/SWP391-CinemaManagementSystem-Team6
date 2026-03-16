@@ -42,8 +42,10 @@ public class StaffBookingController {
     private final StaffBookingService staffBookingService;
     private final BookingService bookingService;
     private final PricingService pricingService;
+    private final SeatLockService seatLockService;
     private final MovieService movieService;
     private final TemplateEngine templateEngine;
+
 
     @GetMapping("/pos")
     public String posView(@RequestParam(defaultValue = "0") int page,
@@ -109,8 +111,28 @@ public class StaffBookingController {
             map.put("seatNumber", s.getSeatNumber());
             map.put("seatType", s.getSeatType() != null ? s.getSeatType().toString() : "NORMAL");
             map.put("isBooked", occupied.contains(s.getSeatId()));
+            boolean isLocked = seatLockService.isLocked(showtimeId, s.getSeatId());
+            map.put("isBooked", occupied.contains(s.getSeatId()) || isLocked);
             return map;
         }).collect(Collectors.toList());
+    }
+
+    @PostMapping("/api/lock-seats")
+    @ResponseBody
+    public ResponseEntity<?> lockSeats(@RequestParam Long showtimeId, @RequestBody List<Long> seatIds) {
+        for (Long seatId : seatIds) {
+            if (!seatLockService.lockSeat(showtimeId, seatId)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Ghế đã có người giữ!"));
+            }
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/unlock-seat")
+    @ResponseBody
+    public ResponseEntity<?> unlockSeat(@RequestParam Long showtimeId, @RequestParam Long seatId) {
+        seatLockService.releaseSeat(showtimeId, seatId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/api/find-user")

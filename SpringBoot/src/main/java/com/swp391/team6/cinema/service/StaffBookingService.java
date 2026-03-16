@@ -17,13 +17,14 @@ import java.util.Set;
 public class StaffBookingService {
     private final BookingRepository bookingRepository;
     private final BookingSeatRepository bookingSeatRepository;
+    private final PromotionRepository promotionRepository;
     private final PaymentRepository paymentRepository;
-    private final PricingService pricingService;
     private final UserRepository userRepository;
     private final ShowtimeRepository showtimeRepository;
     private final SeatRepository seatRepository;
+    private final PricingService pricingService;
     private final BookingService bookingService;
-    private final PromotionRepository promotionRepository;
+    private final SeatLockService seatLockService;
 
     @Transactional
     public Booking processCounterBooking(User staff, Long showtimeId, List<Long> seatIds,
@@ -116,6 +117,10 @@ public class StaffBookingService {
         payment.setAmount(total);
         payment.setPaymentStatus(Payment.PaymentStatus.success);
         paymentRepository.save(payment);
+
+        for (Long sid : seatIds) {
+            seatLockService.releaseSeat(showtimeId, sid);
+        }
 
         return booking;
     }

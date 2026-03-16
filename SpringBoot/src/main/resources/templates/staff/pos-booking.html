@@ -5,6 +5,7 @@
   <title>POS Booking - CinemaHub</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root { --primary-color: #0d6efd; }
     .step { display: none; }
@@ -37,7 +38,10 @@
 
     <div id="step1" class="step active-step">
       <form th:action="@{/staff/booking/pos}" method="get" class="row g-3 mb-4 align-items-end">
-        <div class="col-md-3"><label class="fw-bold">Tên phim:</label><input type="text" name="keyword" class="form-control" th:value="${keyword}"></div>
+        <div class="col-md-3">
+          <label class="fw-bold">Tên phim:</label>
+          <input type="text" name="keyword" class="form-control" th:value="${keyword}">
+        </div>
         <div class="col-md-2">
           <label class="fw-bold">Trạng thái:</label>
           <select name="status" class="form-select" onchange="this.form.submit()">
@@ -47,13 +51,29 @@
             <option value="stopped" th:selected="${status != null && status.name() == 'stopped'}">Đã dừng</option>
           </select>
         </div>
-        <div class="col-md-3"><label class="fw-bold">Thể loại:</label><select name="genre" class="form-select" onchange="this.form.submit()"><option value="">-- Tất cả --</option><option th:each="g : ${genreList}" th:value="${g.genreName}" th:text="${g.genreName}" th:selected="${g.genreName == genre}"></option></select></div>
-        <div class="col-md-2"><a th:href="@{/staff/booking/pos}" class="btn btn-outline-secondary w-100">Reset</a></div>
+        <div class="col-md-3">
+          <label class="fw-bold">Thể loại:</label>
+          <select name="genre" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Tất cả --</option>
+            <option th:each="g : ${genreList}" th:value="${g.genreName}" th:text="${g.genreName}" th:selected="${g.genreName == genre}"></option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <a th:href="@{/staff/booking/pos}" class="btn btn-outline-secondary w-100">Reset</a>
+        </div>
       </form>
 
       <div class="row g-4">
         <div class="col-md-3" th:each="m : ${moviePage.content}">
-          <div class="card movie-card" th:data-id="${m.movieId}" th:data-title="${m.title}" onclick="handleMovieClick(this)">
+          <div class="card movie-card"
+               th:data-id="${m.movieId}"
+               th:data-title="${m.title}"
+               th:data-duration="${m.duration}"
+               th:data-age="${m.ageRating}"
+               th:data-desc="${m.description}"
+               th:data-poster="${m.posterUrl}"
+               th:data-trailer="${m.trailerUrl}"
+               onclick="handleMovieClick(this)">
             <img th:src="${m.posterUrl}" class="card-img-top" onerror="this.src='https://via.placeholder.com/300x450?text=No+Poster'">
             <div class="card-body">
               <h6 class="fw-bold text-truncate" th:text="${m.title}"></h6>
@@ -65,9 +85,15 @@
 
       <nav class="mt-4" th:if="${moviePage.totalPages > 0}">
         <ul class="pagination justify-content-center">
-          <li class="page-item" th:classappend="${moviePage.first} ? 'disabled'"><a class="page-link" th:href="@{/staff/booking/pos(page=${moviePage.number - 1}, keyword=${keyword}, status=${status}, genre=${genre})}">Trước</a></li>
-          <li class="page-item" th:each="i : ${#numbers.sequence(0, moviePage.totalPages - 1)}" th:classappend="${i == moviePage.number} ? 'active'"><a class="page-link" th:href="@{/staff/booking/pos(page=${i}, keyword=${keyword}, status=${status}, genre=${genre})}" th:text="${i + 1}"></a></li>
-          <li class="page-item" th:classappend="${moviePage.last} ? 'disabled'"><a class="page-link" th:href="@{/staff/booking/pos(page=${moviePage.number + 1}, keyword=${keyword}, status=${status}, genre=${genre})}">Sau</a></li>
+          <li class="page-item" th:classappend="${moviePage.first} ? 'disabled'">
+            <a class="page-link" th:href="@{/staff/booking/pos(page=${moviePage.number - 1}, keyword=${keyword}, status=${status}, genre=${genre})}">Trước</a>
+          </li>
+          <li class="page-item" th:each="i : ${#numbers.sequence(0, moviePage.totalPages - 1)}" th:classappend="${i == moviePage.number} ? 'active'">
+            <a class="page-link" th:href="@{/staff/booking/pos(page=${i}, keyword=${keyword}, status=${status}, genre=${genre})}" th:text="${i + 1}"></a>
+          </li>
+          <li class="page-item" th:classappend="${moviePage.last} ? 'disabled'">
+            <a class="page-link" th:href="@{/staff/booking/pos(page=${moviePage.number + 1}, keyword=${keyword}, status=${status}, genre=${genre})}">Sau</a>
+          </li>
         </ul>
       </nav>
     </div>
@@ -76,29 +102,50 @@
       <button class="btn btn-sm btn-secondary mb-3" onclick="showStep(1)">← Quay lại</button>
       <h4 id="movieTitle" class="text-primary fw-bold"></h4>
       <div class="row mt-4">
-        <div class="col-md-3" id="showtimeList"></div>
-        <div class="col-md-9 text-center">
+        <div class="col-md-3">
+          <h6 class="fw-bold">Chọn ngày:</h6>
+          <div id="dateTabs" class="list-group"></div>
+        </div>
+        <div class="col-md-3">
+          <h6 class="fw-bold">Chọn giờ:</h6>
+          <div id="timeList"></div>
+        </div>
+        <div class="col-md-6 text-center">
           <div class="seat-map-wrapper">
             <div class="bg-secondary text-white p-1 rounded mb-4 w-75 mx-auto">MÀN HÌNH</div>
             <div id="seatMap" class="d-flex flex-column align-items-center"></div>
           </div>
-          <div class="legend-box">
-            <div class="d-flex align-items-center"><div class="seat NORMAL"></div> Thường</div>
-            <div class="d-flex align-items-center"><div class="seat VIP"></div> VIP</div>
-            <div class="d-flex align-items-center"><div class="seat COUPLE"></div> Couple</div>
-            <div class="d-flex align-items-center"><div class="seat occupied"></div> Đã đặt</div>
-          </div>
-          <div class="mt-3 fs-5 fw-bold">Tổng tiền: <span id="totalDisplay" class="text-danger">0</span> VNĐ</div>
         </div>
       </div>
+      <div class="legend-box">
+        <div class="d-flex align-items-center"><div class="seat NORMAL"></div> Thường</div>
+        <div class="d-flex align-items-center"><div class="seat VIP"></div> VIP</div>
+        <div class="d-flex align-items-center"><div class="seat COUPLE"></div> Couple</div>
+        <div class="d-flex align-items-center"><div class="seat occupied"></div> Đã đặt</div>
+      </div>
+      <div class="mt-3 fs-5 fw-bold">Tổng tiền: <span id="totalDisplay" class="text-danger">0</span> VNĐ</div>
       <button class="btn btn-primary btn-lg w-100 mt-4" id="btnStep3" disabled onclick="showStep(3)">Tiếp tục thanh toán</button>
+      <div id="movieDetailsContainer" class="mt-4 p-3 bg-white border rounded">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="ratio ratio-16x9">
+              <iframe id="detailTrailer" title="Trailer" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <h5 id="detailTitle" class="text-primary"></h5>
+            <p class="mb-1"><strong>Thời lượng:</strong> <span id="detailDuration"></span> phút</p>
+            <p class="mb-1"><strong>Độ tuổi:</strong> <span id="detailAge"></span></p>
+            <p class="small text-muted" id="detailDesc"></p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="step3" class="step">
       <div class="row">
         <div class="col-md-5 border-end">
           <h5 class="mb-3 text-primary">Thông tin khách hàng & Thanh toán</h5>
-
           <div class="mb-3">
             <label class="fw-bold">SĐT hoặc Email:</label>
             <div class="input-group">
@@ -106,12 +153,10 @@
               <span class="input-group-text"><i class="bi bi-search"></i></span>
             </div>
           </div>
-
           <div class="mb-3">
             <label class="fw-bold">Tên khách hàng:</label>
             <input type="text" id="customerName" class="form-control bg-light" readonly placeholder="Tự động hiển thị...">
           </div>
-
           <div class="mb-3">
             <label class="fw-bold">Mã giảm giá:</label>
             <div class="input-group">
@@ -120,7 +165,6 @@
             </div>
             <div id="promoMessage" class="small mt-1"></div>
           </div>
-
           <div class="alert alert-secondary">
             <div class="d-flex justify-content-between">
               <span>Giá gốc:</span>
@@ -131,236 +175,363 @@
               <span id="paymentTotalDisplay">0</span> VNĐ
             </div>
           </div>
-
           <div class="d-flex gap-2">
             <button class="btn btn-outline-secondary w-50" onclick="showStep(2)">HỦY</button>
             <button class="btn btn-success w-50" onclick="processPayment()">HOÀN TẤT</button>
           </div>
         </div>
-
         <div class="col-md-7">
           <h5 class="mb-3 text-secondary">Tra cứu nhanh theo tên</h5>
           <div class="input-group mb-3">
             <input type="text" id="searchNameInput" class="form-control" placeholder="Gõ tên khách hàng..." onkeyup="searchCustomerByName()">
           </div>
-
           <div class="table-responsive" style="max-height: 350px;">
             <table class="table table-sm table-hover border">
               <thead class="table-light">
-              <tr>
-                <th>Họ tên</th>
-                <th>Liên lạc</th>
-                <th></th>
-              </tr>
+              <tr><th>Họ tên</th><th>Liên lạc</th><th></th></tr>
               </thead>
-              <tbody id="customerTableBody">
-              </tbody>
+              <tbody id="customerTableBody"></tbody>
             </table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="step4" class="step">
+      <h4 class="text-primary fw-bold mb-4">Xác nhận thông tin đặt vé</h4>
+      <div class="card p-4 bg-light">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Khách hàng:</strong> <span id="reviewCustomer"></span></p>
+            <p><strong>Liên lạc:</strong> <span id="reviewContact"></span></p>
+            <p><strong>Phim:</strong> <span id="reviewMovie"></span></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Suất chiếu:</strong> <span id="reviewTime"></span></p>
+            <p><strong>Ghế:</strong> <span id="reviewSeats"></span></p>
+            <p><strong>Mã KM:</strong> <span id="reviewPromo"></span></p>
+          </div>
+        </div>
+        <hr>
+        <div class="text-end">
+          <h5 class="text-secondary">Tổng thanh toán:</h5>
+          <h2 class="text-danger" id="reviewTotal">0 VNĐ</h2>
+        </div>
+      </div>
+      <div class="d-flex gap-3 mt-4">
+        <button class="btn btn-outline-secondary w-50" onclick="showStep(3)">QUAY LẠI</button>
+        <button class="btn btn-success w-50" id="btnFinalSubmit" onclick="executeFinalBooking()">XÁC NHẬN & HOÀN TẤT</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  let selectedShowtimeId = null, selectedSeats = [];
+  let selectedShowtimeId = null;
+  let selectedSeats = [];
   let currentTotalAmount = 0;
 
   function showStep(s) {
-    document.querySelectorAll('.step').forEach(e => e.classList.remove('active-step'));
-    document.getElementById('step' + s).classList.add('active-step');
-
-    if (s === 3) {
-        const formatted = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
-        document.getElementById('originalPriceDisplay').innerText = formatted;
-
-        if (!document.getElementById('promoCodeInput').value) {
-            document.getElementById('paymentTotalDisplay').innerText = formatted;
-        }
-    }
+      document.querySelectorAll('.step').forEach(e => e.classList.remove('active-step'));
+      document.getElementById('step' + s).classList.add('active-step');
+      if (s === 3) {
+          const formatted = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
+          document.getElementById('originalPriceDisplay').innerText = formatted;
+          if (!document.getElementById('promoCodeInput').value) {
+              document.getElementById('paymentTotalDisplay').innerText = formatted;
+          }
+      }
   }
 
   function handleMovieClick(el) {
-    selectedShowtimeId = null; selectedSeats = [];
-    document.getElementById('totalDisplay').innerText = "0";
-    loadShowtimes(el.getAttribute('data-id'), el.getAttribute('data-title'));
+      selectedShowtimeId = null; selectedSeats = [];
+      document.getElementById('totalDisplay').innerText = "0";
+      document.getElementById('detailTitle').innerText = el.getAttribute('data-title');
+      document.getElementById('detailDuration').innerText = el.getAttribute('data-duration');
+      document.getElementById('detailAge').innerText = el.getAttribute('data-age');
+      document.getElementById('detailDesc').innerText = el.getAttribute('data-desc');
+
+      const iframe = document.getElementById('detailTrailer');
+      let trailerUrl = el.getAttribute('data-trailer');
+
+      if (trailerUrl) {
+          let videoId = "";
+          if (trailerUrl.includes("v=")) {
+              videoId = trailerUrl.split("v=")[1].split("&")[0];
+          } else if (trailerUrl.includes("youtu.be/")) {
+              videoId = trailerUrl.split("youtu.be/")[1].split("?")[0];
+          } else if (trailerUrl.includes("embed/")) {
+              videoId = trailerUrl.split("embed/")[1].split("?")[0];
+          } else {
+              videoId = trailerUrl;
+          }
+          iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+      } else {
+          iframe.src = "about:blank";
+      }
+      loadShowtimes(el.getAttribute('data-id'), el.getAttribute('data-title'));
   }
 
   function loadShowtimes(id, title) {
-    document.getElementById('movieTitle').innerText = "Phim: " + title;
-    fetch('/staff/booking/api/showtimes?movieId=' + id).then(r => r.json()).then(data => {
-      let html = data.map(s => `
-        <div class="showtime-btn" onclick="selectShowtime(${s.showtimeId}, this)">
-          <strong>${new Date(s.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong><br>
-          <small>${s.roomName}</small>
-        </div>`).join('');
-      document.getElementById('showtimeList').innerHTML = html;
-      document.getElementById('seatMap').innerHTML = '';
-      showStep(2);
-    });
+      document.getElementById('movieTitle').innerText = "Phim: " + title;
+      fetch('/staff/booking/api/showtimes?movieId=' + id)
+      .then(r => r.json())
+      .then(data => {
+          const grouped = data.reduce((acc, s) => {
+              const date = s.startTime.toString().split('T')[0];
+              if (!acc[date]) acc[date] = [];
+              acc[date].push(s);
+              return acc;
+          }, {});
+
+          const dates = Object.keys(grouped).sort();
+          const dateTabs = document.getElementById('dateTabs');
+          dateTabs.innerHTML = '';
+
+          dates.forEach((date, index) => {
+              const btn = document.createElement('button');
+              btn.className = `list-group-item list-group-item-action ${index === 0 ? 'active' : ''}`;
+              const d = new Date(date);
+              btn.innerText = d.toLocaleDateString('vi-VN', {weekday: 'short', day: '2-digit', month: '2-digit'});
+              btn.onclick = () => {
+                  document.querySelectorAll('#dateTabs button').forEach(b => b.classList.remove('active'));
+                  btn.classList.add('active');
+                  renderTimes(grouped[date]);
+              };
+              dateTabs.appendChild(btn);
+          });
+
+          if (dates.length > 0) renderTimes(grouped[dates[0]]);
+          document.getElementById('seatMap').innerHTML = '';
+          showStep(2);
+      });
   }
 
-  function selectShowtime(id, el) {
-    selectedShowtimeId = id; selectedSeats = [];
-    document.getElementById('totalDisplay').innerText = "0";
-    document.querySelectorAll('.showtime-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
+  function renderTimes(showtimes) {
+    const timeList = document.getElementById('timeList');
+    timeList.innerHTML = showtimes.map(s => `
+        <button class="btn btn-outline-primary showtime-btn mb-2" onclick="selectShowtime(${s.showtimeId}, this)">
+            <strong>${new Date(s.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong>
+            <br><small>${s.roomName}</small>
+        </button>
+    `).join('');
+}
 
-    fetch('/staff/booking/api/seats?showtimeId=' + id).then(r => r.json()).then(seats => {
-      const map = document.getElementById('seatMap'); map.innerHTML = '';
-      const rows = [...new Set(seats.map(s => s.seatRow))].sort();
-      rows.forEach(r => {
-        const rowDiv = document.createElement('div'); rowDiv.className = 'd-flex';
-        rowDiv.innerHTML = `<div class="me-2 fw-bold" style="width:20px">${r}</div>`;
-        seats.filter(s => s.seatRow === r).sort((a,b) => a.seatNumber - b.seatNumber).forEach(s => {
-          const seat = document.createElement('div');
-          // Fix hiển thị màu:
-          const type = s.seatType ? s.seatType.trim().toUpperCase() : 'NORMAL';
-          seat.className = `seat ${type === 'COUPLE' ? 'COUPLE' : type} ${s.isBooked ? 'occupied' : ''}`;
-          seat.innerText = s.seatNumber;
-          if(!s.isBooked) seat.onclick = () => toggleSeat(s.seatId, seat);
-          rowDiv.appendChild(seat);
-        });
-        map.appendChild(rowDiv);
+  function selectShowtime(id, el) {
+      selectedShowtimeId = id; selectedSeats = [];
+      document.getElementById('totalDisplay').innerText = "0";
+      document.querySelectorAll('.showtime-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      fetch('/staff/booking/api/seats?showtimeId=' + id).then(r => r.json()).then(seats => {
+          const map = document.getElementById('seatMap'); map.innerHTML = '';
+          const rows = [...new Set(seats.map(s => s.seatRow))].sort();
+          rows.forEach(r => {
+              const rowDiv = document.createElement('div'); rowDiv.className = 'd-flex';
+              rowDiv.innerHTML = `<div class="me-2 fw-bold" style="width:20px">${r}</div>`;
+              seats.filter(s => s.seatRow === r).sort((a,b) => a.seatNumber - b.seatNumber).forEach(s => {
+                  const seat = document.createElement('div');
+                  const type = s.seatType ? s.seatType.trim().toUpperCase() : 'NORMAL';
+                  seat.className = `seat ${type === 'COUPLE' ? 'COUPLE' : type} ${s.isBooked ? 'occupied' : ''}`;
+                  seat.innerText = s.seatRow + s.seatNumber;
+                  if(!s.isBooked) seat.onclick = () => toggleSeat(s.seatId, seat);
+                  rowDiv.appendChild(seat);
+              });
+              map.appendChild(rowDiv);
+          });
       });
-    });
   }
 
   async function toggleSeat(id, el) {
-    const idx = selectedSeats.indexOf(id);
-    if(idx > -1) { selectedSeats.splice(idx, 1); el.classList.remove('selected'); }
-    else { selectedSeats.push(id); el.classList.add('selected'); }
+    const isCurrentlySelected = el.classList.contains('selected');
+    const seatName = el.innerText;
 
-    if(selectedSeats.length > 0) {
-      const res = await fetch(`/staff/booking/api/calculate-price?showtimeId=${selectedShowtimeId}&seatIds=${selectedSeats.join(',')}`);
-      const data = await res.json();
-      currentTotalAmount = data.totalAmount; // Lưu giá gốc
-      document.getElementById('totalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
-      document.getElementById('originalPriceDisplay').innerText = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
-      document.getElementById('paymentTotalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
-      document.getElementById('btnStep3').disabled = false;
+    if (!isCurrentlySelected) {
+        // Gửi request khóa ghế
+        const lockRes = await fetch(`/staff/booking/api/lock-seats?showtimeId=${selectedShowtimeId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([id])
+        });
+
+        if (!lockRes.ok) {
+            const err = await lockRes.json();
+            alert(err.message || "Ghế này đã có người giữ!");
+            return;
+        }
+
+        selectedSeats.push({ id: id, name: seatName });
+        el.classList.add('selected');
     } else {
-      document.getElementById('totalDisplay').innerText = "0";
-      document.getElementById('btnStep3').disabled = true;
+        // Gửi request mở khóa ghế
+        await fetch(`/staff/booking/api/unlock-seat?showtimeId=${selectedShowtimeId}&seatId=${id}`, {
+            method: 'POST'
+        });
+
+        selectedSeats = selectedSeats.filter(s => s.id !== id);
+        el.classList.remove('selected');
     }
-  }
+
+    // Cập nhật giá
+    if (selectedSeats.length > 0) {
+        // Lấy danh sách ID để tính tiền: map từ object ra chỉ lấy ID
+        const ids = selectedSeats.map(s => s.id).join(',');
+        const res = await fetch(`/staff/booking/api/calculate-price?showtimeId=${selectedShowtimeId}&seatIds=${ids}`);
+        const data = await res.json();
+        currentTotalAmount = data.totalAmount;
+
+        const formatted = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
+        document.getElementById('totalDisplay').innerText = formatted;
+        document.getElementById('originalPriceDisplay').innerText = formatted;
+        document.getElementById('paymentTotalDisplay').innerText = formatted;
+        document.getElementById('btnStep3').disabled = false;
+    } else {
+        document.getElementById('totalDisplay').innerText = "0";
+        document.getElementById('btnStep3').disabled = true;
+    }
+}
 
   async function applyPromo() {
-    const code = document.getElementById('promoCodeInput').value;
-    if (!code) return alert("Vui lòng nhập mã!");
-
-    const res = await fetch(`/staff/booking/api/validate-promo?promoCode=${code}&currentTotal=${currentTotalAmount}`);
-    const data = await res.json();
-
-    if (res.ok) {
-        document.getElementById('paymentTotalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(data.finalAmount);
-        document.getElementById('promoMessage').innerHTML = `<span class="text-success">Giảm: ${new Intl.NumberFormat('vi-VN').format(data.discountAmount)}đ</span>`;
-    } else {
-        alert(data.message);
-    }
+      const code = document.getElementById('promoCodeInput').value;
+      if (!code) return alert("Vui lòng nhập mã!");
+      const res = await fetch(`/staff/booking/api/validate-promo?promoCode=${code}&currentTotal=${currentTotalAmount}`);
+      const data = await res.json();
+      if (res.ok) {
+          document.getElementById('paymentTotalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(data.finalAmount);
+          document.getElementById('promoMessage').innerHTML = `<span class="text-success">Giảm: ${new Intl.NumberFormat('vi-VN').format(data.discountAmount)}đ</span>`;
+      } else {
+          alert(data.message);
+      }
   }
 
   async function findUser() {
-    const val = document.getElementById('contactKey').value;
-    if(!val) return;
-    const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
-    try {
-        const r = await fetch(url);
-        document.getElementById('customerName').value = r.ok ? (await r.json()).full_name : "Khách vãng lai";
-    } catch(e) { document.getElementById('customerName').value = "Khách vãng lai"; }
+      const val = document.getElementById('contactKey').value;
+      if(!val) return;
+      const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
+      try {
+          const r = await fetch(url);
+          document.getElementById('customerName').value = r.ok ? (await r.json()).full_name : "Khách vãng lai";
+      } catch(e) { document.getElementById('customerName').value = "Khách vãng lai"; }
   }
 
-async function loadInitialCustomers() {
-    const res = await fetch('/staff/booking/api/search-users?name=');
-    const data = await res.json();
-    renderCustomerTable(data);
-}
+  async function loadInitialCustomers() {
+      const res = await fetch('/staff/booking/api/search-users?name=');
+      const data = await res.json();
+      renderCustomerTable(data);
+  }
 
-// Gọi loadInitialCustomers khi nhấn vào nút "Tiếp tục thanh toán"
-document.getElementById('btnStep3').addEventListener('click', () => {
-    loadInitialCustomers();
-});
+  document.getElementById('btnStep3').addEventListener('click', () => { loadInitialCustomers(); });
 
-async function searchCustomerByName() {
-    const name = document.getElementById('searchNameInput').value;
-    const res = await fetch(`/staff/booking/api/search-users?name=${encodeURIComponent(name)}`);
-    const data = await res.json();
-    renderCustomerTable(data);
-}
+  async function searchCustomerByName() {
+      const name = document.getElementById('searchNameInput').value;
+      const res = await fetch(`/staff/booking/api/search-users?name=${encodeURIComponent(name)}`);
+      const data = await res.json();
+      renderCustomerTable(data);
+  }
 
-function renderCustomerTable(users) {
-    const tbody = document.getElementById('customerTableBody');
-    tbody.innerHTML = users.map(u => `
-        <tr>
-            <td class="align-middle"><strong>${u.fullName}</strong></td>
-            <td class="align-middle">${u.phone || u.email}</td>
-            <td class="text-end">
-                <button class="btn btn-sm btn-primary" onclick="selectQuickCustomer('${u.phone || u.email}', '${u.fullName}')">
-                    Chọn
-                </button>
-            </td>
-        </tr>
-    `).join('');
-    if(users.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="text-center">Không tìm thấy</td></tr>';
-}
+  function renderCustomerTable(users) {
+      const tbody = document.getElementById('customerTableBody');
+      tbody.innerHTML = users.map(u => `
+          <tr>
+              <td class="align-middle"><strong>${u.fullName}</strong></td>
+              <td class="align-middle">${u.phone || u.email}</td>
+              <td class="text-end">
+                  <button class="btn btn-sm btn-primary" onclick="selectQuickCustomer('${u.phone || u.email}', '${u.fullName}')">Chọn</button>
+              </td>
+          </tr>
+      `).join('');
+  }
 
-// Khi nhấn nút "Chọn" từ bảng bên phải
-function selectQuickCustomer(contact, name) {
-    document.getElementById('contactKey').value = contact;
-    document.getElementById('customerName').value = name;
+  function selectQuickCustomer(contact, name) {
+      document.getElementById('contactKey').value = contact;
+      document.getElementById('customerName').value = name;
+  }
 
-    document.getElementById('promoCodeInput').value = '';
-    document.getElementById('promoMessage').innerText = '';
-    let formattedPrice = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
-    document.getElementById('paymentTotalDisplay').innerText = formattedPrice;
-}
+  function processPayment() {
+      const contactVal = document.getElementById('contactKey').value;
+      const customerName = document.getElementById('customerName').value;
+      const activeShowtime = document.querySelector('.showtime-btn.active');
+      const seatNames = selectedSeats.map(s => s.name).join(', ');
 
-  async function processPayment() {
-    const contactVal = document.getElementById('contactKey').value;
-    const customerName = document.getElementById('customerName').value;
-    const finalPrice = document.getElementById('paymentTotalDisplay').innerText;
+      if (!contactVal) { alert("Vui lòng nhập SĐT hoặc Email khách hàng!"); return; }
+      if (!activeShowtime) { alert("Vui lòng chọn suất chiếu!"); return; }
 
-    if (!contactVal) {
-        alert("Vui lòng nhập SĐT/Email!");
-        return;
-    }
+      document.getElementById('reviewCustomer').innerText = customerName || "Khách vãng lai";
+      document.getElementById('reviewContact').innerText = contactVal;
+      document.getElementById('reviewMovie').innerText = document.getElementById('movieTitle').innerText;
 
-    // HIỆN POP-UP XÁC NHẬN
-    const isConfirmed = confirm(
-        `XÁC NHẬN THANH TOÁN\n` +
-        `---------------------------\n` +
-        `Khách hàng: ${customerName}\n` +
-        `Liên lạc: ${contactVal}\n` +
-        `Tổng tiền: ${finalPrice} VNĐ\n\n` +
-        `Xác nhận khách đã trả tiền mặt và hoàn tất đặt vé?`
-    );
+      document.getElementById('reviewTime').innerText = activeShowtime.innerText.replace(/\s+/g, ' ');
 
-    if (!isConfirmed) return; // Nếu nhấn "Cancel" thì dừng lại
+      document.getElementById('reviewSeats').innerText = seatNames || "Không có";
+      document.getElementById('reviewPromo').innerText = document.getElementById('promoCodeInput').value || "Không có";
+      document.getElementById('reviewTotal').innerText = document.getElementById('paymentTotalDisplay').innerText + " VNĐ";
 
-    const payload = {
-        showtimeId: selectedShowtimeId,
-        seatIds: selectedSeats,
-        phone: contactVal.includes('@') ? '' : contactVal,
-        email: contactVal.includes('@') ? contactVal : '',
-        paymentMethod: 'cash',
-        promoCode: document.getElementById('promoCodeInput').value
-    };
+      showStep(4);
+  }
 
-    const res = await fetch('/staff/booking/api/confirm-booking', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-    });
+  async function executeFinalBooking() {
+      const btn = document.getElementById('btnFinalSubmit');
+      btn.disabled = true;
+      btn.innerText = "Đang xử lý...";
 
-    if (res.ok) {
-        alert("Thanh toán thành công! Vé đã được tạo.");
-        location.reload();
-    } else {
-        const d = await res.json();
-        alert("Lỗi: " + d.message);
-    }
-}
+      const contactVal = document.getElementById('contactKey').value;
+      const seatIdsOnly = selectedSeats.map(s => s.id);
+      const payload = {
+          showtimeId: selectedShowtimeId,
+          seatIds: seatIdsOnly,
+          phone: contactVal.includes('@') ? '' : contactVal,
+          email: contactVal.includes('@') ? contactVal : '',
+          paymentMethod: 'cash',
+          promoCode: document.getElementById('promoCodeInput').value
+      };
+
+      try {
+          const res = await fetch('/staff/booking/api/confirm-booking', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+              // Sử dụng SweetAlert2 để tạo lựa chọn chuyên nghiệp
+              Swal.fire({
+                  title: 'Thành công!',
+                  text: 'Đặt vé thành công. Bạn muốn làm gì tiếp theo?',
+                  icon: 'success',
+                  showCancelButton: true,
+                  confirmButtonColor: '#0d6efd',
+                  cancelButtonColor: '#6c757d',
+                  confirmButtonText: 'Đặt vé mới',
+                  cancelButtonText: 'Quản lý vé',
+                  allowOutsideClick: false
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      location.reload(); // Quay lại trang POS để đặt tiếp
+                  } else {
+                      window.location.href = '/staff/booking/manage'; // Chuyển sang quản lý vé
+                  }
+              });
+          } else {
+              // Nếu API trả về lỗi (ví dụ: ghế đã bị đặt)
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Thất bại',
+                  text: data.message || 'Có lỗi xảy ra khi xác nhận đặt vé.'
+              });
+              btn.disabled = false;
+              btn.innerText = "XÁC NHẬN & HOÀN TẤT";
+          }
+      } catch (e) {
+          Swal.fire({
+              icon: 'error',
+              title: 'Lỗi hệ thống',
+              text: 'Không thể kết nối đến máy chủ.'
+          });
+          btn.disabled = false;
+          btn.innerText = "XÁC NHẬN & HOÀN TẤT";
+      }
+  }
 </script>
 </body>
 </html>

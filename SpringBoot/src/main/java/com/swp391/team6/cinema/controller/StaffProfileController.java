@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/staff/profile")
-public class EmployeeProfileController {
+public class StaffProfileController {
 
     @Autowired
     private UserService userService;
@@ -44,12 +44,40 @@ public class EmployeeProfileController {
             return "redirect:/staff/profile";
         }
 
-        boolean success = userService.changePassword(user.getUserId(), oldPassword, newPassword);
+        try {
+            boolean success = userService.changePassword(user.getUserId(), oldPassword, newPassword);
+            if (success) {
+                ra.addFlashAttribute("success", "Đổi mật khẩu thành công!");
+            } else {
+                ra.addFlashAttribute("error", "Mật khẩu hiện tại không chính xác!");
+            }
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
 
-        if (success) {
-            ra.addFlashAttribute("success", "Đổi mật khẩu thành công!");
-        } else {
-            ra.addFlashAttribute("error", "Mật khẩu hiện tại không chính xác!");
+        return "redirect:/staff/profile";
+    }
+
+    @PostMapping("/update-info")
+    public String updateProfileInfo(
+            @RequestParam String fullName,
+            @RequestParam String phone,
+            HttpSession session,
+            RedirectAttributes ra) {
+
+        User sessionUser = (User) session.getAttribute("loggedInUser");
+        if (sessionUser == null) return "redirect:/auth/login";
+
+        try {
+            userService.updateBasicInfo(sessionUser.getUserId(), fullName, phone);
+
+            sessionUser.setFullName(fullName);
+            sessionUser.setPhone(phone);
+            session.setAttribute("loggedInUser", sessionUser);
+
+            ra.addFlashAttribute("success", "Cập nhật thông tin cá nhân thành công!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
         }
 
         return "redirect:/staff/profile";

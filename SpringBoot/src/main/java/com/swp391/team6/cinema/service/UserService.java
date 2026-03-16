@@ -180,6 +180,9 @@ public class UserService {
             User user = userOptional.get();
 
             if (passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+                if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+                    throw new RuntimeException("Mật khẩu mới không được trùng với mật khẩu hiện tại!");
+                }
 
                 user.setPasswordHash(passwordEncoder.encode(newPassword));
                 userRepository.save(user);
@@ -187,6 +190,19 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public void updateBasicInfo(Long userId, String fullName, String phone) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (phone == null || !phone.matches("\\d{10}")) {
+            throw new RuntimeException("Số điện thoại không hợp lệ (10 chữ số)");
+        }
+
+        user.setFullName(fullName);
+        user.setPhone(phone);
+        userRepository.save(user);
     }
 
     public User getUserById(Long id) {
@@ -281,7 +297,6 @@ public class UserService {
             return result;
         }
 
-        // Kiểm tra tài khoản chưa verify (chỉ áp dụng cho CUSTOMER)
         if (user.getRole() == User.UserRole.CUSTOMER &&
                 (user.getIsVerify() == null || !user.getIsVerify())) {
             result.put("success", false);
@@ -289,14 +304,12 @@ public class UserService {
             return result;
         }
 
-        // Kiểm tra tài khoản bị khóa
         if (user.getStatus() == User.UserStatus.inactive) {
             result.put("success", false);
             result.put("message", "Tài khoản đã bị khóa bởi Admin. Vui lòng liên hệ hỗ trợ.");
             return result;
         }
 
-        // Đăng nhập thành công
         result.put("success", true);
         result.put("message", "Đăng nhập thành công!");
         result.put("user", user);
