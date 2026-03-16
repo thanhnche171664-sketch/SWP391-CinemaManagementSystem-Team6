@@ -30,12 +30,10 @@ public class StaffBookingService {
                                          String phone, String email, String paymentMethodStr,
                                          String promoCode) {
 
-        // 1. Kiểm tra phương thức thanh toán
         if (!"cash".equalsIgnoreCase(paymentMethodStr)) {
             throw new IllegalArgumentException("Hệ thống chỉ hỗ trợ thanh toán tiền mặt (cash) tại quầy");
         }
 
-        // 2. Tìm suất chiếu và khách hàng
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("Suất chiếu không tồn tại"));
 
@@ -51,7 +49,6 @@ public class StaffBookingService {
                     .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản 'GUEST'"));
         }
 
-        // 3. Tính tiền gốc
         Long branchId = showtime.getRoom().getBranch().getBranchId();
         List<Seat> allSeats = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(showtime.getRoom().getRoomId());
         Set<Long> occupied = bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
@@ -68,7 +65,6 @@ public class StaffBookingService {
             total = total.add(pricingService.getPrice(branchId, seat.getSeatType(), showtime.getStartTime()));
         }
 
-        // 4. Xử lý Promotion (Nếu có)
         Promotion appliedPromo = null;
         if (promoCode != null && !promoCode.isBlank()) {
             appliedPromo = promotionRepository.findByPromoCode(promoCode);
@@ -82,7 +78,6 @@ public class StaffBookingService {
 
             BigDecimal discount = BigDecimal.ZERO;
             if (appliedPromo.getDiscountType() == Promotion.DiscountType.percent) {
-                // Tính % giảm, làm tròn 2 chữ số thập phân
                 discount = total.multiply(appliedPromo.getDiscountValue())
                         .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
             } else {
@@ -91,12 +86,10 @@ public class StaffBookingService {
 
             total = total.subtract(discount).max(BigDecimal.ZERO);
 
-            // Tăng số lượt đã sử dụng
             appliedPromo.setUsedCount(appliedPromo.getUsedCount() + 1);
             promotionRepository.save(appliedPromo);
         }
 
-        // 5. Tạo Booking
         Booking booking = new Booking();
         booking.setShowtime(showtime);
         booking.setUser(customer);
@@ -104,14 +97,12 @@ public class StaffBookingService {
         booking.setStatus(Booking.BookingStatus.paid);
         booking.setTotalAmount(total);
 
-        // Gán promotion vào booking để quản lý doanh thu
         if (appliedPromo != null) {
             booking.setPromotion(appliedPromo);
         }
 
         booking = bookingRepository.save(booking);
 
-        // 6. Lưu chi tiết ghế
         for (Seat seat : selectedSeats) {
             BookingSeat bs = new BookingSeat();
             bs.setBooking(booking);
@@ -119,7 +110,6 @@ public class StaffBookingService {
             bookingSeatRepository.save(bs);
         }
 
-        // 7. Lưu thanh toán
         Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setMethod(Payment.PaymentMethod.cash);
@@ -128,5 +118,29 @@ public class StaffBookingService {
         paymentRepository.save(payment);
 
         return booking;
+    }
+
+    @Transactional
+    public void cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn đặt vé"));
+
+        if (booking.getStatus() == Booking.BookingStatus.cancelled) {
+            throw new IllegalArgumentException("Vé này đã bị hủy trước đó");
+        }
+
+        if (booking.getPromotion() != null) {
+            Promotion promo = booking.getPromotion();
+            promo.setUsedCount(Math.max(0, promo.getUsedCount() - 1));
+            promotionRepository.save(promo);
+        }
+
+        booking.setStatus(Booking.BookingStatus.cancelled);
+        bookingRepository.save(booking);
+
+        Payment payment = paymentRepository.findByBooking(booking)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin thanh toán"));
+        payment.setPaymentStatus(Payment.PaymentStatus.failed);
+        paymentRepository.save(payment);
     }
 }

@@ -128,8 +128,6 @@ public class StaffBookingController {
     @GetMapping("/api/search-users")
     @ResponseBody
     public List<Map<String, Object>> searchUsers(@RequestParam(required = false, defaultValue = "") String name) {
-        // Tìm kiếm khách hàng (chỉ lấy role CUSTOMER) theo tên
-        // Bạn có thể giới hạn 5-10 kết quả để hiện sẵn
         List<User> users = userRepository.findByFullNameContainingIgnoreCaseAndRole(name, User.UserRole.CUSTOMER);
 
         return users.stream().limit(10).map(u -> {
@@ -195,12 +193,44 @@ public class StaffBookingController {
     }
 
     @GetMapping("/manage")
-    public String manageTickets(HttpSession session, Model model) {
+    public String manageTickets(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String keyword,
+            HttpSession session, Model model) {
+
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null || user.getRole() != User.UserRole.STAFF) return "redirect:/auth/login";
-        List<Booking> bookings = bookingRepository.findByBranchIdWithDetails(user.getBranchId());
-        model.addAttribute("bookings", bookings);
+
+        Pageable pageable = PageRequest.of(page, 15);
+        String searchName = (keyword == null || keyword.trim().isEmpty()) ? "" : keyword;
+        Page<Booking> bookingPage = bookingRepository.findByBranchIdWithDetails(
+                user.getBranchId(), searchName, pageable);
+
+        model.addAttribute("bookingPage", bookingPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", page);
         return "staff/manage-tickets";
+    }
+
+    @GetMapping("/api/booking-detail/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getBookingDetail(@PathVariable Long id) {
+        Booking b = bookingRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy vé"));
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("bookingId", b.getBookingId());
+        map.put("customer", b.getUser().getFullName());
+        map.put("email", b.getUser().getEmail() != null ? b.getUser().getEmail() : "N/A");
+        map.put("phone", b.getUser().getPhone() != null ? b.getUser().getPhone() : "N/A");
+        map.put("movie", b.getShowtime().getMovie().getTitle());
+        map.put("room", b.getShowtime().getRoom().getRoomName());
+        map.put("startTime", b.getShowtime().getStartTime().toString());
+        map.put("seats", b.getBookingSeats().stream().map(bs -> bs.getSeat().getSeatRow() + bs.getSeat().getSeatNumber()).collect(Collectors.joining(", ")));
+        map.put("total", b.getTotalAmount());
+        map.put("promo", b.getPromotion() != null ? b.getPromotion().getPromoCode() : "Không sử dụng");
+
+        return ResponseEntity.ok(map);
     }
 
     @GetMapping("/print/{id}")
@@ -233,6 +263,17 @@ public class StaffBookingController {
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("filename", "Ticket_" + id + ".pdf");
         return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/api/cancel/{id}")
+    @ResponseBody
+    public ResponseEntity<?> cancelBooking(@PathVariable Long id) {
+        try {
+            staffBookingService.cancelBooking(id);
+            return ResponseEntity.ok(Map.of("message", "Hủy vé thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @Data

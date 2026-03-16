@@ -7,10 +7,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root { --primary-color: #0d6efd; }
-    .nav-menu { background: #0a0a0a; border-bottom: 1px solid #1c1c1c; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
-    .nav-links { display: flex; gap: 30px; }
-    .nav-links a { color: #888; text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
-    .nav-links a:hover, .nav-links a.active { color: #fff; }
     .step { display: none; }
     .active-step { display: block; }
     .movie-card { cursor: pointer; transition: 0.3s; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 100%; border-radius: 12px; }
@@ -30,18 +26,7 @@
 </head>
 <body class="bg-light">
 
-<nav class="bg-white border-b shadow-sm p-3 mb-4">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div class="d-flex gap-4">
-      <a href="/staff/booking/pos" class="text-primary font-bold uppercase" style="font-size: 12px; text-decoration: none;">Đặt vé POS</a>
-      <a href="/staff/booking/manage" class="text-secondary hover:text-primary uppercase" style="font-size: 12px; text-decoration: none;">Danh sách vé</a>
-      <a href="/staff/profile" class="text-secondary hover:text-primary uppercase" style="font-size: 12px; text-decoration: none;">Hồ sơ cá nhân</a>
-    </div>
-    <div class="text-muted" style="font-size: 12px;">
-      Nhân viên: <span class="fw-bold" th:text="${session.loggedInUser?.fullName}">User</span>
-    </div>
-  </div>
-</nav>
+<div th:replace="~{fragments/staffNav :: staffNav(activePage='pos')}"></div>
 
 <div class="container py-4">
   <div class="bg-white p-4 rounded shadow-sm">

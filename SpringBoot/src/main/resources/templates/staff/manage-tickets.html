@@ -3,15 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Quản lý vé - Cinema System</title>
-  <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Menu Navigation CSS */
-    .nav-menu { background: #0a0a0a; border-bottom: 1px solid #1c1c1c; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
-    .nav-links { display: flex; gap: 30px; }
-    .nav-links a { color: #888; text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
-    .nav-links a:hover, .nav-links a.active { color: #fff; }
-
+    body { background-color: #050505; color: #ccc; font-family: 'Inter', sans-serif; margin: 0; }
     .full-page-content { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
     .header { margin-bottom: 30px; }
     .table-container { background: #0a0a0a; border-radius: 18px; border: 1px solid #1c1c1c; padding: 20px; }
@@ -20,30 +14,31 @@
     .badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
     .bg-success { background: #1f2f26; color: #86efac; }
     .bg-secondary { background: #2a2a2a; color: #999; }
-    .btn-print { background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-print:hover { background: #1d4ed8; }
+    .btn-action { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+    .btn-print { background: #2563eb; color: white; }
+    .btn-detail { background: #374151; color: white; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+    .modal-content { background: #0a0a0a; border: 1px solid #222; padding: 24px; border-radius: 20px; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .hidden { display: none; }
   </style>
 </head>
-<body style="background-color: #050505;">
+<body>
 
-<nav class="nav-menu">
-  <div class="nav-links">
-    <a href="/staff/booking/pos">Đặt vé POS</a>
-    <a href="/staff/booking/manage" class="active">Danh sách vé</a>
-    <a href="/staff/profile">Hồ sơ cá nhân</a>
-  </div>
-  <div style="color: #666; font-size: 12px;">
-    Nhân viên: <span th:text="${session.loggedInUser?.fullName}">User</span>
-  </div>
-</nav>
+<div th:replace="~{fragments/staffNav :: staffNav(activePage='manage')}"></div>
 
 <main class="full-page-content">
   <div class="header">
-    <h1 style="color: #fff;">Danh sách vé đã đặt</h1>
-    <p style="color: #666;">Danh sách vé tại quầy/chi nhánh của bạn.</p>
+    <h1 style="color: #fff; margin: 0;">Danh sách vé đã đặt</h1>
+    <form action="/staff/booking/manage" method="get" style="margin-top: 20px; display: flex; gap: 10px;">
+      <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm theo tên khách hàng..."
+             style="padding: 10px; border-radius: 8px; border: 1px solid #333; background: #111; color: white; width: 300px;">
+      <button type="submit" class="btn-action btn-detail">Tìm kiếm</button>
+      <a href="/staff/booking/manage" class="btn-action" style="background:#333; color:white;">Reset</a>
+    </form>
   </div>
 
   <div class="table-container">
+    <p th:text="${'Tổng số vé: ' + bookingPage.totalElements}"></p>
     <table class="data-table">
       <thead>
       <tr>
@@ -56,38 +51,111 @@
       </tr>
       </thead>
       <tbody>
-      <tr th:each="b : ${bookings}">
+      <tr th:each="b : ${bookingPage.content}">
         <td th:text="${b.bookingId}"></td>
         <td th:text="${b.user.fullName}"></td>
         <td th:text="${b.showtime.movie.title}"></td>
         <td th:text="${#temporals.format(b.showtime.startTime, 'dd/MM/yyyy HH:mm')}"></td>
         <td>
-                        <span th:class="${b.status.toString() == 'paid' ? 'badge bg-success' : 'badge bg-secondary'}"
-                              th:text="${b.status}"></span>
+            <span th:class="${b.status.toString() == 'paid' ? 'badge bg-success' : 'badge bg-secondary'}"
+                  th:text="${b.status}"></span>
         </td>
-        <td>
+        <td style="display: flex; gap: 5px;">
+          <button th:onclick="'viewDetail(' + ${b.bookingId} + ')'" class="btn-action btn-detail">
+            <i data-lucide="eye" style="width:16px;height:16px"></i>
+          </button>
           <button th:if="${b.status.toString() == 'paid'}"
                   th:onclick="'printTicket(' + ${b.bookingId} + ')'"
-                  class="btn-print">
-            <i data-lucide="printer" style="width:16px;height:16px"></i> In vé
+                  class="btn-action btn-print">
+            <i data-lucide="printer" style="width:16px;height:16px"></i>
           </button>
-
-          <span th:if="${b.status.toString() != 'paid'}" style="color: #444; font-size: 0.8rem;">
-                            Chờ thanh toán
-                        </span>
+          <button th:if="${b.status.toString() == 'paid'}"
+                  th:onclick="'cancelTicket(' + ${b.bookingId} + ')'"
+                  class="btn-action" style="background: #dc2626; color: white;">
+            <i data-lucide="trash-2" style="width:16px;height:16px"></i>
+          </button>
         </td>
       </tr>
       </tbody>
     </table>
+
+    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; align-items: center;">
+      <a th:if="${bookingPage.hasPrevious()}"
+         th:href="@{/staff/booking/manage(page=${bookingPage.number - 1}, keyword=${keyword})}" class="btn-action btn-detail">Trang trước</a>
+
+      <span style="color: #666;" th:text="'Trang ' + (${bookingPage.number} + 1) + ' / ' + ${bookingPage.totalPages}"></span>
+
+      <a th:if="${bookingPage.hasNext()}"
+         th:href="@{/staff/booking/manage(page=${bookingPage.number + 1}, keyword=${keyword})}" class="btn-action btn-detail">Trang sau</a>
+    </div>
   </div>
 </main>
+
+<div id="detailModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="flex justify-between items-center mb-6">
+      <h3 style="color:white; font-size: 1.25rem; font-weight:bold; margin:0;">
+        Chi tiết vé #<span id="d_id"></span>
+      </h3>
+      <button onclick="closeModal()" style="color:#666; cursor:pointer; background:none; border:none; padding: 5px;">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="d_body" class="space-y-3 text-sm text-gray-400"></div>
+    <button onclick="closeModal()" style="margin-top:24px; width:100%; padding:12px; background:#1a1a1a; color:white; border:1px solid #333; border-radius:10px; cursor:pointer; font-weight:bold;">Đóng</button>
+  </div>
+</div>
 
 <script>
   lucide.createIcons();
 
   function printTicket(bookingId) {
-      const url = '/staff/booking/print/' + bookingId;
-      window.open(url, '_blank', 'width=500,height=600');
+      window.open('/staff/booking/print/' + bookingId, '_blank', 'width=500,height=600');
+  }
+
+  function viewDetail(id) {
+    fetch('/staff/booking/api/booking-detail/' + id)
+        .then(r => {
+            if(!r.ok) throw new Error("Lỗi tải dữ liệu");
+            return r.json();
+        })
+        .then(data => {
+            document.getElementById('d_id').innerText = data.bookingId;
+            document.getElementById('d_body').innerHTML = `
+                <div style="border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 10px;">
+                    <p style="margin: 5px 0;">Khách hàng: <span style="color:white">${data.customer}</span></p>
+                    <p style="margin: 5px 0;">Email: <span style="color:white">${data.email}</span></p>
+                    <p style="margin: 5px 0;">SĐT: <span style="color:white">${data.phone}</span></p>
+                </div>
+                <p style="margin: 5px 0;">Phim: <span style="color:white">${data.movie}</span></p>
+                <p style="margin: 5px 0;">Phòng: <span style="color:white">${data.room}</span></p>
+                <p style="margin: 5px 0;">Ghế: <span style="color:white">${data.seats}</span></p>
+                <p style="margin: 5px 0;">Mã KM: <span style="color:white; color: #10b981;">${data.promo}</span></p>
+                <p style="font-weight:bold; color:#3b82f6; font-size:1.2em; margin-top:15px;">Tổng thanh toán: ${new Intl.NumberFormat('vi-VN').format(data.total)} VNĐ</p>
+            `;
+            document.getElementById('detailModal').classList.remove('hidden');
+            lucide.createIcons();
+        })
+        .catch(e => alert("Không thể tải thông tin vé!"));
+}
+
+function cancelTicket(id) {
+    if (!confirm("Bạn có chắc chắn muốn hủy vé #" + id + " không?")) return;
+
+    fetch('/staff/booking/api/cancel/' + id, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.message === "Hủy vé thành công") {
+                alert("Đã hủy vé!");
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+}
+
+  function closeModal() {
+      document.getElementById('detailModal').classList.add('hidden');
   }
 </script>
 </body>

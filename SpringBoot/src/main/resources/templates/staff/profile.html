@@ -7,10 +7,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { background: #0a0a0a; color: #fff; font-family: 'Inter', sans-serif; }
-        .nav-menu { background: #111; border-bottom: 1px solid #222; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-links a { color: #666; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-right: 30px; transition: 0.3s; }
-        .nav-links a:hover, .nav-links a.active { color: #fff; }
-
         .content { padding: 40px; }
         .glass-card { background: #111; border: 1px solid #222; border-radius: 24px; }
         .input-field { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 12px; width: 100%; color: white; outline: none; }
@@ -27,16 +23,7 @@
 </head>
 <body>
 
-<nav class="nav-menu">
-    <div class="nav-links">
-        <a href="/staff/booking/pos">Đặt vé POS</a>
-        <a href="/staff/booking/manage">Danh sách vé</a>
-        <a href="/staff/profile" class="active">Hồ sơ cá nhân</a>
-    </div>
-    <div class="text-gray-500 text-xs font-mono">
-        ID: <span th:text="${user.userId}">#000</span>
-    </div>
-</nav>
+<div th:replace="~{fragments/staffNav :: staffNav(activePage='profile')}"></div>
 
 <div class="content">
     <div class="max-w-5xl mx-auto">

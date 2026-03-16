@@ -1,6 +1,8 @@
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Booking;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -79,4 +81,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             """)
     Optional<Booking> findByIdAndBranchIdWithDetails(@Param("bookingId") Long bookingId,
                                                      @Param("branchId") Long branchId);
+
+    @Query("""
+    SELECT b FROM Booking b 
+    JOIN FETCH b.showtime s 
+    JOIN FETCH s.room r 
+    JOIN FETCH r.branch br 
+    WHERE br.branchId = :branchId 
+    AND (:name IS NULL OR :name = '' OR b.user.fullName LIKE %:name%)
+    ORDER BY b.bookingId DESC
+    """)
+    Page<Booking> findByBranchIdWithDetails(
+            @Param("branchId") Long branchId,
+            @Param("name") String name,
+            Pageable pageable);
 }
