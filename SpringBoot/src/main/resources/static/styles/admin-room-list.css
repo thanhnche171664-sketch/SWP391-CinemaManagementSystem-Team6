@@ -29,14 +29,34 @@
     gap: 14px;
 }
 
+.actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    background: #f6f9ff;
+    transition: all 0.2s ease;
+}
+
+.actions a:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
 .actions .icon {
-    width: 22px;
-    opacity: 0.7;
+    width: 16px;
+    opacity: 1;
     transition: 0.2s;
-    color: var(--text-color);
+    filter: brightness(0) saturate(100%) invert(31%) sepia(21%) saturate(2959%) hue-rotate(195deg) brightness(88%) contrast(87%);
 }
 
 .actions .icon:hover {
-    opacity: 1;
     transform: scale(1.1);
+}
+
+.actions a:hover .icon {
+    filter: brightness(0) saturate(100%) invert(100%);
 }
