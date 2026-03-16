@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root { --primary-color: #0d6efd; }
+    .nav-menu { background: #0a0a0a; border-bottom: 1px solid #1c1c1c; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-links { display: flex; gap: 30px; }
+    .nav-links a { color: #888; text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
+    .nav-links a:hover, .nav-links a.active { color: #fff; }
     .step { display: none; }
     .active-step { display: block; }
     .movie-card { cursor: pointer; transition: 0.3s; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 100%; border-radius: 12px; }
@@ -18,13 +22,27 @@
     .seat { width: 35px; height: 35px; margin: 3px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 1px solid #ced4da; }
     .seat.NORMAL { background: #e9ecef; }
     .seat.VIP { background: #fff3cd; border-color: #ffc107; color: #856404; }
-    .seat.SWEETBOX { width: 70px; background: #f8d7da; border-color: #dc3545; color: #721c24; }
+    .seat.COUPLE { width: 70px; background: #f8d7da; border-color: #dc3545; color: #721c24; }
     .seat.occupied { background: #6c757d !important; cursor: not-allowed; color: white; opacity: 0.6; }
     .seat.selected { background: var(--primary-color) !important; color: white; border-color: #000; }
     .legend-box { display: flex; gap: 15px; justify-content: center; margin-top: 15px; font-size: 0.85rem; }
   </style>
 </head>
 <body class="bg-light">
+
+<nav class="bg-white border-b shadow-sm p-3 mb-4">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div class="d-flex gap-4">
+      <a href="/staff/booking/pos" class="text-primary font-bold uppercase" style="font-size: 12px; text-decoration: none;">Đặt vé POS</a>
+      <a href="/staff/booking/manage" class="text-secondary hover:text-primary uppercase" style="font-size: 12px; text-decoration: none;">Danh sách vé</a>
+      <a href="/staff/profile" class="text-secondary hover:text-primary uppercase" style="font-size: 12px; text-decoration: none;">Hồ sơ cá nhân</a>
+    </div>
+    <div class="text-muted" style="font-size: 12px;">
+      Nhân viên: <span class="fw-bold" th:text="${session.loggedInUser?.fullName}">User</span>
+    </div>
+  </div>
+</nav>
+
 <div class="container py-4">
   <div class="bg-white p-4 rounded shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
@@ -38,10 +56,10 @@
         <div class="col-md-2">
           <label class="fw-bold">Trạng thái:</label>
           <select name="status" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Tất cả --</option>
-            <option value="now_showing" th:selected="${status == 'now_showing'}">Đang chiếu</option>
-            <option value="upcoming" th:selected="${status == 'upcoming'}">Sắp chiếu</option>
-            <option value="stopped" th:selected="${status == 'stopped'}">Đã dừng</option>
+            <option value="" th:selected="${status == null}">-- Tất cả --</option>
+            <option value="now_showing" th:selected="${status != null && status.name() == 'now_showing'}">Đang chiếu</option>
+            <option value="upcoming" th:selected="${status != null && status.name() == 'upcoming'}">Sắp chiếu</option>
+            <option value="stopped" th:selected="${status != null && status.name() == 'stopped'}">Đã dừng</option>
           </select>
         </div>
         <div class="col-md-3"><label class="fw-bold">Thể loại:</label><select name="genre" class="form-select" onchange="this.form.submit()"><option value="">-- Tất cả --</option><option th:each="g : ${genreList}" th:value="${g.genreName}" th:text="${g.genreName}" th:selected="${g.genreName == genre}"></option></select></div>
@@ -82,7 +100,7 @@
           <div class="legend-box">
             <div class="d-flex align-items-center"><div class="seat NORMAL"></div> Thường</div>
             <div class="d-flex align-items-center"><div class="seat VIP"></div> VIP</div>
-            <div class="d-flex align-items-center"><div class="seat SWEETBOX"></div> Sweetbox</div>
+            <div class="d-flex align-items-center"><div class="seat COUPLE"></div> Couple</div>
             <div class="d-flex align-items-center"><div class="seat occupied"></div> Đã đặt</div>
           </div>
           <div class="mt-3 fs-5 fw-bold">Tổng tiền: <span id="totalDisplay" class="text-danger">0</span> VNĐ</div>
@@ -91,16 +109,70 @@
       <button class="btn btn-primary btn-lg w-100 mt-4" id="btnStep3" disabled onclick="showStep(3)">Tiếp tục thanh toán</button>
     </div>
 
-    <div id="step3" class="step text-center">
-      <h5>Xác nhận thông tin</h5>
-      <div class="col-md-4 mx-auto mt-3">
-        <input type="text" id="contactKey" class="form-control mb-2" placeholder="SĐT hoặc Email khách hàng" onblur="findUser()">
-        <input type="text" id="customerName" class="form-control mb-2" readonly placeholder="Tên khách hàng">
-        <select id="paymentMethod" class="form-select mb-2">
-          <option value="cash">Tiền mặt</option>
-          <option value="online">Thanh toán Online (PayOS)</option>
-        </select>
-        <button class="btn btn-success w-100" onclick="processPayment()">HOÀN TẤT ĐẶT VÉ</button>
+    <div id="step3" class="step">
+      <div class="row">
+        <div class="col-md-5 border-end">
+          <h5 class="mb-3 text-primary">Thông tin khách hàng & Thanh toán</h5>
+
+          <div class="mb-3">
+            <label class="fw-bold">SĐT hoặc Email:</label>
+            <div class="input-group">
+              <input type="text" id="contactKey" class="form-control" placeholder="Nhập để tìm hoặc tạo mới" onblur="findUser()">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="fw-bold">Tên khách hàng:</label>
+            <input type="text" id="customerName" class="form-control bg-light" readonly placeholder="Tự động hiển thị...">
+          </div>
+
+          <div class="mb-3">
+            <label class="fw-bold">Mã giảm giá:</label>
+            <div class="input-group">
+              <input type="text" id="promoCodeInput" class="form-control" placeholder="Nhập mã">
+              <button class="btn btn-outline-primary" onclick="applyPromo()">Áp dụng</button>
+            </div>
+            <div id="promoMessage" class="small mt-1"></div>
+          </div>
+
+          <div class="alert alert-secondary">
+            <div class="d-flex justify-content-between">
+              <span>Giá gốc:</span>
+              <span id="originalPriceDisplay">0</span> VNĐ
+            </div>
+            <div class="d-flex justify-content-between fw-bold text-danger fs-5 border-top mt-2 pt-2">
+              <span>Tổng tiền:</span>
+              <span id="paymentTotalDisplay">0</span> VNĐ
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary w-50" onclick="showStep(2)">HỦY</button>
+            <button class="btn btn-success w-50" onclick="processPayment()">HOÀN TẤT</button>
+          </div>
+        </div>
+
+        <div class="col-md-7">
+          <h5 class="mb-3 text-secondary">Tra cứu nhanh theo tên</h5>
+          <div class="input-group mb-3">
+            <input type="text" id="searchNameInput" class="form-control" placeholder="Gõ tên khách hàng..." onkeyup="searchCustomerByName()">
+          </div>
+
+          <div class="table-responsive" style="max-height: 350px;">
+            <table class="table table-sm table-hover border">
+              <thead class="table-light">
+              <tr>
+                <th>Họ tên</th>
+                <th>Liên lạc</th>
+                <th></th>
+              </tr>
+              </thead>
+              <tbody id="customerTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -108,14 +180,25 @@
 
 <script>
   let selectedShowtimeId = null, selectedSeats = [];
+  let currentTotalAmount = 0;
 
   function showStep(s) {
     document.querySelectorAll('.step').forEach(e => e.classList.remove('active-step'));
     document.getElementById('step' + s).classList.add('active-step');
+
+    if (s === 3) {
+        const formatted = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
+        document.getElementById('originalPriceDisplay').innerText = formatted;
+
+        if (!document.getElementById('promoCodeInput').value) {
+            document.getElementById('paymentTotalDisplay').innerText = formatted;
+        }
+    }
   }
 
   function handleMovieClick(el) {
-    selectedShowtimeId = null; selectedSeats = []; document.getElementById('totalDisplay').innerText = "0";
+    selectedShowtimeId = null; selectedSeats = [];
+    document.getElementById('totalDisplay').innerText = "0";
     loadShowtimes(el.getAttribute('data-id'), el.getAttribute('data-title'));
   }
 
@@ -134,8 +217,11 @@
   }
 
   function selectShowtime(id, el) {
-    selectedShowtimeId = id; selectedSeats = []; document.getElementById('totalDisplay').innerText = "0";
-    document.querySelectorAll('.showtime-btn').forEach(b => b.classList.remove('active')); el.classList.add('active');
+    selectedShowtimeId = id; selectedSeats = [];
+    document.getElementById('totalDisplay').innerText = "0";
+    document.querySelectorAll('.showtime-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
     fetch('/staff/booking/api/seats?showtimeId=' + id).then(r => r.json()).then(seats => {
       const map = document.getElementById('seatMap'); map.innerHTML = '';
       const rows = [...new Set(seats.map(s => s.seatRow))].sort();
@@ -144,7 +230,9 @@
         rowDiv.innerHTML = `<div class="me-2 fw-bold" style="width:20px">${r}</div>`;
         seats.filter(s => s.seatRow === r).sort((a,b) => a.seatNumber - b.seatNumber).forEach(s => {
           const seat = document.createElement('div');
-          seat.className = `seat ${s.seatType} ${s.isBooked ? 'occupied' : ''}`;
+          // Fix hiển thị màu:
+          const type = s.seatType ? s.seatType.trim().toUpperCase() : 'NORMAL';
+          seat.className = `seat ${type === 'COUPLE' ? 'COUPLE' : type} ${s.isBooked ? 'occupied' : ''}`;
           seat.innerText = s.seatNumber;
           if(!s.isBooked) seat.onclick = () => toggleSeat(s.seatId, seat);
           rowDiv.appendChild(seat);
@@ -162,7 +250,10 @@
     if(selectedSeats.length > 0) {
       const res = await fetch(`/staff/booking/api/calculate-price?showtimeId=${selectedShowtimeId}&seatIds=${selectedSeats.join(',')}`);
       const data = await res.json();
-      document.getElementById('totalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(data.totalAmount);
+      currentTotalAmount = data.totalAmount; // Lưu giá gốc
+      document.getElementById('totalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
+      document.getElementById('originalPriceDisplay').innerText = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
+      document.getElementById('paymentTotalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
       document.getElementById('btnStep3').disabled = false;
     } else {
       document.getElementById('totalDisplay').innerText = "0";
@@ -170,55 +261,121 @@
     }
   }
 
-  function findUser() {
+  async function applyPromo() {
+    const code = document.getElementById('promoCodeInput').value;
+    if (!code) return alert("Vui lòng nhập mã!");
+
+    const res = await fetch(`/staff/booking/api/validate-promo?promoCode=${code}&currentTotal=${currentTotalAmount}`);
+    const data = await res.json();
+
+    if (res.ok) {
+        document.getElementById('paymentTotalDisplay').innerText = new Intl.NumberFormat('vi-VN').format(data.finalAmount);
+        document.getElementById('promoMessage').innerHTML = `<span class="text-success">Giảm: ${new Intl.NumberFormat('vi-VN').format(data.discountAmount)}đ</span>`;
+    } else {
+        alert(data.message);
+    }
+  }
+
+  async function findUser() {
     const val = document.getElementById('contactKey').value;
     if(!val) return;
-
-    const url = val.includes('@') ?
-                '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) :
-                '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
-
-    fetch(url)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => {
-          document.getElementById('customerName').value = d.full_name;
-      })
-      .catch(() => {
-          document.getElementById('customerName').value = "Khách hàng mới";
-      });
+    const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
+    try {
+        const r = await fetch(url);
+        document.getElementById('customerName').value = r.ok ? (await r.json()).full_name : "Khách vãng lai";
+    } catch(e) { document.getElementById('customerName').value = "Khách vãng lai"; }
   }
+
+async function loadInitialCustomers() {
+    const res = await fetch('/staff/booking/api/search-users?name=');
+    const data = await res.json();
+    renderCustomerTable(data);
+}
+
+// Gọi loadInitialCustomers khi nhấn vào nút "Tiếp tục thanh toán"
+document.getElementById('btnStep3').addEventListener('click', () => {
+    loadInitialCustomers();
+});
+
+async function searchCustomerByName() {
+    const name = document.getElementById('searchNameInput').value;
+    const res = await fetch(`/staff/booking/api/search-users?name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    renderCustomerTable(data);
+}
+
+function renderCustomerTable(users) {
+    const tbody = document.getElementById('customerTableBody');
+    tbody.innerHTML = users.map(u => `
+        <tr>
+            <td class="align-middle"><strong>${u.fullName}</strong></td>
+            <td class="align-middle">${u.phone || u.email}</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-primary" onclick="selectQuickCustomer('${u.phone || u.email}', '${u.fullName}')">
+                    Chọn
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    if(users.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="text-center">Không tìm thấy</td></tr>';
+}
+
+// Khi nhấn nút "Chọn" từ bảng bên phải
+function selectQuickCustomer(contact, name) {
+    document.getElementById('contactKey').value = contact;
+    document.getElementById('customerName').value = name;
+
+    document.getElementById('promoCodeInput').value = '';
+    document.getElementById('promoMessage').innerText = '';
+    let formattedPrice = new Intl.NumberFormat('vi-VN').format(currentTotalAmount);
+    document.getElementById('paymentTotalDisplay').innerText = formattedPrice;
+}
 
   async function processPayment() {
     const contactVal = document.getElementById('contactKey').value;
-    const isEmail = contactVal.includes('@');
+    const customerName = document.getElementById('customerName').value;
+    const finalPrice = document.getElementById('paymentTotalDisplay').innerText;
+
+    if (!contactVal) {
+        alert("Vui lòng nhập SĐT/Email!");
+        return;
+    }
+
+    // HIỆN POP-UP XÁC NHẬN
+    const isConfirmed = confirm(
+        `XÁC NHẬN THANH TOÁN\n` +
+        `---------------------------\n` +
+        `Khách hàng: ${customerName}\n` +
+        `Liên lạc: ${contactVal}\n` +
+        `Tổng tiền: ${finalPrice} VNĐ\n\n` +
+        `Xác nhận khách đã trả tiền mặt và hoàn tất đặt vé?`
+    );
+
+    if (!isConfirmed) return; // Nếu nhấn "Cancel" thì dừng lại
 
     const payload = {
         showtimeId: selectedShowtimeId,
         seatIds: selectedSeats,
-        phone: isEmail ? '' : contactVal,
-        email: isEmail ? contactVal : '',
-        paymentMethod: document.getElementById('paymentMethod').value
+        phone: contactVal.includes('@') ? '' : contactVal,
+        email: contactVal.includes('@') ? contactVal : '',
+        paymentMethod: 'cash',
+        promoCode: document.getElementById('promoCodeInput').value
     };
-    try {
-        const res = await fetch('/staff/booking/api/confirm-booking', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
 
-        const data = await res.json();
+    const res = await fetch('/staff/booking/api/confirm-booking', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
 
-        if (res.ok) {
-            alert(data.message || "Đặt vé thành công!");
-            location.reload();
-        } else {
-            alert(data.message || "Có lỗi xảy ra khi đặt vé!");
-        }
-    } catch (error) {
-        console.error("Lỗi:", error);
-        alert("Không thể kết nối đến máy chủ.");
+    if (res.ok) {
+        alert("Thanh toán thành công! Vé đã được tạo.");
+        location.reload();
+    } else {
+        const d = await res.json();
+        alert("Lỗi: " + d.message);
     }
-  }
+}
 </script>
 </body>
 </html>

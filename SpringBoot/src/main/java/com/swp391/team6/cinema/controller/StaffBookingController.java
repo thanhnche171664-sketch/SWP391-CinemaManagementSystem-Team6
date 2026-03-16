@@ -38,12 +38,11 @@ public class StaffBookingController {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final SeatRepository seatRepository;
-    private final BookingSeatRepository bookingSeatRepository;
+    private final PromotionRepository promotionRepository;
     private final StaffBookingService staffBookingService;
     private final BookingService bookingService;
     private final PricingService pricingService;
     private final MovieService movieService;
-    private final PayOSService payOSService;
     private final TemplateEngine templateEngine;
 
     @GetMapping("/pos")
@@ -108,6 +107,7 @@ public class StaffBookingController {
             map.put("seatId", s.getSeatId());
             map.put("seatRow", s.getSeatRow());
             map.put("seatNumber", s.getSeatNumber());
+            map.put("seatType", s.getSeatType() != null ? s.getSeatType().toString() : "NORMAL");
             map.put("isBooked", occupied.contains(s.getSeatId()));
             return map;
         }).collect(Collectors.toList());
@@ -125,21 +125,65 @@ public class StaffBookingController {
         return userRepository.findByEmail(email).map(u -> ResponseEntity.ok(toCustomerDTO(u))).orElse(ResponseEntity.status(404).build());
     }
 
+    @GetMapping("/api/search-users")
+    @ResponseBody
+    public List<Map<String, Object>> searchUsers(@RequestParam(required = false, defaultValue = "") String name) {
+        // Tìm kiếm khách hàng (chỉ lấy role CUSTOMER) theo tên
+        // Bạn có thể giới hạn 5-10 kết quả để hiện sẵn
+        List<User> users = userRepository.findByFullNameContainingIgnoreCaseAndRole(name, User.UserRole.CUSTOMER);
+
+        return users.stream().limit(10).map(u -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("fullName", u.getFullName());
+            m.put("phone", u.getPhone());
+            m.put("email", u.getEmail());
+            return m;
+        }).collect(Collectors.toList());
+    }
+
+    @GetMapping("/api/validate-promo")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validatePromo(
+            @RequestParam String promoCode,
+            @RequestParam BigDecimal currentTotal) {
+
+        Promotion promo = promotionRepository.findByPromoCode(promoCode);
+        if (promo == null || promo.getStatus() != Promotion.Status.active) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mã không hợp lệ"));
+        }
+        if (currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng chưa đạt giá trị tối thiểu"));
+        }
+
+        BigDecimal discount = (promo.getDiscountType() == Promotion.DiscountType.percent)
+                ? currentTotal.multiply(promo.getDiscountValue().divide(new BigDecimal(100)))
+                : promo.getDiscountValue();
+
+        BigDecimal finalAmount = currentTotal.subtract(discount).max(BigDecimal.ZERO);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("discountAmount", discount);
+        response.put("finalAmount", finalAmount);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/api/confirm-booking")
     @ResponseBody
     public ResponseEntity<?> confirmBooking(@RequestBody BookingRequest request, HttpSession session) {
         User staff = (User) session.getAttribute("loggedInUser");
-        if (staff == null) return ResponseEntity.status(401).body("Chưa đăng nhập");
+        if (staff == null) return ResponseEntity.status(401).body(Map.of("message", "Chưa đăng nhập"));
+
         try {
-            Booking booking = staffBookingService.processCounterBooking(staff, request.getShowtimeId(), request.getSeatIds(), request.getPhone(), request.getEmail(), request.getPaymentMethod());
-            if ("ONLINE".equals(request.getPaymentMethod())) {
-                String paymentUrl = payOSService.createPaymentLink(booking.getBookingId(), booking.getTotalAmount().intValue(), "Thanh toán #" + booking.getBookingId(), "/booking/success", "/booking/cancel");
-                if (paymentUrl != null) {
-                    bookingService.setPaymentLinkId(booking.getBookingId(), paymentUrl);
-                    return ResponseEntity.ok(Map.of("status", "REDIRECT", "url", paymentUrl));
-                }
-                throw new Exception("Không thể tạo link thanh toán");
-            }
+            Booking booking = staffBookingService.processCounterBooking(
+                    staff,
+                    request.getShowtimeId(),
+                    request.getSeatIds(),
+                    request.getPhone(),
+                    request.getEmail(),
+                    request.getPaymentMethod().toLowerCase(),
+                    request.getPromoCode()
+            );
+
             return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Đặt vé thành công"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("status", "ERROR", "message", e.getMessage()));
@@ -198,5 +242,6 @@ public class StaffBookingController {
         private String phone;
         private String email;
         private String paymentMethod;
+        private String promoCode;
     }
 }

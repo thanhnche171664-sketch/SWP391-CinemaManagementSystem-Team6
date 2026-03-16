@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/employee/profile")
+@RequestMapping("/staff/profile")
 public class EmployeeProfileController {
 
     @Autowired
@@ -25,7 +25,7 @@ public class EmployeeProfileController {
         User currentUser = userService.getUserById(sessionUser.getUserId());
 
         model.addAttribute("user", currentUser);
-        return "employee/profile";
+        return "staff/profile";
     }
 
     @PostMapping("/change-password")
@@ -41,7 +41,7 @@ public class EmployeeProfileController {
 
         if (!newPassword.equals(confirmPassword)) {
             ra.addFlashAttribute("error", "Mật khẩu xác nhận không trùng khớp!");
-            return "redirect:/employee/profile";
+            return "redirect:/staff/profile";
         }
 
         boolean success = userService.changePassword(user.getUserId(), oldPassword, newPassword);
@@ -52,6 +52,6 @@ public class EmployeeProfileController {
             ra.addFlashAttribute("error", "Mật khẩu hiện tại không chính xác!");
         }
 
-        return "redirect:/employee/profile";
+        return "redirect:/staff/profile";
     }
 }

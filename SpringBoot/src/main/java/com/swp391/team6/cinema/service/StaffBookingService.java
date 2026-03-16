@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,78 +23,95 @@ public class StaffBookingService {
     private final ShowtimeRepository showtimeRepository;
     private final SeatRepository seatRepository;
     private final BookingService bookingService;
+    private final PromotionRepository promotionRepository;
 
     @Transactional
     public Booking processCounterBooking(User staff, Long showtimeId, List<Long> seatIds,
-                                         String phone, String email, String paymentMethodStr) {
+                                         String phone, String email, String paymentMethodStr,
+                                         String promoCode) {
 
+        // 1. Kiểm tra phương thức thanh toán
+        if (!"cash".equalsIgnoreCase(paymentMethodStr)) {
+            throw new IllegalArgumentException("Hệ thống chỉ hỗ trợ thanh toán tiền mặt (cash) tại quầy");
+        }
+
+        // 2. Tìm suất chiếu và khách hàng
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("Suất chiếu không tồn tại"));
 
         User customer = null;
         if (email != null && !email.isBlank()) {
             customer = userRepository.findByEmail(email).orElse(null);
-        }
-        if (customer == null && phone != null && !phone.isBlank()) {
+        } else if (phone != null && !phone.isBlank()) {
             customer = userRepository.findByPhone(phone).orElse(null);
         }
 
         if (customer == null) {
-            throw new IllegalArgumentException("Không tìm thấy khách hàng với thông tin: " + (email.isBlank() ? phone : email));
+            customer = userRepository.findByFullName("GUEST")
+                    .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản 'GUEST'"));
         }
 
-        if (showtime.getStatus() != Showtime.ShowtimeStatus.open) {
-            throw new IllegalArgumentException("Suất chiếu hiện không khả dụng để đặt vé");
-        }
-
-
-        Long roomId = showtime.getRoom().getRoomId();
+        // 3. Tính tiền gốc
         Long branchId = showtime.getRoom().getBranch().getBranchId();
-
-        List<Seat> validSeatsInRoom = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
-        Set<Long> validSeatIds = validSeatsInRoom.stream().map(Seat::getSeatId).collect(Collectors.toSet());
+        List<Seat> allSeats = seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(showtime.getRoom().getRoomId());
         Set<Long> occupied = bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
 
         BigDecimal total = BigDecimal.ZERO;
         List<Seat> selectedSeats = new ArrayList<>();
 
         for (Long sid : seatIds) {
-            if (!validSeatIds.contains(sid)) {
-                throw new IllegalArgumentException("Ghế ID " + sid + " không thuộc phòng chiếu này");
-            }
-            if (occupied.contains(sid)) {
-                throw new IllegalArgumentException("Ghế ID " + sid + " đã bị đặt");
-            }
+            Seat seat = allSeats.stream().filter(s -> s.getSeatId().equals(sid)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Ghế ID " + sid + " không tồn tại"));
+            if (occupied.contains(sid)) throw new IllegalArgumentException("Ghế đã được đặt");
 
-            Seat seat = validSeatsInRoom.stream().filter(s -> s.getSeatId().equals(sid)).findFirst().get();
             selectedSeats.add(seat);
             total = total.add(pricingService.getPrice(branchId, seat.getSeatType(), showtime.getStartTime()));
         }
 
-        if (selectedSeats.isEmpty()) throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế");
+        // 4. Xử lý Promotion (Nếu có)
+        Promotion appliedPromo = null;
+        if (promoCode != null && !promoCode.isBlank()) {
+            appliedPromo = promotionRepository.findByPromoCode(promoCode);
 
-        // 4. Tạo Booking
+            if (appliedPromo == null || appliedPromo.getStatus() != Promotion.Status.active) {
+                throw new IllegalArgumentException("Mã giảm giá không tồn tại hoặc không khả dụng");
+            }
+            if (total.compareTo(appliedPromo.getMinBookingAmount()) < 0) {
+                throw new IllegalArgumentException("Đơn hàng không đủ giá trị tối thiểu để áp dụng mã này");
+            }
+
+            BigDecimal discount = BigDecimal.ZERO;
+            if (appliedPromo.getDiscountType() == Promotion.DiscountType.percent) {
+                // Tính % giảm, làm tròn 2 chữ số thập phân
+                discount = total.multiply(appliedPromo.getDiscountValue())
+                        .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            } else {
+                discount = appliedPromo.getDiscountValue();
+            }
+
+            total = total.subtract(discount).max(BigDecimal.ZERO);
+
+            // Tăng số lượt đã sử dụng
+            appliedPromo.setUsedCount(appliedPromo.getUsedCount() + 1);
+            promotionRepository.save(appliedPromo);
+        }
+
+        // 5. Tạo Booking
         Booking booking = new Booking();
         booking.setShowtime(showtime);
         booking.setUser(customer);
         booking.setBookingType(Booking.BookingType.counter);
-
-        Payment.PaymentMethod method;
-        try {
-            method = Payment.PaymentMethod.valueOf(paymentMethodStr.toLowerCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ: " + paymentMethodStr);
-        }
-        if (method == Payment.PaymentMethod.online) {
-            booking.setStatus(Booking.BookingStatus.pending);
-        } else {
-            booking.setStatus(Booking.BookingStatus.paid);
-        }
-
+        booking.setStatus(Booking.BookingStatus.paid);
         booking.setTotalAmount(total);
+
+        // Gán promotion vào booking để quản lý doanh thu
+        if (appliedPromo != null) {
+            booking.setPromotion(appliedPromo);
+        }
+
         booking = bookingRepository.save(booking);
 
-        // 5. Lưu chi tiết ghế
+        // 6. Lưu chi tiết ghế
         for (Seat seat : selectedSeats) {
             BookingSeat bs = new BookingSeat();
             bs.setBooking(booking);
@@ -102,19 +119,12 @@ public class StaffBookingService {
             bookingSeatRepository.save(bs);
         }
 
-        // 6. Lưu thông tin thanh toán
+        // 7. Lưu thanh toán
         Payment payment = new Payment();
         payment.setBooking(booking);
-        payment.setMethod(method);
+        payment.setMethod(Payment.PaymentMethod.cash);
         payment.setAmount(total);
-        payment.setOrderCode(booking.getBookingId());
-
-        if (method == Payment.PaymentMethod.online) {
-            payment.setPaymentStatus(Payment.PaymentStatus.pending);
-        } else {
-            payment.setPaymentStatus(Payment.PaymentStatus.success);
-        }
-
+        payment.setPaymentStatus(Payment.PaymentStatus.success);
         paymentRepository.save(payment);
 
         return booking;
