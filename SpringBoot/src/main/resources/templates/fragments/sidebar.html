@@ -5,7 +5,21 @@
 <div th:fragment="sidebar(active)"
      class="sidebar">
 
-    <h2 class="logo">Admin</h2>
+    <div class="sidebar-top">
+        <h2 class="logo">Admin</h2>
+
+        <details class="admin-user-menu" th:if="${user != null}">
+            <summary class="admin-user-trigger">
+                <span class="admin-user-name-short"
+                      th:text="${user.fullName != null && !#strings.isEmpty(user.fullName) ? user.fullName : 'Admin'}">Admin</span>
+                <span class="admin-user-caret">▾</span>
+            </summary>
+
+            <div class="admin-user-dropdown">
+                <a th:href="@{/auth/logout}" class="admin-user-link logout-link">Đăng xuất</a>
+            </div>
+        </details>
+    </div>
 
     <nav>
         <a th:classappend="${active == 'dashboard'} ? 'active'"

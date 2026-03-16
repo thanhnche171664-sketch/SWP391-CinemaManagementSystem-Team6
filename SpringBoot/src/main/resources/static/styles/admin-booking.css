@@ -40,12 +40,90 @@ body {
     border-right: 1px solid var(--border-soft);
 }
 
+.sidebar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+    position: relative;
+}
+
 .logo {
-    margin-bottom: 30px;
+    margin-bottom: 0;
     color: var(--text-color);
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.2px;
+}
+
+.admin-user-menu {
+    position: relative;
+}
+
+.admin-user-trigger {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: 999px;
+    padding: 6px 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.admin-user-trigger::-webkit-details-marker {
+    display: none;
+}
+
+.admin-user-name-short {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.admin-user-caret {
+    font-size: 11px;
+    color: #fff;
+}
+
+.admin-user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 150px;
+    border: 1px solid var(--border-soft);
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 14px 30px rgba(31, 90, 166, 0.14);
+    overflow: hidden;
+    z-index: 30;
+}
+
+.admin-user-link {
+    display: block;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.admin-user-link:hover {
+    background: #fff4f6;
+}
+
+.logout-link {
+    color: #c6425b;
+}
+
+.sidebar nav {
+    margin-top: 10px;
 }
 
 .sidebar nav a {
