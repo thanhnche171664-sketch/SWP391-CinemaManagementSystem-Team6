@@ -134,7 +134,7 @@ CREATE TABLE payments (
   booking_id INT NOT NULL,
   method ENUM('cash','card','online'),
   amount DECIMAL(10,2),
-  payment_status ENUM('success','failed'),
+  payment_status ENUM('pending','success','failed','cancelled'),
   payment_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 );

@@ -32,7 +32,11 @@ public class Payment {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status", length = 20)
+    @Column(
+            name = "payment_status",
+            length = 20,
+            columnDefinition = "ENUM('pending','success','failed','cancelled')"
+    )
     private PaymentStatus paymentStatus;
 
     @Column(name = "payment_time")
