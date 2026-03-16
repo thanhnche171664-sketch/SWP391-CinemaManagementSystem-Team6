@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cấu hình ghế</title>
+
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-seat-config.css}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <div th:replace="fragments/sidebar :: sidebar('cinema')"></div>
+
+    <main class="content">
+
+        <header class="header">
+
+            <h1>Quản lý rạp chiếu</h1>
+            <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
+
+            <div class="tabs">
+                <a th:href="@{/branches}" class="tab">Rạp chiếu</a>
+                <a th:href="@{/rooms}" class="tab">Phòng chiếu</a>
+                <a th:href="@{/admin/pricing}" class="tab active">Cấu hình ghế</a>
+            </div>
+
+        </header>
+
+        <form method="get" action="/admin/pricing" class="branch-filter">
+
+            <label>Chi nhánh</label>
+
+            <select name="branchId" onchange="this.form.submit()">
+
+                <option th:each="b : ${branches}"
+                        th:value="${b.branchId}"
+                        th:text="${b.branchName}"
+                        th:selected="${b.branchId == branchId}">
+                </option>
+
+            </select>
+
+        </form>
+
+        <form th:action="@{/admin/pricing/update}" method="post">
+
+            <input type="hidden" name="branchId" th:value="${branchId}">
+
+            <div class="seat-config-grid">
+
+                <div class="seat-card normal-card">
+
+                    <h3>Ghế thường</h3>
+
+                    <input type="hidden"
+                           name="pricings[0].seatType"
+                           value="NORMAL">
+
+                    <label>Giá vé</label>
+                    <input type="number"
+                           name="pricings[0].price"
+                           th:value="${normalPrice}">
+
+                    <p class="desc">
+                        Ghế tiêu chuẩn, phù hợp cho đa số khách hàng
+                    </p>
+
+                </div>
+
+                <div class="seat-card vip-card">
+
+                    <h3>Ghế VIP</h3>
+
+                    <input type="hidden"
+                           name="pricings[1].seatType"
+                           value="VIP">
+
+                    <label>Giá vé</label>
+                    <input type="number"
+                           name="pricings[1].price"
+                           th:value="${vipPrice}">
+
+                    <p class="desc">
+                        Ghế cao cấp, thoải mái hơn
+                    </p>
+
+                </div>
+
+                <div class="seat-card couple-card">
+
+                    <h3>Ghế đôi</h3>
+
+                    <input type="hidden"
+                           name="pricings[2].seatType"
+                           value="COUPLE">
+
+                    <label>Giá vé</label>
+                    <input type="number"
+                           name="pricings[2].price"
+                           th:value="${couplePrice}">
+
+                    <p class="desc">
+                        Ghế đôi dành cho cặp đôi
+                    </p>
+
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-save">
+                Lưu cấu hình
+            </button>
+
+        </form>
+
+    </main>
+
+</div>
+
+</body>
+</html>
