@@ -4,8 +4,6 @@ import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.Pricing;
 import com.swp391.team6.cinema.entity.Seat;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
-import com.swp391.team6.cinema.entity.Pricing;
-import com.swp391.team6.cinema.entity.Seat;
 import com.swp391.team6.cinema.repository.PricingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +37,7 @@ public class PricingService {
         pricing.setPrice(price);
 
         pricingRepository.save(pricing);
+    }
 
     /**
      * Get price for a seat type at a branch for a given showtime start time.

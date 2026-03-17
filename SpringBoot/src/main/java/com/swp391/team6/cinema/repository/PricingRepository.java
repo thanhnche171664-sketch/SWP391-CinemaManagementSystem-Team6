@@ -11,8 +11,9 @@ import java.util.Optional;
 
 @Repository
 public interface PricingRepository extends JpaRepository<Pricing, Long> {
-    
+
     List<Pricing> findByBranch(CinemaBranch branchId);
+    List<Pricing> findByBranchBranchId(Long branchId);
     
     List<Pricing> findBySeatType(Seat.SeatType seatType);
 
