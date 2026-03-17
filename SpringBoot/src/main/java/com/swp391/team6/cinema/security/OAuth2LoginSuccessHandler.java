@@ -32,8 +32,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         User user = userRepository.findByEmail(email).orElse(null);
         
         if (user != null) {
-            // Store user info in session
+            // Store user info in session (loggedInUser used by controllers and public header)
             HttpSession session = request.getSession();
+            session.setAttribute("loggedInUser", user);
             session.setAttribute("userId", user.getUserId());
             session.setAttribute("email", user.getEmail());
             session.setAttribute("fullName", user.getFullName());

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Báo cáo & Thống kê</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-report.css}">
+</head>
+<body>
+
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('reports')"></div>
+
+    <main class="content">
+        <header class="header">
+            <div>
+                <h1>Báo cáo & Thống kê</h1>
+                <p>Phân tích doanh thu và hiệu suất kinh doanh</p>
+            </div>
+            <div class="header-actions">
+                <select class="period-select" aria-label="Chọn khoảng thời gian">
+                    <option>Hôm nay</option>
+                    <option>7 ngày qua</option>
+                    <option selected>Tháng này</option>
+                    <option>Quý này</option>
+                </select>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-label">Tổng doanh thu</p>
+                <div class="stat-value"
+                     th:text="${summary.totalRevenue} + 'đ'">0đ</div>
+                <span class="stat-trend muted">Tất cả đơn đã thanh toán</span>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Số đơn đã thanh toán</p>
+                <div class="stat-value" th:text="${summary.totalBookings}">0</div>
+                <span class="stat-trend muted">Tổng số đơn</span>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Doanh thu trung bình/đơn</p>
+                <div class="stat-value"
+                     th:text="${summary.avgRevenue} + 'đ'">0đ</div>
+                <span class="stat-trend muted">Trung bình theo đơn</span>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Chi nhánh có doanh thu</p>
+                <div class="stat-value" th:text="${summary.totalBranches}">0</div>
+                <span class="stat-trend muted">Tổng chi nhánh</span>
+            </article>
+        </section>
+
+        <section class="report-section">
+            <div class="section-header">
+                <h3>Doanh thu theo phim</h3>
+                <span class="section-note">Top phim bán chạy</span>
+            </div>
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Phim</th>
+                        <th class="text-right">Số đơn</th>
+                        <th class="text-right">Doanh thu</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${revenueByMovie}">
+                        <td th:text="${row.movieTitle}">Tên phim</td>
+                        <td class="text-right mono"
+                            th:text="${row.bookingCount}">0</td>
+                        <td class="text-right"
+                            th:text="${row.totalRevenue} + 'đ'">0đ</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(revenueByMovie)}">
+                        <td colspan="3" class="text-muted">Chưa có dữ liệu doanh thu.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="report-section">
+            <div class="section-header">
+                <h3>Doanh thu theo ngày</h3>
+                <span class="section-note">7 ngày gần nhất</span>
+            </div>
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th class="text-right">Số đơn</th>
+                        <th class="text-right">Doanh thu</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${revenueByDate}">
+                        <td th:text="${#temporals.format(row.date, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td class="text-right mono"
+                            th:text="${row.bookingCount}">0</td>
+                        <td class="text-right"
+                            th:text="${row.totalRevenue} + 'đ'">0đ</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(revenueByDate)}">
+                        <td colspan="3" class="text-muted">Chưa có dữ liệu doanh thu.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="report-section">
+            <div class="section-header">
+                <h3>Doanh thu theo chi nhánh</h3>
+                <span class="section-note">Tổng hợp theo rạp</span>
+            </div>
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Chi nhánh</th>
+                        <th class="text-right">Số đơn</th>
+                        <th class="text-right">Doanh thu</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${revenueByBranch}">
+                        <td th:text="${row.branchName}">Tên chi nhánh</td>
+                        <td class="text-right mono"
+                            th:text="${row.bookingCount}">0</td>
+                        <td class="text-right"
+                            th:text="${row.totalRevenue} + 'đ'">0đ</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(revenueByBranch)}">
+                        <td colspan="3" class="text-muted">Chưa có dữ liệu doanh thu.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+</body>
+</html>

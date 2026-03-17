@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/cinema_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: Dlinh123*
+    password: Danhviptb12
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # JPA Configuration
@@ -60,3 +60,13 @@ logging:
 # Application URL
 app:
   url: http://localhost:8080
+
+# Booking: payment time limit (minutes) for pending bookings
+booking:
+  payment-expiry-minutes: 10
+
+payos:
+  client-id: 3736ec2f-bd5e-42ec-a724-273e519edc7d
+  api-key: 57cc193d-2aa1-4c68-90c0-d1ab7d1154ce
+  checksum-key: 17b825cb9dd6892a264c47e1d85d01f15c74f5ca32f926e5d2bdfa605df4a744
+  base-url: https://api-merchant.payos.vn

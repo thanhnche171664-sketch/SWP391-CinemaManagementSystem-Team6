@@ -20,4 +20,5 @@ public interface PricingRepository extends JpaRepository<Pricing, Long> {
             CinemaBranch branch,
             Seat.SeatType seatType
     );
+    java.util.Optional<Pricing> findByBranchBranchIdAndSeatTypeAndTimeRange(Long branchId, Seat.SeatType seatType, String timeRange);
 }

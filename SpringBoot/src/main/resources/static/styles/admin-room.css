@@ -1,14 +1,28 @@
+:root {
+    --primary-color: #1f5aa6;
+    --text-color: #1f3b67;
+    --text-muted: #6a7a93;
+    --surface-muted: #fff5f7;
+    --surface-color: #ffffff;
+    --border-soft: #f0c9d1;
+    --accent-pink: #ffe9ed;
+}
+
 body {
-    background: #0e0e0e;
-    color: #fff;
+    background: var(--surface-muted);
+    color: var(--text-color);
     font-family: 'Segoe UI', sans-serif;
 }
 
 .cinema {
-    padding: 40px;
+    padding: 28px 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(31, 90, 166, 0.08);
 }
 
 /* FILTER FORM */
@@ -60,6 +74,10 @@ body {
     flex-direction: column;
     gap: 12px;
     margin-bottom: 30px;
+    background: #fff8fa;
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 18px 20px;
 }
 
 .seat-row {
@@ -72,19 +90,20 @@ body {
     width: 24px;
     text-align: center;
     font-weight: bold;
-    color: #f5c16c;
+    color: var(--primary-color);
 }
 
 .seat {
     width: 42px;
     height: 42px;
-    background: #2a2a2a;
+    background: #fff;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all .2s ease;
+    border: 2px solid var(--border-soft);
 }
 
 .seat:hover {
@@ -96,31 +115,43 @@ body {
     height: 20px;
     object-fit: contain;
     pointer-events: none;
+    opacity: 0.95;
+    filter: brightness(0) saturate(100%) invert(24%) sepia(26%) saturate(2065%) hue-rotate(190deg) brightness(92%) contrast(90%);
 }
 .seat-normal {
-    border: 2px solid #2a2a2a;
+    border: 2px solid #9ec5ff;
+    background: #f4f8ff;
 }
 
 .seat-vip {
-    border: 2px solid #ff9800;
+    border: 2px solid #f59e0b;
+    background: #fff8e8;
 }
 
 .seat-couple {
-    border: 2px solid #ff2ea6;
+    border: 2px solid #ec4899;
+    background: #fff0f8;
 }
 
 .seat-selected {
-    background: #ffffff;
+    background: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .seat-selected .seat-icon {
-    color: #000;
+    filter: brightness(0) saturate(100%) invert(100%);
+    opacity: 1;
 }
 
 .seat-sold {
-    background: #555;
+    background: #e5e7eb;
+    border-color: #cbd5e1;
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.75;
+}
+
+.seat-sold .seat-icon {
+    filter: brightness(0) saturate(100%) invert(53%) sepia(8%) saturate(534%) hue-rotate(181deg) brightness(88%) contrast(86%);
 }
 
 .legend {
@@ -128,6 +159,11 @@ body {
     gap: 24px;
     margin-top: 20px;
     font-size: 14px;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text-color);
 }
 
 .legend div {

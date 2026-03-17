@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -32,9 +33,12 @@ public class AuthController {
      * Hiển thị trang login
      */
     @GetMapping("/login")
-    public String showLoginPage(Model model) {
+    public String showLoginPage(@RequestParam(required = false) String redirect, Model model) {
         model.addAttribute("loginRequest", new LoginRequest());
-        return "auth/login"; // Trả về auth/login.html
+        if (redirect != null && !redirect.isBlank() && redirect.startsWith("/")) {
+            model.addAttribute("redirect", redirect);
+        }
+        return "auth/login";
     }
 
     /**
@@ -42,6 +46,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public String login(@ModelAttribute LoginRequest loginRequest,
+                        @RequestParam(required = false) String redirect,
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
@@ -88,6 +93,8 @@ public class AuthController {
             case STAFF:
                 return "redirect:/staff";
             case CUSTOMER:
+                if (redirect != null && !redirect.isBlank() && redirect.startsWith("/"))
+                    return "redirect:" + redirect;
                 return "redirect:/home";
             default:
                 return "redirect:/";

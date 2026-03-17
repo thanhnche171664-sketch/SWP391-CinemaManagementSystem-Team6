@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +43,9 @@ public class Movie {
 
     @Column(name = "trailer_url", length = 255)
     private String trailerUrl;
+
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
