@@ -21,20 +21,20 @@ public class SeatService {
         List<Seat> existingSeats =
                 seatRepository.findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(roomId);
 
-        //Nếu đã có ghế → trả về luôn
         if (!existingSeats.isEmpty()) {
             return existingSeats;
         }
 
         Room room = roomService.getRoomById(roomId);
 
-        int seatsPerRow = 10;
+        int seatsPerRow = 8;
         int totalRows = (int) Math.ceil((double) totalSeats / seatsPerRow);
 
         List<Seat> generatedSeats = new ArrayList<>();
 
         for (int rowIndex = 0; rowIndex < totalRows; rowIndex++) {
-            char rowChar = (char) ('A' + rowIndex); // A, B, C...
+
+            char rowChar = (char) ('A' + rowIndex);
 
             for (int seatNum = 1; seatNum <= seatsPerRow; seatNum++) {
 
@@ -45,7 +45,23 @@ public class SeatService {
                 seat.setRoom(room);
                 seat.setSeatRow(String.valueOf(rowChar));
                 seat.setSeatNumber(seatNum);
-                seat.setSeatType(Seat.SeatType.NORMAL);
+
+                // phân loại ghế
+                Seat.SeatType seatType = Seat.SeatType.NORMAL;
+
+                if (totalSeats > 50) {
+
+                    if (rowIndex == totalRows - 1) {
+                        seatType = Seat.SeatType.COUPLE;
+                    }
+
+                    else if (rowIndex >= totalRows - 3) {
+                        seatType = Seat.SeatType.VIP;
+                    }
+
+                }
+
+                seat.setSeatType(seatType);
 
                 generatedSeats.add(seat);
             }

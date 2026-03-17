@@ -21,18 +21,33 @@
         <div class="tabs">
           <a th:href="@{/branches}" class="tab">Rạp chiếu</a>
           <a th:href="@{/rooms}" class="tab active">Phòng chiếu</a>
-          <a th:href="@{/seats}" class="tab">Cấu hình ghế</a>
+          <a th:href="@{/admin/pricing}" class="tab">Cấu hình ghế</a>
         </div>
       </div>
 
       <a class="btn-add" th:href="@{/rooms/new}">+ Thêm phòng mới</a>
     </header>
 
-    <form class="search-box" th:action="@{/rooms}" method="get">
+    <form method="get" th:action="@{/rooms}" class="filter-form">
+
       <input type="text"
              name="keyword"
-             placeholder="Tìm kiếm phòng..."
-             th:value="${keyword}">
+             placeholder="Tìm phòng..."
+             th:value="${keyword}"
+             class="filter-input">
+
+      <select name="branchId" class="filter-select">
+        <option value="">Tất cả chi nhánh</option>
+
+        <option th:each="branch : ${branches}"
+                th:value="${branch.branchId}"
+                th:text="${branch.branchName}"
+                th:selected="${branch.branchId == branchId}">
+        </option>
+      </select>
+
+      <button type="submit" class="filter-btn">Filter</button>
+
     </form>
 
     <table class="table">
@@ -56,24 +71,42 @@
 
         <td>
                     <span class="status-pill"
-                          th:classappend="${room.status == 'ACTIVE'} ? ' active' : ' inactive'"
-                          th:text="${room.status == 'ACTIVE'} ? 'Hoạt động' : 'Ngưng hoạt động'">
+                          th:classappend="${room.status.name() == 'active'} ? ' active' : ' inactive'"
+                          th:text="${room.status.name() == 'active'} ? 'Hoạt động' : 'Ngưng hoạt động'">
                     </span>
         </td>
 
         <td class="actions">
-          <a th:href="@{/rooms/edit/{id}(id=${room.roomId})}">
-            <img th:src="@{/images/edit.png}" class="icon">
-          </a>
-          <a th:href="@{/rooms/delete/{id}(id=${room.roomId})}">
-            <img th:src="@{/images/delete.png}" class="icon">
-          </a>
+          <button class="room-edit-btn"
+                  type="button"
+                  th:onclick="|window.location.href='/rooms/${room.roomId}'|"
+                  title="Sửa phòng">
+            <img th:src="@{/images/edit.png}"
+                 alt="edit"
+                 class="edit-icon">
+          </button>
+
+          <form th:action="@{/rooms/{id}/toggle-status(id=${room.roomId})}"
+                method="post"
+                style="display:inline">
+
+            <button type="submit"
+                    class="status-btn"
+                    th:onclick="return confirm('Bạn có chắc muốn đổi trạng thái phòng ' + '${room.roomName}' + '?')">
+
+              Đổi trạng thái
+            </button>
+
+          </form>
         </td>
       </tr>
       </tbody>
     </table>
+
+
   </main>
 </div>
+
 
 </body>
 </html>
