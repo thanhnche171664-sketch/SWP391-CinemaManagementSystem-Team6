@@ -488,13 +488,15 @@ body.movie-detail-page {
 }
 
 body.booking-history-page,
-body.booking-detail-page {
+body.booking-detail-page,
+body.booking-seat-page {
     background: var(--surface-muted);
     color: var(--text-color);
 }
 
 .booking-history-page .navbar,
-.booking-detail-page .navbar {
+.booking-detail-page .navbar,
+.booking-seat-page .navbar {
     background: var(--surface-color) !important;
     border-bottom: 1px solid var(--border-soft);
 }
@@ -502,13 +504,160 @@ body.booking-detail-page {
 .booking-history-page .navbar .navbar-brand,
 .booking-history-page .navbar .nav-link,
 .booking-detail-page .navbar .navbar-brand,
-.booking-detail-page .navbar .nav-link {
+.booking-detail-page .navbar .nav-link,
+.booking-seat-page .navbar .navbar-brand,
+.booking-seat-page .navbar .nav-link {
     color: var(--text-color) !important;
 }
 
 .booking-history-page .navbar .nav-link:hover,
-.booking-detail-page .navbar .nav-link:hover {
+.booking-detail-page .navbar .nav-link:hover,
+.booking-seat-page .navbar .nav-link:hover {
     color: var(--primary-color) !important;
+}
+
+.booking-seat-page .booking-seat-shell {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 10px 24px rgba(160, 88, 112, 0.08);
+}
+
+.booking-seat-page .booking-seat-title {
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.booking-seat-page .booking-seat-subtitle {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.booking-seat-page .screen {
+    text-align: center;
+    margin: 12px 0 24px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.booking-seat-page .seat-map {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.booking-seat-page .seat-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.booking-seat-page .seat-row .row-label {
+    width: 24px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.booking-seat-page .seat-option {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+}
+
+.booking-seat-page .seat-option.available {
+    background: #fff1f4;
+}
+
+.booking-seat-page .seat-option.available:hover {
+    border-color: #d9a6b2;
+    transform: translateY(-1px);
+}
+
+.booking-seat-page .seat-option.selected {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+.booking-seat-page .seat-option.occupied {
+    background: #f2f3f6;
+    color: #9aa3b0;
+    border-color: #d8dce3;
+    cursor: not-allowed;
+}
+
+.booking-seat-page .seat-option input {
+    display: none;
+}
+
+.booking-seat-page .booking-seat-action {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.booking-seat-page .total-line {
+    margin: 0 14px 0 0;
+    color: var(--text-color);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.booking-seat-page .booking-seat-pay-btn {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+.booking-seat-page .booking-seat-pay-btn:hover:not(:disabled) {
+    background: #184a8a;
+    border-color: #184a8a;
+    color: #fff;
+}
+
+.booking-seat-page .booking-seat-pay-btn:disabled {
+    opacity: 0.6;
+}
+
+.booking-seat-page .booking-seat-back-btn,
+.booking-seat-page .booking-seat-back-solid-btn {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.booking-seat-page .booking-seat-back-btn:hover,
+.booking-seat-page .booking-seat-back-solid-btn:hover {
+    background: rgba(47, 128, 237, 0.08);
+    color: var(--primary-color);
+}
+
+@media (max-width: 576px) {
+    .booking-seat-page .booking-seat-shell {
+        padding: 16px;
+    }
+
+    .booking-seat-page .seat-option {
+        width: 32px;
+        height: 32px;
+        font-size: 11px;
+    }
+
+    .booking-seat-page .booking-seat-action .btn {
+        width: 100%;
+    }
 }
 
 .history-shell,

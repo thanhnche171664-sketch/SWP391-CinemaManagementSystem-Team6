@@ -6,33 +6,20 @@
     <title>Chọn ghế - Cinema</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .screen { text-align: center; margin: 10px 0 20px; font-weight: bold; color: #666; }
-        .seat-map { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .seat-row { display: flex; gap: 6px; align-items: center; }
-        .seat-row .row-label { width: 24px; font-weight: bold; }
-        .seat-option { width: 36px; height: 36px; border-radius: 6px; cursor: pointer; border: 2px solid #dee2e6;
-            display: flex; align-items: center; justify-content: center; font-size: 12px; }
-        .seat-option.available { background: #e9ecef; }
-        .seat-option.available:hover { background: #ced4da; }
-        .seat-option.selected { background: #0d6efd; color: #fff; border-color: #0d6efd; }
-        .seat-option.occupied { background: #ccc; cursor: not-allowed; color: #999; }
-        .seat-option input { display: none; }
-        .total-line { font-size: 1.2rem; font-weight: bold; margin-top: 1rem; }
-    </style>
 </head>
-<body>
+<body class="booking-seat-page">
 <div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
 <div class="container py-4">
+    <div class="booking-seat-shell">
     <p class="mb-3">
-        <a th:href="@{/movies/{id}(id=${showtime.movie.movieId})}" class="btn btn-outline-secondary btn-sm">
+        <a th:href="@{/movies/{id}(id=${showtime.movie.movieId})}" class="btn booking-seat-back-btn btn-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
             Quay lại
         </a>
     </p>
-    <h2 th:text="${showtime.movie.title}">Movie</h2>
-    <p class="text-muted">
+    <h2 class="booking-seat-title" th:text="${showtime.movie.title}">Movie</h2>
+    <p class="booking-seat-subtitle">
         <span th:text="${showtime.room.roomName}">Room</span> –
         <span th:text="${showtime.room.branch.branchName}">Branch</span> –
         <span th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')}">Time</span>
@@ -56,12 +43,13 @@
             </div>
         </div>
 
-        <div class="mt-4">
+        <div class="booking-seat-action">
             <p class="total-line">Tổng: <span id="totalAmount">0</span> VND</p>
-            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>Thanh toán PayOS</button>
-            <a th:href="@{/movies}" class="btn btn-secondary btn-lg">Quay lại</a>
+            <button type="submit" class="btn booking-seat-pay-btn btn-lg" id="submitBtn" disabled>Thanh toán PayOS</button>
+            <a th:href="@{/movies}" class="btn booking-seat-back-solid-btn btn-lg">Quay lại</a>
         </div>
     </form>
+</div>
 </div>
 
 <script th:inline="javascript">
