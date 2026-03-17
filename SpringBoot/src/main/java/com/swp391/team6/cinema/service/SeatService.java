@@ -27,7 +27,7 @@ public class SeatService {
 
         Room room = roomService.getRoomById(roomId);
 
-        int seatsPerRow = 10;
+        int seatsPerRow = 8;
         int totalRows = (int) Math.ceil((double) totalSeats / seatsPerRow);
 
         List<Seat> generatedSeats = new ArrayList<>();
@@ -55,7 +55,7 @@ public class SeatService {
                         seatType = Seat.SeatType.COUPLE;
                     }
 
-                    else if (rowIndex >= totalRows - 4) {
+                    else if (rowIndex >= totalRows - 3) {
                         seatType = Seat.SeatType.VIP;
                     }
 

@@ -38,6 +38,11 @@ public class PricingService {
 
         pricingRepository.save(pricing);
     }
+
+    /**
+     * Get price for a seat type at a branch for a given showtime start time.
+     * Uses timeRange "weekend" (Sat/Sun) or "weekday" if configured in pricing table.
+     */
     public BigDecimal getPrice(Long branchId, Seat.SeatType seatType, LocalDateTime showtimeStart) {
         String timeRange = isWeekend(showtimeStart) ? "weekend" : "weekday";
         return pricingRepository.findByBranchBranchIdAndSeatTypeAndTimeRange(branchId, seatType, timeRange)

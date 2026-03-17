@@ -13,14 +13,13 @@ import java.util.Optional;
 public interface PricingRepository extends JpaRepository<Pricing, Long> {
 
     List<Pricing> findByBranch(CinemaBranch branchId);
-
+    List<Pricing> findByBranchBranchId(Long branchId);
+    
     List<Pricing> findBySeatType(Seat.SeatType seatType);
 
     Optional<Pricing> findByBranchAndSeatType(
             CinemaBranch branch,
             Seat.SeatType seatType
     );
-    List<Pricing> findByBranchBranchId(Long branchId);
-
     java.util.Optional<Pricing> findByBranchBranchIdAndSeatTypeAndTimeRange(Long branchId, Seat.SeatType seatType, String timeRange);
 }
