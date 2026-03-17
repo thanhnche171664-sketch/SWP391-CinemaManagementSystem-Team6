@@ -1,3 +1,59 @@
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.filter-input,
+.filter-select {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    background: #fff;
+    color: var(--text-color);
+    font-size: 13px;
+    outline: none;
+}
+
+.filter-input {
+    min-width: 230px;
+}
+
+.filter-select {
+    min-width: 150px;
+}
+
+.filter-input::placeholder {
+    color: var(--text-muted);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(31, 90, 166, 0.12);
+}
+
+.filter-btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--primary-color);
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: #184a8a;
+    border-color: #184a8a;
+}
+
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -27,16 +83,65 @@
 .actions {
     display: flex;
     gap: 14px;
+    align-items: center;
+}
+
+.room-edit-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    background: #f6f9ff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.room-edit-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.room-edit-btn .edit-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 1;
+    filter: brightness(0) saturate(100%) invert(31%) sepia(21%) saturate(2959%) hue-rotate(195deg) brightness(88%) contrast(87%);
+    transition: 0.2s;
+}
+
+.room-edit-btn:hover .edit-icon {
+    filter: brightness(0) saturate(100%) invert(100%);
+    transform: scale(1.08);
+}
+
+.status-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--primary-color);
+    background: #eaf2ff;
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.status-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
 }
 
 .actions .icon {
-    width: 22px;
-    opacity: 0.7;
+    width: 16px;
+    opacity: 1;
     transition: 0.2s;
-    color: var(--text-color);
+    filter: brightness(0) saturate(100%) invert(31%) sepia(21%) saturate(2959%) hue-rotate(195deg) brightness(88%) contrast(87%);
 }
 
 .actions .icon:hover {
-    opacity: 1;
     transform: scale(1.1);
 }
