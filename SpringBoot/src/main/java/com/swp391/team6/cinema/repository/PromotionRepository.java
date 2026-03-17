@@ -1,6 +1,8 @@
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Promotion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -21,4 +23,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
 
 
     boolean existsByPromoCodeAndPromotionIdNot(String promoCode, Integer promotionId);
+
+    Page<Promotion> findByPromoCodeContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+            String promoCode, String description, Pageable pageable);
 }

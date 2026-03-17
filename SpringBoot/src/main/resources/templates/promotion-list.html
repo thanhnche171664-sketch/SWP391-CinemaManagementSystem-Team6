@@ -34,33 +34,29 @@
                 <i class="fas fa-chart-line stat-icon text-green"></i>
             </div>
             <div class="stat-card">
-                <div><p class="stat-label">Sắp diễn ra</p><p class="stat-number text-blue" th:text="${upcomingCount}">1</p></div>
+                <div><p class="stat-label">Tạm dừng</p><p class="stat-number text-blue" th:text="${inactiveCount}">1</p></div>
                 <i class="far fa-calendar-alt stat-icon text-blue"></i>
-            </div>
-            <div class="stat-card">
-                <div><p class="stat-label">Tổng giảm giá</p><p class="stat-number text-orange" th:text="${totalDiscountedAmount}">0 đ</p></div>
-                <i class="fas fa-hand-holding-usd stat-icon text-orange"></i>
             </div>
         </div>
 
         <div class="filter-action-bar mb-8" style="display: flex; gap: 1rem; align-items: center;">
-            <div class="flex-gap" style="flex: 1; display: flex; gap: 0.75rem;">
-                <div class="search-wrapper" style="flex: 1; display: flex; align-items: center; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 1rem;">
-                    <i class="fas fa-search" style="color: var(--text-muted);"></i>
-                    <input type="text" placeholder="Tìm kiếm theo mã hoặc tên khuyến mãi..."
-                           style="background: transparent; border: none; color: white; padding: 0.75rem; width: 100%; outline: none;">
+            <form th:action="@{/admin/promotions/view}" method="get" class="filter-action-bar mb-8">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm...">
                 </div>
 
-                <div class="filter-status-wrapper" style="display: flex; align-items: center; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 1rem;">
-                    <i class="fas fa-filter" style="margin-right: 8px; color: var(--text-muted);"></i>
-                    <select style="background: transparent; border: none; color: white; padding: 0.75rem 0; outline: none; cursor: pointer;">
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-filter"></i>
+                    <select name="status">
                         <option value="">Tất cả trạng thái</option>
-                        <option value="active">Đang hoạt động</option>
-                        <option value="upcoming">Sắp diễn ra</option>
-                        <option value="inactive">Tạm dừng</option>
+                        <option value="active" th:selected="${status == 'active'}">Đang hoạt động</option>
+                        <option value="inactive" th:selected="${status == 'inactive'}">Tạm dừng</option>
                     </select>
                 </div>
-            </div>
+
+                <button type="submit" class="btn-dark">Tìm kiếm</button>
+            </form>
 
             <a th:href="@{/admin/promotions/create}" class="btn-white" style="text-decoration: none; white-space: nowrap;">
                 <i class="fas fa-plus mr-2"></i> Thêm khuyến mãi

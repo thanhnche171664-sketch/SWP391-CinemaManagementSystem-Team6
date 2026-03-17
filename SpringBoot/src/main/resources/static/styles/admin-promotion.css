@@ -211,7 +211,7 @@ tr:hover { background-color: #161616; }
 .mr-2 { margin-right: 0.5rem; }
 .mb-8 { margin-bottom: 2rem; }
 
-/* --- Root Variables --- */
+/* --- Root Variables (Giữ nguyên của bạn) --- */
 :root {
     --bg-main: #0a0a0a;
     --bg-card: #111111;
@@ -231,6 +231,80 @@ body { background-color: var(--bg-main); color: var(--text-main); font-family: '
 .layout { display: flex; min-height: 100vh; }
 .content { flex: 1; padding: 2.5rem; max-width: 1400px; margin: 0 auto; }
 
+/* --- Search & Filter Bar (Phần bạn cần sửa để dài ra và màu đen) --- */
+.filter-action-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+}
+
+.search-wrapper {
+    flex: 1; /* Giúp thanh tìm kiếm kéo dài hết cỡ */
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0 1rem;
+    transition: var(--transition);
+}
+
+.search-wrapper:focus-within {
+    border-color: var(--accent-blue);
+}
+
+.search-wrapper input {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 0.75rem;
+    width: 100%;
+    outline: none;
+}
+
+/* --- Dropdown Select (Màu đen, chữ trắng) --- */
+.filter-status-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0 1rem;
+    min-width: 200px;
+    position: relative;
+}
+
+.filter-status-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: #ffffff !important; /* Chữ trắng rõ nét */
+    padding: 0.75rem 0;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Biểu tượng mũi tên cho Select */
+.filter-status-wrapper::after {
+    content: '\f107';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 1rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.filter-status-wrapper select option {
+    background-color: var(--bg-card); /* Nền tối cho danh sách con */
+    color: white;
+    padding: 10px;
+}
+
 /* --- Dashboard Stats Grid --- */
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
 .stat-card { background-color: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -239,24 +313,39 @@ body { background-color: var(--bg-main); color: var(--text-main); font-family: '
 .stat-icon { font-size: 1.5rem; opacity: 0.3; }
 
 /* --- Buttons --- */
-.btn-white { background-color: #ffffff; color: #000000; padding: 0.6rem 1.2rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; display: inline-flex; align-items: center; }
-.btn-dark { background-color: var(--bg-input); color: var(--text-main); padding: 0.6rem 1.2rem; border-radius: 0.5rem; border: 1px solid var(--border-color); cursor: pointer; }
-.btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; }
-.btn-icon:hover { color: var(--text-main); }
+.btn-white {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
 
-/* --- Table & Card --- */
+.btn-dark {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-dark:hover { background-color: #262626; }
+
+/* --- Table & Badges (Giữ nguyên) --- */
 .card-dark { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; }
 table { width: 100%; border-collapse: collapse; }
 .table-header { background-color: #161616; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
 th, td { padding: 1.25rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
 tr:hover { background-color: #161616; }
 
-/* --- Progress Bar --- */
-.usage-container { width: 100px; }
-.progress-bar { width: 100%; height: 5px; background-color: #262626; border-radius: 10px; overflow: hidden; }
-.progress-fill { height: 100%; background-color: var(--text-main); border-radius: 10px; }
-
-/* --- Status Badges --- */
 .status-badge { padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
 .badge-active { background-color: #ffffff; color: #000000; }
 .badge-inactive { background-color: #262626; color: var(--text-muted); }
@@ -270,7 +359,6 @@ tr:hover { background-color: #161616; }
 .text-red { color: var(--accent-red); }
 .mb-8 { margin-bottom: 2rem; }
 .font-bold { font-weight: 700; }
-.opacity-50 { opacity: 0.5; }
 
 /* --- Pagination --- */
 .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #141414; }
@@ -361,3 +449,34 @@ tr:hover { background-color: #161616; }
 }
 
 .text-red { color: #ef4444; }
+/* --- Custom Style cho Dropdown Select (Khắc phục chữ bị mờ/trắng nền) --- */
+.filter-status-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem !important; /* Tạo khoảng trống cho icon mũi tên */
+    color: #ffffff !important;
+}
+
+/* Quan trọng: Định dạng danh sách lựa chọn bên trong */
+.filter-status-wrapper select option {
+    background-color: #1a1a1a; /* Nền tối để khớp với giao diện */
+    color: #ffffff; /* Chữ trắng rõ nét */
+    padding: 12px;
+}
+
+/* Đảm bảo khi click vào ô select không bị viền xanh mặc định của trình duyệt */
+.filter-status-wrapper select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+/* Style bổ sung cho icon bộ lọc để giống ảnh mẫu */
+.filter-status-wrapper i {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}

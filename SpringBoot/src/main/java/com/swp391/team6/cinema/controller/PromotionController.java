@@ -22,15 +22,19 @@ public class PromotionController {
     @GetMapping("/view")
     public String viewPromotions(Model model,
                                  @RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "10") int size) {
-        Page<Promotion> promotionPage = promotionService.getAllPromotions(page, size);
+                                 @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(required = false) String keyword,
+                                 @RequestParam(required = false) String status){
+        Page<Promotion> promotionPage = promotionService.getAllPromotions(page, size, keyword, status);
 
         model.addAttribute("totalPromotions", promotionService.countAll());
         model.addAttribute("activeCount", promotionService.countActive());
-        model.addAttribute("upcomingCount", 1);
+        model.addAttribute("inactiveCount", promotionService.countInactive());
         model.addAttribute("totalDiscountedAmount", "0 đ");
 
         model.addAttribute("promotions", promotionPage.getContent());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("status", status);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", promotionPage.getTotalPages());
         model.addAttribute("totalElements", promotionPage.getTotalElements());

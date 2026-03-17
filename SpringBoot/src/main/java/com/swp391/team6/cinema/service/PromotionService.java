@@ -7,6 +7,8 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PromotionService {
@@ -15,14 +17,48 @@ public class PromotionService {
     private PromotionRepository promotionRepository;
 
     // Phân trang
-    public Page<Promotion> getAllPromotions(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("promotionId").descending());
-        return promotionRepository.findAll(pageable);
+    public Page<Promotion> getAllPromotions(int page, int size, String keyword, String status) {
+        List<Promotion> allPromotions = promotionRepository.findAll(Sort.by("promotionId").descending());
+
+        // 2. Lọc bằng Stream API
+        List<Promotion> filteredList = allPromotions.stream()
+                .filter(p -> {
+                    // Lọc theo trạng thái
+                    if (status != null && !status.isEmpty()) {
+                        return p.getStatus().name().equalsIgnoreCase(status);
+                    }
+                    return true;
+                })
+                .filter(p -> {
+                    // Lọc theo từ khóa (Code hoặc Description)
+                    if (keyword != null && !keyword.trim().isEmpty()) {
+                        String k = keyword.toLowerCase();
+                        boolean matchCode = p.getPromoCode().toLowerCase().contains(k);
+                        boolean matchDesc = (p.getDescription() != null && p.getDescription().toLowerCase().contains(k));
+                        return matchCode || matchDesc;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        // 3. Phân trang thủ công cho List kết quả
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredList.size());
+
+        List<Promotion> pagedList = new ArrayList<>();
+        if (start <= filteredList.size()) {
+            pagedList = filteredList.subList(start, end);
+        }
+
+        return new PageImpl<>(pagedList, pageable, filteredList.size());
     }
+
 
     // Thống kê
     public long countAll() { return promotionRepository.count(); }
     public long countActive() { return promotionRepository.countByStatus(Promotion.Status.active); }
+    public long countInactive() { return promotionRepository.countByStatus(Promotion.Status.inactive); }
 
     // Tìm kiếm theo ID
     public Promotion findById(Integer id) {
