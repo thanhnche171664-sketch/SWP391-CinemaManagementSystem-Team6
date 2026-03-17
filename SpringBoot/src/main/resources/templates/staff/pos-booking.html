@@ -265,7 +265,7 @@
           } else {
               videoId = trailerUrl;
           }
-          iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+          iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
       } else {
           iframe.src = "about:blank";
       }
@@ -277,7 +277,15 @@
       fetch('/staff/booking/api/showtimes?movieId=' + id)
       .then(r => r.json())
       .then(data => {
-          const grouped = data.reduce((acc, s) => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const filteredData = data.filter(s => {
+            const showDate = new Date(s.startTime);
+            return showDate >= today;
+        });
+
+          const grouped = filteredData.reduce((acc, s) => {
               const date = s.startTime.toString().split('T')[0];
               if (!acc[date]) acc[date] = [];
               acc[date].push(s);
@@ -287,6 +295,14 @@
           const dates = Object.keys(grouped).sort();
           const dateTabs = document.getElementById('dateTabs');
           dateTabs.innerHTML = '';
+
+          if (dates.length === 0) {
+            dateTabs.innerHTML = '<p class="text-muted p-2">Không có suất chiếu sắp tới</p>';
+            document.getElementById('timeList').innerHTML = '';
+            document.getElementById('seatMap').innerHTML = '';
+            showStep(2);
+            return;
+        }
 
           dates.forEach((date, index) => {
               const btn = document.createElement('button');
@@ -346,7 +362,6 @@
     const seatName = el.innerText;
 
     if (!isCurrentlySelected) {
-        // Gửi request khóa ghế
         const lockRes = await fetch(`/staff/booking/api/lock-seats?showtimeId=${selectedShowtimeId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -362,7 +377,6 @@
         selectedSeats.push({ id: id, name: seatName });
         el.classList.add('selected');
     } else {
-        // Gửi request mở khóa ghế
         await fetch(`/staff/booking/api/unlock-seat?showtimeId=${selectedShowtimeId}&seatId=${id}`, {
             method: 'POST'
         });
@@ -371,9 +385,7 @@
         el.classList.remove('selected');
     }
 
-    // Cập nhật giá
     if (selectedSeats.length > 0) {
-        // Lấy danh sách ID để tính tiền: map từ object ra chỉ lấy ID
         const ids = selectedSeats.map(s => s.id).join(',');
         const res = await fetch(`/staff/booking/api/calculate-price?showtimeId=${selectedShowtimeId}&seatIds=${ids}`);
         const data = await res.json();
@@ -494,7 +506,6 @@
           const data = await res.json();
 
           if (res.ok) {
-              // Sử dụng SweetAlert2 để tạo lựa chọn chuyên nghiệp
               Swal.fire({
                   title: 'Thành công!',
                   text: 'Đặt vé thành công. Bạn muốn làm gì tiếp theo?',
@@ -507,13 +518,12 @@
                   allowOutsideClick: false
               }).then((result) => {
                   if (result.isConfirmed) {
-                      location.reload(); // Quay lại trang POS để đặt tiếp
+                      location.reload();
                   } else {
-                      window.location.href = '/staff/booking/manage'; // Chuyển sang quản lý vé
+                      window.location.href = '/staff/booking/manage';
                   }
               });
           } else {
-              // Nếu API trả về lỗi (ví dụ: ghế đã bị đặt)
               Swal.fire({
                   icon: 'error',
                   title: 'Thất bại',

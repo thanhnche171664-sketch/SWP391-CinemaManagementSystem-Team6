@@ -189,7 +189,7 @@ function confirmSubmit(formId, title, text) {
 }
 
 document.getElementById('infoForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Chặn submit mặc định
+    e.preventDefault();
     confirmSubmit('infoForm', 'Cập nhật thông tin?', 'Hệ thống sẽ lưu lại họ tên và số điện thoại mới của bạn.');
 });
 

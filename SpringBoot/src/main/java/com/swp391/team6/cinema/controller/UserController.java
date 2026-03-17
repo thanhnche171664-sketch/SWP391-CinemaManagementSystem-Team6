@@ -1,6 +1,6 @@
 package com.swp391.team6.cinema.controller;
-import com.swp391.team6.cinema.service.UserService; // Thay đổi tùy theo package thực tế
-import com.swp391.team6.cinema.entity.User;        // Thay đổi tùy theo package thực tế
+import com.swp391.team6.cinema.service.UserService;
+import com.swp391.team6.cinema.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

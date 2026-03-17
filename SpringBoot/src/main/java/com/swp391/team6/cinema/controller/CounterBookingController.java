@@ -25,13 +25,14 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/staff/booking")
 @RequiredArgsConstructor
-public class StaffBookingController {
+public class CounterBookingController {
 
     private final MovieRepository movieRepository;
     private final ShowtimeRepository showtimeRepository;
@@ -39,7 +40,7 @@ public class StaffBookingController {
     private final BookingRepository bookingRepository;
     private final SeatRepository seatRepository;
     private final PromotionRepository promotionRepository;
-    private final StaffBookingService staffBookingService;
+    private final CounterBookingService counterBookingService;
     private final BookingService bookingService;
     private final PricingService pricingService;
     private final SeatLockService seatLockService;
@@ -110,7 +111,6 @@ public class StaffBookingController {
             map.put("seatRow", s.getSeatRow());
             map.put("seatNumber", s.getSeatNumber());
             map.put("seatType", s.getSeatType() != null ? s.getSeatType().toString() : "NORMAL");
-            map.put("isBooked", occupied.contains(s.getSeatId()));
             boolean isLocked = seatLockService.isLocked(showtimeId, s.getSeatId());
             map.put("isBooked", occupied.contains(s.getSeatId()) || isLocked);
             return map;
@@ -175,9 +175,13 @@ public class StaffBookingController {
             return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng chưa đạt giá trị tối thiểu"));
         }
 
-        BigDecimal discount = (promo.getDiscountType() == Promotion.DiscountType.percent)
-                ? currentTotal.multiply(promo.getDiscountValue().divide(new BigDecimal(100)))
-                : promo.getDiscountValue();
+        BigDecimal discount = BigDecimal.ZERO;
+        if (promo.getDiscountType() == Promotion.DiscountType.percent) {
+            discount = currentTotal.multiply(promo.getDiscountValue())
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+        } else {
+            discount = promo.getDiscountValue();
+        }
 
         BigDecimal finalAmount = currentTotal.subtract(discount).max(BigDecimal.ZERO);
 
@@ -194,7 +198,7 @@ public class StaffBookingController {
         if (staff == null) return ResponseEntity.status(401).body(Map.of("message", "Chưa đăng nhập"));
 
         try {
-            Booking booking = staffBookingService.processCounterBooking(
+            Booking booking = counterBookingService.processCounterBooking(
                     staff,
                     request.getShowtimeId(),
                     request.getSeatIds(),
@@ -291,7 +295,7 @@ public class StaffBookingController {
     @ResponseBody
     public ResponseEntity<?> cancelBooking(@PathVariable Long id) {
         try {
-            staffBookingService.cancelBooking(id);
+            counterBookingService.cancelBooking(id);
             return ResponseEntity.ok(Map.of("message", "Hủy vé thành công"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
