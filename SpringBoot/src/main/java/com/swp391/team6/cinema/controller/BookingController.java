@@ -19,6 +19,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -177,5 +179,30 @@ public class BookingController {
         model.addAttribute("booking", detail.get());
         model.addAttribute("user", user);
         return "booking-detail-customer";
+    }
+
+    // API endpoints for seat validation
+    @GetMapping("/api/occupied-seats")
+    @ResponseBody
+    public Set<Long> getOccupiedSeats(@RequestParam Long showtimeId) {
+        return bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
+    }
+
+    @PostMapping("/api/validate-seats")
+    @ResponseBody
+    public Map<String, Object> validateSeats(@RequestBody Map<String, Object> request) {
+        Long showtimeId = Long.valueOf(request.get("showtimeId").toString());
+        @SuppressWarnings("unchecked")
+        List<Long> seatIds = (List<Long>) request.get("seatIds");
+        Set<Long> occupied = bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
+
+        List<Long> occupiedInRequest = seatIds.stream()
+                .filter(occupied::contains)
+                .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", occupiedInRequest.isEmpty());
+        result.put("occupiedSeats", occupiedInRequest);
+        return result;
     }
 }

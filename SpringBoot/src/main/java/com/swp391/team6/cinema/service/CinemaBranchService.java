@@ -6,13 +6,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.swp391.team6.cinema.entity.CinemaBranch;
+import com.swp391.team6.cinema.repository.CinemaBranchRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CinemaBranchService {
 
     private final CinemaBranchRepository cinemaBranchRepository;
+
+    public List<CinemaBranch> getActiveBranches() {
+        return cinemaBranchRepository.findAll().stream()
+                .filter(b -> b.getStatus() == CinemaBranch.BranchStatus.active)
+                .collect(Collectors.toList());
+    }
 
     public List<CinemaBranch> getAllBranches() {
         return cinemaBranchRepository.findAll();
