@@ -13,6 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/admin/promotions")
 public class PromotionController {
@@ -151,5 +154,11 @@ public class PromotionController {
             return null;
         }
         return user;
+    }
+    // API endpoint for validating promo code
+    @GetMapping("/api/validate")
+    @ResponseBody
+    public Map<String, Object> validatePromoCode(@RequestParam String code, @RequestParam BigDecimal amount) {
+        return promotionService.validatePromoCode(code, amount);
     }
 }

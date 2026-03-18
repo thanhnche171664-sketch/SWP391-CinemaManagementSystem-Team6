@@ -28,6 +28,7 @@ public class ViewController {
     private final CinemaBranchRepository cinemaBranchRepository;
     private final AdminDashboardService adminDashboardService;
     private final ReviewService reviewService;
+    private final CinemaBranchService cinemaBranchService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -175,5 +176,21 @@ public class ViewController {
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    @GetMapping("/cinemas")
+    public String cinemas(@RequestParam(required = false) String keyword,
+                          Model model) {
+        List<CinemaBranch> branches;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            branches = cinemaBranchService.searchBranches(keyword).stream()
+                    .filter(b -> b.getStatus() == CinemaBranch.BranchStatus.active)
+                    .collect(java.util.stream.Collectors.toList());
+        } else {
+            branches = cinemaBranchService.getActiveBranches();
+        }
+        model.addAttribute("branches", branches);
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+        return "cinema-list";
     }
 }

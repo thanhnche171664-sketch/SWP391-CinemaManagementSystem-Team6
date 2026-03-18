@@ -160,43 +160,83 @@
 
     <div class="modal fade" id="showtimesModal" tabindex="-1" aria-labelledby="showtimesModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="showtimesModalLabel">Showtimes</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="showtimesModalLabel">
+                        <i class="bi bi-calendar-event me-2"></i>Lịch chiếu - <span th:text="${movie.title}"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Filters -->
+                    <div class="row g-3 mb-4" th:if="${!#lists.isEmpty(showtimes)}">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="bi bi-calendar3"></i> Ngày</label>
+                            <input type="date" class="form-control bg-dark text-white border-secondary" id="showtimeDateFilter">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="bi bi-building"></i> Rạp</label>
+                            <select class="form-select bg-dark text-white border-secondary" id="showtimeBranchFilter">
+                                <option value="">Tất cả rạp</option>
+                                <option th:each="s : ${showtimes}"
+                                        th:value="${s.room.branch.branchId}"
+                                        th:text="${s.room.branch.branchName}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-light w-100" onclick="clearShowtimeFilters()">
+                                <i class="bi bi-x-circle"></i> Xóa lọc
+                            </button>
+                        </div>
+                    </div>
+
                     <div th:if="${#lists.isEmpty(showtimes)}" class="alert alert-info" role="alert">
                         Chưa có suất chiếu cho phim này.
                     </div>
                     <div th:if="${!#lists.isEmpty(showtimes)}" class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-dark table-striped">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Room</th>
-                                    <th>Branch</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th><i class="bi bi-calendar3"></i> Ngày</th>
+                                    <th><i class="bi bi-clock"></i> Giờ</th>
+                                    <th><i class="bi bi-door-open"></i> Phòng</th>
+                                    <th><i class="bi bi-building"></i> Rạp</th>
+                                    <th><i class="bi bi-info-circle"></i> Trạng thái</th>
+                                    <th><i class="bi bi-ticket-perforated"></i> Đặt vé</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr th:each="showtime : ${showtimes}">
+                            <tbody id="showtimesTableBody">
+                                <tr th:each="showtime : ${showtimes}"
+                                    th:data-date="${#temporals.format(showtime.startTime, 'yyyy-MM-dd')}"
+                                    th:data-branch="${showtime.room.branch.branchId}">
                                     <td th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy')}">Date</td>
                                     <td th:text="${#temporals.format(showtime.startTime, 'HH:mm')}">Time</td>
                                     <td th:text="${showtime.room.roomName}">Room</td>
                                     <td th:text="${showtime.room.branch.branchName}">Branch</td>
-                                    <td><span class="badge bg-success" th:text="${showtime.status}">Status</span></td>
                                     <td>
-                                        <a th:href="@{/booking/{id}(id=${showtime.showtimeId})}" class="btn btn-sm btn-primary">Book</a>
+                                        <span class="badge bg-success"
+                                              th:if="${showtime.status.name() == 'open'}"
+                                              th:text="${showtime.status}">OPEN</span>
+                                        <span class="badge bg-warning text-dark"
+                                              th:if="${showtime.status.name() == 'full'}"
+                                              th:text="${showtime.status}">FULL</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/booking/{id}(id=${showtime.showtimeId})}"
+                                           class="btn btn-sm btn-primary"
+                                           th:if="${showtime.status.name() == 'open'}">
+                                            <i class="bi bi-ticket-perforated"></i> Đặt
+                                        </a>
+                                        <span class="badge bg-secondary" th:if="${showtime.status.name() == 'full'}">
+                                            Hết vé
+                                        </span>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
@@ -220,6 +260,33 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Showtime filter functions
+        document.getElementById('showtimeDateFilter')?.addEventListener('change', filterShowtimes);
+        document.getElementById('showtimeBranchFilter')?.addEventListener('change', filterShowtimes);
+
+        function filterShowtimes() {
+            const dateFilter = document.getElementById('showtimeDateFilter')?.value || '';
+            const branchFilter = document.getElementById('showtimeBranchFilter')?.value || '';
+            const rows = document.querySelectorAll('#showtimesTableBody tr');
+
+            rows.forEach(row => {
+                const rowDate = row.dataset.date || '';
+                const rowBranch = row.dataset.branch || '';
+                let show = true;
+
+                if (dateFilter && rowDate !== dateFilter) show = false;
+                if (branchFilter && rowBranch !== branchFilter) show = false;
+
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        function clearShowtimeFilters() {
+            document.getElementById('showtimeDateFilter').value = '';
+            document.getElementById('showtimeBranchFilter').value = '';
+            filterShowtimes();
+        }
+
         function showBookingToast(message, variant) {
             const toastEl = document.getElementById('bookingToast');
             const toastBody = document.getElementById('bookingToastBody');
