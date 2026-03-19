@@ -80,7 +80,10 @@ public class CounterBookingService {
             if (appliedPromo == null || appliedPromo.getStatus() != Promotion.Status.active) {
                 throw new IllegalArgumentException("Mã giảm giá không tồn tại hoặc không khả dụng");
             }
-            if (appliedPromo.getBranch() != null && !appliedPromo.getBranch().equals(branchId)) {
+            if (appliedPromo.getBranch() == null) {
+                throw new IllegalArgumentException("Mã giảm giá này chưa được kích hoạt cho bất kỳ chi nhánh nào");
+            }
+            if (!appliedPromo.getBranch().getBranchId().equals(branchId)) {
                 throw new IllegalArgumentException("Mã giảm giá này không áp dụng cho chi nhánh này");
             }
             if (total.compareTo(appliedPromo.getMinBookingAmount()) < 0) {
@@ -162,18 +165,26 @@ public class CounterBookingService {
             throw new IllegalArgumentException("Vé này đã bị hủy trước đó");
         }
 
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (booking.getStatus() == Booking.BookingStatus.paid && now.isAfter(booking.getShowtime().getStartTime())) {
+            throw new IllegalArgumentException("Không thể hủy vé đã thanh toán sau khi suất chiếu bắt đầu.");
+        }
+
         if (booking.getPromotion() != null) {
             Promotion promo = booking.getPromotion();
-            promo.setUsedCount(Math.max(0, promo.getUsedCount() - 1));
-            promotionRepository.save(promo);
+
+            if (promo.getUsedCount() != null && promo.getUsedCount() > 0) {
+                promo.setUsedCount(promo.getUsedCount() - 1);
+                promotionRepository.save(promo);
+            }
         }
 
         booking.setStatus(Booking.BookingStatus.cancelled);
         bookingRepository.save(booking);
 
-        Payment payment = paymentRepository.findByBooking(booking)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin thanh toán"));
-        payment.setPaymentStatus(Payment.PaymentStatus.failed);
-        paymentRepository.save(payment);
+        paymentRepository.findByBooking(booking).ifPresent(payment -> {
+            payment.setPaymentStatus(Payment.PaymentStatus.failed);
+            paymentRepository.save(payment);
+        });
     }
 }

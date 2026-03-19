@@ -65,6 +65,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             join fetch s.movie m
             join fetch s.room r
             join fetch r.branch br
+            left join fetch b.promotion p
             where b.bookingId = :bookingId
             """)
     Optional<Booking> findByIdWithDetails(@Param("bookingId") Long bookingId);

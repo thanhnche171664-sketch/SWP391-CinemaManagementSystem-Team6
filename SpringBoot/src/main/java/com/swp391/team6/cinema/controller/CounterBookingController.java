@@ -179,11 +179,15 @@ public class CounterBookingController {
         if (promo == null || promo.getStatus() != Promotion.Status.active) {
             return ResponseEntity.badRequest().body(Map.of("message", "Mã không hợp lệ"));
         }
+        if (promo.getBranch() == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mã giảm giá hiện không hoạt động"));
+        }
+
+        if (!promo.getBranch().getBranchId().equals(branchId)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mã không áp dụng cho chi nhánh này"));
+        }
         if (currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
             return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng chưa đạt giá trị tối thiểu"));
-        }
-        if (promo.getBranch() != null && !promo.getBranch().equals(branchId)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Mã không áp dụng cho chi nhánh này"));
         }
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         if (promo.getEndDate() != null && now.isAfter(promo.getEndDate())) {
