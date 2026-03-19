@@ -45,7 +45,9 @@ public class CounterBookingController {
     private final PricingService pricingService;
     private final SeatLockService seatLockService;
     private final MovieService movieService;
+    private final PayOSService payOSService;
     private final TemplateEngine templateEngine;
+
 
 
     @GetMapping("/pos")
@@ -128,10 +130,12 @@ public class CounterBookingController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/api/unlock-seat")
+    @PostMapping("/api/unlock-seats")
     @ResponseBody
-    public ResponseEntity<?> unlockSeat(@RequestParam Long showtimeId, @RequestParam Long seatId) {
-        seatLockService.releaseSeat(showtimeId, seatId);
+    public ResponseEntity<?> unlockSeats(@RequestParam Long showtimeId, @RequestBody List<Long> seatIds) {
+        if (seatIds != null) {
+            seatIds.forEach(id -> seatLockService.releaseSeat(showtimeId, id));
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -165,12 +169,27 @@ public class CounterBookingController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> validatePromo(
             @RequestParam String promoCode,
-            @RequestParam BigDecimal currentTotal) {
+            @RequestParam BigDecimal currentTotal,
+            HttpSession session) {
+
+        User staff = (User) session.getAttribute("loggedInUser");
+        Long branchId = staff.getBranchId();
 
         Promotion promo = promotionRepository.findByPromoCode(promoCode);
         if (promo == null || promo.getStatus() != Promotion.Status.active) {
             return ResponseEntity.badRequest().body(Map.of("message", "Mã không hợp lệ"));
         }
+        if (currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng chưa đạt giá trị tối thiểu"));
+        }
+        if (promo.getBranch() != null && !promo.getBranch().equals(branchId)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mã không áp dụng cho chi nhánh này"));
+        }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (promo.getEndDate() != null && now.isAfter(promo.getEndDate())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mã đã hết hạn"));
+        }
+
         if (currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
             return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng chưa đạt giá trị tối thiểu"));
         }
@@ -208,10 +227,42 @@ public class CounterBookingController {
                     request.getPromoCode()
             );
 
+            if ("payos".equalsIgnoreCase(request.getPaymentMethod())) {
+                int amountVnd = booking.getTotalAmount().intValue();
+                String desc = "Quầy - Đơn #" + booking.getBookingId();
+
+                String returnPath = "/staff/booking/success?bookingId=" + booking.getBookingId();
+                String cancelPath = "/staff/booking/pos";
+
+                String checkoutUrl = payOSService.createPaymentLink(
+                        booking.getBookingId(), amountVnd, desc, returnPath, cancelPath
+                );
+
+                if (checkoutUrl != null) {
+                    return ResponseEntity.ok(Map.of(
+                            "status", "PAYMENT_REQUIRED",
+                            "checkoutUrl", checkoutUrl,
+                            "bookingId", booking.getBookingId()
+                    ));
+                }
+            }
+
             return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Đặt vé thành công"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("status", "ERROR", "message", e.getMessage()));
         }
+    }
+
+    @GetMapping("/success")
+    public String paymentSuccess(@RequestParam Long bookingId, Model model) {
+        bookingService.syncPaymentStatusFromPayOS(bookingId);
+
+        var detail = bookingService.getBookingDetail(bookingId);
+        if (detail.isPresent()) {
+            model.addAttribute("booking", detail.get());
+            return "staff/booking-success-pos";
+        }
+        return "redirect:/staff/booking/pos";
     }
 
     private CustomerDTO toCustomerDTO(User u) {

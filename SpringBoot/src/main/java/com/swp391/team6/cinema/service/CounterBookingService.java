@@ -25,14 +25,18 @@ public class CounterBookingService {
     private final PricingService pricingService;
     private final BookingService bookingService;
     private final SeatLockService seatLockService;
+    private final PayOSService payOSService;
 
     @Transactional
     public Booking processCounterBooking(User staff, Long showtimeId, List<Long> seatIds,
                                          String phone, String email, String paymentMethodStr,
                                          String promoCode) {
 
-        if (!"cash".equalsIgnoreCase(paymentMethodStr)) {
-            throw new IllegalArgumentException("Hệ thống chỉ hỗ trợ thanh toán tiền mặt (cash) tại quầy");
+        boolean isPayOS = "payos".equalsIgnoreCase(paymentMethodStr) || "online".equalsIgnoreCase(paymentMethodStr);
+        boolean isCash = "cash".equalsIgnoreCase(paymentMethodStr);
+
+        if (!isPayOS && !isCash) {
+            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ (Chỉ hỗ trợ cash hoặc payos)");
         }
 
         Showtime showtime = showtimeRepository.findById(showtimeId)
@@ -46,8 +50,11 @@ public class CounterBookingService {
         }
 
         if (customer == null) {
+
             customer = userRepository.findByFullName("GUEST")
+
                     .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản 'GUEST'"));
+
         }
 
         Long branchId = showtime.getRoom().getBranch().getBranchId();
@@ -60,7 +67,7 @@ public class CounterBookingService {
         for (Long sid : seatIds) {
             Seat seat = allSeats.stream().filter(s -> s.getSeatId().equals(sid)).findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Ghế ID " + sid + " không tồn tại"));
-            if (occupied.contains(sid)) throw new IllegalArgumentException("Ghế đã được đặt");
+            if (occupied.contains(sid)) throw new IllegalArgumentException("Ghế đã được đặt hoặc đang được giữ");
 
             selectedSeats.add(seat);
             total = total.add(pricingService.getPrice(branchId, seat.getSeatType(), showtime.getStartTime()));
@@ -73,8 +80,21 @@ public class CounterBookingService {
             if (appliedPromo == null || appliedPromo.getStatus() != Promotion.Status.active) {
                 throw new IllegalArgumentException("Mã giảm giá không tồn tại hoặc không khả dụng");
             }
+            if (appliedPromo.getBranch() != null && !appliedPromo.getBranch().equals(branchId)) {
+                throw new IllegalArgumentException("Mã giảm giá này không áp dụng cho chi nhánh này");
+            }
             if (total.compareTo(appliedPromo.getMinBookingAmount()) < 0) {
                 throw new IllegalArgumentException("Đơn hàng không đủ giá trị tối thiểu để áp dụng mã này");
+            }
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            if (appliedPromo.getStartDate() != null && now.isBefore(appliedPromo.getStartDate())) {
+                throw new IllegalArgumentException("Chương trình khuyến mãi chưa bắt đầu");
+            }
+            if (appliedPromo.getEndDate() != null && now.isAfter(appliedPromo.getEndDate())) {
+                throw new IllegalArgumentException("Mã giảm giá đã hết hạn");
+            }
+            if (appliedPromo.getUsageLimit() != null && appliedPromo.getUsedCount() >= appliedPromo.getUsageLimit()) {
+                throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng");
             }
 
             BigDecimal discount = BigDecimal.ZERO;
@@ -86,7 +106,6 @@ public class CounterBookingService {
             }
 
             total = total.subtract(discount).max(BigDecimal.ZERO);
-
             appliedPromo.setUsedCount(appliedPromo.getUsedCount() + 1);
             promotionRepository.save(appliedPromo);
         }
@@ -95,7 +114,8 @@ public class CounterBookingService {
         booking.setShowtime(showtime);
         booking.setUser(customer);
         booking.setBookingType(Booking.BookingType.counter);
-        booking.setStatus(Booking.BookingStatus.paid);
+
+        booking.setStatus(isPayOS ? Booking.BookingStatus.pending : Booking.BookingStatus.paid);
         booking.setTotalAmount(total);
 
         if (appliedPromo != null) {
@@ -113,9 +133,17 @@ public class CounterBookingService {
 
         Payment payment = new Payment();
         payment.setBooking(booking);
-        payment.setMethod(Payment.PaymentMethod.cash);
         payment.setAmount(total);
-        payment.setPaymentStatus(Payment.PaymentStatus.success);
+        payment.setOrderCode(booking.getBookingId());
+
+        if (isPayOS) {
+            payment.setMethod(Payment.PaymentMethod.online);
+            payment.setPaymentStatus(Payment.PaymentStatus.pending);
+        } else {
+            payment.setMethod(Payment.PaymentMethod.cash);
+            payment.setPaymentStatus(Payment.PaymentStatus.success);
+            payment.setPaymentTime(java.time.LocalDateTime.now());
+        }
         paymentRepository.save(payment);
 
         for (Long sid : seatIds) {

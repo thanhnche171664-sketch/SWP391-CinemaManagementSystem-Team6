@@ -32,19 +32,6 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public List<StaffDTO> findAllStaff() {
-        List<User.UserRole> staffRoles = Arrays.asList(
-                User.UserRole.MANAGER,
-                User.UserRole.STAFF
-        );
-
-        List<User> users = userRepository.findByRoleIn(staffRoles);
-
-        return users.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
     private StaffDTO convertToDTO(User user) {
         StaffDTO dto = new StaffDTO();
 
@@ -130,13 +117,6 @@ public class UserService {
         return branchRepository.findAll();
     }
 
-    public List<CustomerDTO> findAllCustomers() {
-        List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
-
-        return userRepository.findByRoleIn(roles).stream()
-                .map(this::convertToCustomerDTO)
-                .collect(Collectors.toList());
-    }
 
     public Page<CustomerDTO> findCustomersPaged(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());

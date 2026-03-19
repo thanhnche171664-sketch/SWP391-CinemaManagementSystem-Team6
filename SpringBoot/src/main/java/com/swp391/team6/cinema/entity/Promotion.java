@@ -1,6 +1,5 @@
 package com.swp391.team6.cinema.entity;
 
-import ch.qos.logback.core.status.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -34,7 +33,6 @@ public class Promotion {
 
     private LocalDateTime endDate;
 
-    // Liên kết với nhánh (Null nếu áp dụng toàn quốc)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private CinemaBranch branch;
