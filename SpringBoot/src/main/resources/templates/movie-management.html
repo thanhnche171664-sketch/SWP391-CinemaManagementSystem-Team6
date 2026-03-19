@@ -23,27 +23,35 @@
             </button>
         </div>
 
-        <div class="filters">
+        <div th:if="${error}" class="alert alert-error">
+            <span th:text="${error}"></span>
+        </div>
+        <div th:if="${success}" class="alert alert-success">
+            <span th:text="${success}"></span>
+        </div>
+
+        <form id="filterForm" class="filters" method="get" th:action="@{/admin/movies}">
             <div class="search-box has-icon">
                 <span class="search-icon">
                     <i data-lucide="search"></i>
                 </span>
-                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm theo tiêu đề...">
+                <input type="text" id="searchInput" name="search" th:value="${search}"
+                       onkeyup="handleSearchKey(event)" placeholder="Tìm theo tiêu đề...">
             </div>
 
-            <select id="statusFilter" onchange="filterTable()" class="filter-select">
+            <select id="statusFilter" name="status" onchange="submitFilters()" class="filter-select">
                 <option value="">Tất cả trạng thái</option>
-                <option value="upcoming">upcoming</option>
-                <option value="now_showing">now_showing</option>
-                <option value="stopped">stopped</option>
+                <option value="upcoming" th:selected="${statusFilter == 'upcoming'}">upcoming</option>
+                <option value="now_showing" th:selected="${statusFilter == 'now_showing'}">now_showing</option>
+                <option value="stopped" th:selected="${statusFilter == 'stopped'}">stopped</option>
             </select>
 
-            <select id="hiddenFilter" onchange="filterTable()" class="filter-select">
+            <select id="hiddenFilter" name="hidden" onchange="submitFilters()" class="filter-select">
                 <option value="">Tất cả hiển thị</option>
-                <option value="shown">Shown</option>
-                <option value="hidden">Hidden</option>
+                <option value="shown" th:selected="${hiddenFilter == 'shown'}">Shown</option>
+                <option value="hidden" th:selected="${hiddenFilter == 'hidden'}">Hidden</option>
             </select>
-        </div>
+        </form>
 
         <div class="table-card">
             <table class="data-table" id="movieTable">
@@ -54,6 +62,7 @@
                     <th>Tiêu đề</th>
                     <th>Thể loại</th>
                     <th>Thời lượng</th>
+                    <th>Ngày phát hành</th>
                     <th>Tuổi</th>
                     <th>Trạng thái</th>
                     <th>Hiển thị</th>
@@ -70,6 +79,8 @@
                     <td th:text="${movie.title}"></td>
                     <td class="text-muted" th:text="${movie.genreNames}"></td>
                     <td class="text-muted" th:text="${movie.duration} + ' phút'"></td>
+                    <td class="text-muted"
+                        th:text="${movie.releaseDate != null ? #temporals.format(movie.releaseDate, 'dd/MM/yyyy') : '-'}"></td>
                     <td class="text-muted" th:text="${movie.ageRating}"></td>
                     <td>
                         <span class="status-badge" th:classappend="' status-' + ${movie.status}"
@@ -87,7 +98,7 @@
                             <button type="button" th:onclick="prepareEdit([[${movie}]])" class="icon-btn">
                                 <i data-lucide="edit-3"></i>
                             </button>
-                            <a th:href="@{'/movies/' + ${movie.movieId}}" class="icon-btn">
+                            <a th:href="@{'/admin/movies/view/' + ${movie.movieId}}" class="icon-btn">
                                 <i data-lucide="eye"></i>
                             </a>
                         </div>
@@ -95,6 +106,26 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a class="page-link"
+               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:classappend="${currentPage == 0} ? ' disabled' : ''">
+                &laquo;
+            </a>
+            <a class="page-link"
+               th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+               th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:classappend="${i == currentPage} ? ' active' : ''"
+               th:text="${i + 1}">
+                1
+            </a>
+            <a class="page-link"
+               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
+                &raquo;
+            </a>
         </div>
     </main>
 </div>
@@ -107,21 +138,39 @@
             <div class="form-grid">
                 <div class="form-group full">
                     <label class="form-label">Tiêu đề phim</label>
-                    <input type="text" th:field="*{title}" id="form-title" required class="form-input">
+                    <input type="text"
+                           th:field="*{title}"
+                           id="form-title"
+                           required
+                           maxlength="255"
+                           class="form-input">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Thể loại</label>
-                    <select multiple th:field="*{genreIds}" id="form-genres" class="form-select">
+                    <select multiple th:field="*{genreIds}" id="form-genres" class="form-select" required>
                         <option th:each="g : ${genreList}" th:value="${g.genreId}" th:text="${g.genreName}"></option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Thời lượng (phút)</label>
-                    <input type="number" min="1" th:field="*{duration}" id="form-duration" class="form-input">
+                    <input type="number" min="30" max="300" step="1" th:field="*{duration}" id="form-duration" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ngày phát hành</label>
+                    <input type="date" th:field="*{releaseDate}" id="form-releaseDate" class="form-input" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Độ tuổi</label>
-                    <input type="text" th:field="*{ageRating}" id="form-ageRating" class="form-input" placeholder="PG-13">
+                    <select th:field="*{ageRating}" id="form-ageRating" class="form-select" required>
+                        <option value="" disabled selected>Chọn độ tuổi</option>
+                        <option value="G">G</option>
+                        <option value="PG">PG</option>
+                        <option value="PG-13">PG-13</option>
+                        <option value="C13">C13</option>
+                        <option value="C16">C16</option>
+                        <option value="C18">C18</option>
+                        <option value="P">P</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Trạng thái</label>
@@ -141,7 +190,7 @@
                 </div>
                 <div class="form-group full">
                     <label class="form-label">Mô tả</label>
-                    <textarea rows="4" th:field="*{description}" id="form-description" class="form-textarea"></textarea>
+                    <textarea rows="4" th:field="*{description}" id="form-description" class="form-textarea" maxlength="2000"></textarea>
                 </div>
             </div>
             <div class="modal-actions">
@@ -155,37 +204,117 @@
 <script th:inline="javascript">
     lucide.createIcons();
 
-    function filterTable() {
-        const searchText = document.getElementById('searchInput').value.toLowerCase();
-        const statusValue = document.getElementById('statusFilter').value;
-        const hiddenValue = document.getElementById('hiddenFilter').value;
-        const rows = document.querySelectorAll('tbody tr');
+    const form = document.getElementById('movieForm');
+    const titleInput = document.getElementById('form-title');
+    const durationInput = document.getElementById('form-duration');
+    const releaseDateInput = document.getElementById('form-releaseDate');
+    const ageRatingInput = document.getElementById('form-ageRating');
+    const genreSelect = document.getElementById('form-genres');
+    const descriptionInput = document.getElementById('form-description');
+    let isEditMode = false;
 
-        rows.forEach(row => {
-            const title = row.cells[2].innerText.toLowerCase();
-            const status = row.cells[6].innerText.trim();
-            const visibility = row.cells[7].innerText.trim().toLowerCase();
+    function setTodayMinDate() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        releaseDateInput.min = `${yyyy}-${mm}-${dd}`;
+    }
 
-            const matchesSearch = title.includes(searchText);
-            const matchesStatus = statusValue === "" || status === statusValue;
-            const matchesHidden = hiddenValue === "" || visibility === hiddenValue;
+    function clearReleaseDateMin() {
+        releaseDateInput.removeAttribute('min');
+    }
 
-            row.style.display = (matchesSearch && matchesStatus && matchesHidden) ? "" : "none";
-        });
+    function updateValidity() {
+        const titleValue = (titleInput.value || '').trim();
+        if (titleValue.length === 0) {
+            titleInput.setCustomValidity('Tên phim không được để trống hoặc chỉ toàn khoảng trắng.');
+        } else if (titleValue.length > 255) {
+            titleInput.setCustomValidity('Tên phim tối đa 255 ký tự.');
+        } else {
+            titleInput.setCustomValidity('');
+        }
+
+        const durationValue = durationInput.value;
+        const durationNumber = Number(durationValue);
+        if (!durationValue) {
+            durationInput.setCustomValidity('Thời lượng phim là bắt buộc.');
+        } else if (!Number.isInteger(durationNumber) || durationNumber < 30 || durationNumber > 300) {
+            durationInput.setCustomValidity('Thời lượng phải là số nguyên từ 30 đến 300 phút.');
+        } else {
+            durationInput.setCustomValidity('');
+        }
+
+        if (!releaseDateInput.value) {
+            releaseDateInput.setCustomValidity('Ngày phát hành là bắt buộc.');
+        } else if (!isEditMode && releaseDateInput.min && releaseDateInput.value < releaseDateInput.min) {
+            releaseDateInput.setCustomValidity('Ngày phát hành không được nhỏ hơn ngày hiện tại.');
+        } else {
+            releaseDateInput.setCustomValidity('');
+        }
+
+        if (!ageRatingInput.value) {
+            ageRatingInput.setCustomValidity('Vui lòng chọn độ tuổi hợp lệ.');
+        } else {
+            ageRatingInput.setCustomValidity('');
+        }
+
+        if (genreSelect.selectedOptions.length === 0) {
+            genreSelect.setCustomValidity('Vui lòng chọn ít nhất một thể loại.');
+        } else {
+            genreSelect.setCustomValidity('');
+        }
+
+        if ((descriptionInput.value || '').length > 2000) {
+            descriptionInput.setCustomValidity('Mô tả tối đa 2000 ký tự.');
+        } else {
+            descriptionInput.setCustomValidity('');
+        }
+    }
+
+    titleInput.addEventListener('input', updateValidity);
+    durationInput.addEventListener('input', updateValidity);
+    releaseDateInput.addEventListener('input', updateValidity);
+    ageRatingInput.addEventListener('change', updateValidity);
+    genreSelect.addEventListener('change', updateValidity);
+    descriptionInput.addEventListener('input', updateValidity);
+
+    form.addEventListener('submit', (event) => {
+        updateValidity();
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.reportValidity();
+        }
+    });
+
+    setTodayMinDate();
+
+    function submitFilters() {
+        document.getElementById('filterForm').submit();
+    }
+
+    function handleSearchKey(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submitFilters();
+        }
     }
 
     function openModalAdd() {
+        isEditMode = false;
         document.getElementById('modalTitle').innerText = "Thêm phim mới";
         document.getElementById('movieForm').reset();
         document.getElementById('form-id').value = "";
-        const genreSelect = document.getElementById('form-genres');
         Array.from(genreSelect.options).forEach(option => {
             option.selected = false;
         });
+        setTodayMinDate();
+        updateValidity();
         document.getElementById('movieModal').classList.remove('hidden');
     }
 
     function prepareEdit(movie) {
+        isEditMode = true;
         document.getElementById('modalTitle').innerText = "Cập nhật phim";
         document.getElementById('form-id').value = movie.movieId;
         document.getElementById('form-title').value = movie.title || "";
@@ -195,11 +324,14 @@
             option.selected = selectedIds.includes(option.value);
         });
         document.getElementById('form-duration').value = movie.duration || "";
+        document.getElementById('form-releaseDate').value = movie.releaseDate || "";
         document.getElementById('form-ageRating').value = movie.ageRating || "";
         document.getElementById('form-status').value = movie.status || "upcoming";
         document.getElementById('form-posterUrl').value = movie.posterUrl || "";
         document.getElementById('form-trailerUrl').value = movie.trailerUrl || "";
         document.getElementById('form-description').value = movie.description || "";
+        clearReleaseDateMin();
+        updateValidity();
         document.getElementById('movieModal').classList.remove('hidden');
     }
 

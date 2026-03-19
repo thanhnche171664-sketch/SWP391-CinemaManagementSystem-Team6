@@ -2,6 +2,7 @@ package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.dto.BookingDetailDTO;
 import com.swp391.team6.cinema.dto.BookingListDTO;
+import com.swp391.team6.cinema.entity.Booking;
 import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.BookingService;
 import jakarta.servlet.http.HttpSession;
@@ -42,7 +43,22 @@ public class BookingManagementController {
             bookings = bookingService.getAllBookings();
         }
 
+        long totalBookings = bookings.size();
+        long paidBookings = bookings.stream()
+                .filter(booking -> booking.getStatus() == Booking.BookingStatus.paid)
+                .count();
+        long pendingBookings = bookings.stream()
+                .filter(booking -> booking.getStatus() == Booking.BookingStatus.pending)
+                .count();
+        long cancelledBookings = bookings.stream()
+                .filter(booking -> booking.getStatus() == Booking.BookingStatus.cancelled)
+                .count();
+
         model.addAttribute("bookingList", bookings);
+        model.addAttribute("totalBookings", totalBookings);
+        model.addAttribute("paidBookings", paidBookings);
+        model.addAttribute("pendingBookings", pendingBookings);
+        model.addAttribute("cancelledBookings", cancelledBookings);
         model.addAttribute("user", user);
         return "booking-management";
     }

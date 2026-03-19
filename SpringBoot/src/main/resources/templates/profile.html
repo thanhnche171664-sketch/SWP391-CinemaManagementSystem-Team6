@@ -16,6 +16,15 @@
         <div class="col-md-6">
 
             <h2 class="text-center mb-4">User Profile</h2>
+            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${message}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
 
             <!-- ===== VIEW MODE ===== -->
             <div th:if="${!edit}">
@@ -47,10 +56,14 @@
                     </li>
                 </ul>
 
-                <div class="d-grid">
+                <div class="d-grid gap-2 mt-3">
                     <a th:href="@{/profile(edit=true)}"
                        class="btn btn-primary">
                         Update Profile
+                    </a>
+                    <a th:href="@{/profile/change-password}"
+                       class="btn btn-outline-warning">
+                        Change Password
                     </a>
                 </div>
             </div>

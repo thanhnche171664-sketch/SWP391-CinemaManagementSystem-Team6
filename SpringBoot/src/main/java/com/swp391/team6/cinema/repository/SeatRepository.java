@@ -15,6 +15,10 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     List<Seat> findBySeatType(Seat.SeatType seatType);
 
     List<Seat> findByRoomRoomIdOrderBySeatRowAscSeatNumberAsc(Long roomId);
+    //SELECT *
+    //FROM seat s
+    //WHERE s.room_id = ?
+    //ORDER BY s.seat_row ASC, s.seat_number ASC;
 
     List<Seat> findByRoom(Room room);
 

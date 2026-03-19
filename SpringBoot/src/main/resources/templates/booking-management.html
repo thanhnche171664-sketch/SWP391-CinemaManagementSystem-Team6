@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý đặt vé - Cinema System</title>
-    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-booking.css}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -12,42 +12,61 @@
     <div th:replace="~{fragments/sidebar :: sidebar('tickets')}"></div>
 
     <main class="content">
-        <div class="header">
+        <header class="header">
             <div>
-                <h1>Danh sách đặt vé</h1>
-                <p>Toàn bộ giao dịch đặt vé theo hệ thống/chi nhánh.</p>
+                <h1>Quản lý đặt vé</h1>
+                <p>Xem và quản lý tất cả đơn đặt vé</p>
             </div>
-        </div>
+        </header>
 
         <div class="filters">
             <div class="search-box has-icon">
                 <span class="search-icon">
                     <i data-lucide="search"></i>
                 </span>
-                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm theo khách hàng hoặc phim...">
+                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm mã đặt vé...">
             </div>
 
             <select id="statusFilter" onchange="filterTable()" class="filter-select">
                 <option value="">Tất cả trạng thái</option>
-                <option value="pending">pending</option>
-                <option value="paid">paid</option>
-                <option value="cancelled">cancelled</option>
+                <option value="paid">Đã xác nhận</option>
+                <option value="pending">Đang chờ</option>
+                <option value="cancelled">Đã hủy</option>
             </select>
+
         </div>
+
+        <section class="stats-row">
+            <article class="stat-card">
+                <p class="stat-label">Tổng đơn hàng</p>
+                <div class="stat-value" th:text="${totalBookings}">0</div>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Đã xác nhận</p>
+                <div class="stat-value success" th:text="${paidBookings}">0</div>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Đang chờ</p>
+                <div class="stat-value warning" th:text="${pendingBookings}">0</div>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Đã hủy</p>
+                <div class="stat-value danger" th:text="${cancelledBookings}">0</div>
+            </article>
+        </section>
 
         <div class="table-card">
             <table class="data-table" id="bookingTable">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Thời gian</th>
-                    <th>Khách hàng</th>
+                    <th>Mã đặt vé</th>
                     <th>Phim</th>
+                    <th>Rạp &amp; Phòng</th>
                     <th>Suất chiếu</th>
-                    <th>Chi nhánh</th>
-                    <th>Trạng thái</th>
-                    <th>Tổng tiền</th>
+                    <th>Ghế</th>
+                    <th class="text-right">Tổng tiền</th>
                     <th>Thanh toán</th>
+                    <th>Trạng thái</th>
                     <th class="text-right">Thao tác</th>
                 </tr>
                 </thead>
@@ -55,33 +74,58 @@
                 <tr th:each="b : ${bookingList}"
                     th:attr="data-status=${#strings.toLowerCase(b.status)},
                              data-customer=${b.customerName != null ? #strings.toLowerCase(b.customerName) : ''},
-                             data-movie=${b.movieTitle != null ? #strings.toLowerCase(b.movieTitle) : ''}">
+                             data-movie=${b.movieTitle != null ? #strings.toLowerCase(b.movieTitle) : ''},
+                             data-id=${b.bookingId}">
                     <td class="mono text-muted" th:text="${b.bookingId}"></td>
-                    <td th:text="${#temporals.format(b.bookingTime, 'dd/MM/yyyy HH:mm')}"></td>
                     <td>
-                        <div class="font-bold" th:text="${b.customerName}"></div>
-                        <div class="text-muted" th:text="${b.customerEmail}"></div>
-                    </td>
-                    <td th:text="${b.movieTitle}"></td>
-                    <td th:text="${#temporals.format(b.showtimeStart, 'dd/MM/yyyy HH:mm')}"></td>
-                    <td th:text="${b.branchName}"></td>
-                    <td>
-                        <span class="status-badge" th:classappend="' status-' + ${b.status}"
-                              th:text="${b.status}"></span>
-                    </td>
-                    <td th:text="${b.totalAmount} + ' VND'"></td>
-                    <td>
-                        <div th:if="${b.paymentStatus != null}">
-                            <div th:text="${b.paymentMethod} + ' / ' + ${b.paymentStatus}"></div>
-                            <div class="text-muted" th:text="${b.paymentAmount} + ' VND'"></div>
+                        <div class="movie-cell">
+                            <div class="poster">
+                                <img th:if="${b.moviePosterUrl != null}" th:src="${b.moviePosterUrl}"
+                                     alt="poster" class="poster-img">
+                                <div th:if="${b.moviePosterUrl == null}" class="poster-fallback">No Image</div>
+                            </div>
+                            <div>
+                                <div class="movie-title" th:text="${b.movieTitle}"></div>
+                                <div class="text-muted" th:text="${b.customerName}"></div>
+                            </div>
                         </div>
-                        <span th:if="${b.paymentStatus == null}" class="text-muted">Chưa thanh toán</span>
+                    </td>
+                    <td>
+                        <div class="branch-room">
+                            <div th:text="${b.branchName}"></div>
+                            <div class="text-muted" th:text="${b.roomName}"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="showtime">
+                            <div th:text="${#temporals.format(b.showtimeStart, 'dd/MM/yyyy')}"></div>
+                            <div class="text-muted" th:text="${#temporals.format(b.showtimeStart, 'HH:mm')}"></div>
+                        </div>
+                    </td>
+                    <td class="mono" th:text="${b.seatLabels}">-</td>
+                    <td class="text-right" th:text="${b.totalAmount} + 'đ'">0đ</td>
+                    <td>
+                        <span class="payment-pill"
+                              th:if="${b.paymentStatus == null}">Chưa thanh toán</span>
+                        <div th:if="${b.paymentStatus != null}" class="payment-info">
+                            <div th:text="${b.paymentMethod}">method</div>
+                            <div class="text-muted" th:text="${b.paymentStatus}">status</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="' status-' + ${#strings.toLowerCase(b.status)}"
+                              th:text="${#strings.toLowerCase(b.status) == 'paid' ? 'Đã xác nhận' : (#strings.toLowerCase(b.status) == 'pending' ? 'Đang chờ' : 'Đã hủy')}">
+                        </span>
                     </td>
                     <td class="text-right">
-                        <a th:href="@{'/admin/bookings/' + ${b.bookingId}}" class="icon-btn">
+                        <a th:href="@{'/admin/bookings/' + ${b.bookingId}}" class="icon-btn" title="Xem chi tiết">
                             <i data-lucide="eye"></i>
                         </a>
                     </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(bookingList)}">
+                    <td colspan="9" class="text-muted">Chưa có đơn đặt vé.</td>
                 </tr>
                 </tbody>
             </table>
@@ -101,10 +145,10 @@
             const customer = row.dataset.customer || "";
             const movie = row.dataset.movie || "";
             const status = row.dataset.status || "";
+            const bookingId = (row.dataset.id || "").toString();
 
-            const matchesSearch = customer.includes(searchText) || movie.includes(searchText);
+            const matchesSearch = bookingId.includes(searchText) || customer.includes(searchText) || movie.includes(searchText);
             const matchesStatus = statusValue === "" || status === statusValue;
-
             row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
         });
     }

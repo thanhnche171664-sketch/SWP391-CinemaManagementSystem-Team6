@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.service;
 
+import com.swp391.team6.cinema.dto.ChangePasswordDTO;
 import com.swp391.team6.cinema.dto.BookingDTO;
 import com.swp391.team6.cinema.dto.CustomerDTO;
 import com.swp391.team6.cinema.dto.StaffDTO;
@@ -12,10 +13,6 @@ import com.swp391.team6.cinema.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +28,7 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
 
     private StaffDTO convertToDTO(User user) {
         StaffDTO dto = new StaffDTO();
@@ -55,29 +53,53 @@ public class UserService {
         return dto;
     }
 
+
+    public void updateProfile(User updatedUser){
+            User user = userRepository.findById(updatedUser.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setFullName(updatedUser.getFullName());
+        user.setEmail(updatedUser.getEmail());
+        user.setPhone(updatedUser.getPhone());
+
+        userRepository.save(user);
+    }
+
+    public void changePassword(Long userId, ChangePasswordDTO dto) {
+        // 1. Tìm user trong database
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+
+        // 2. Kiểm tra mật khẩu cũ (So sánh trực tiếp vì hiện tại bạn chưa dùng BCrypt)
+        if (!user.getPasswordHash().equals(dto.getOldPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác!");
+        }
+
+        if (dto.getNewPassword().length() < 8) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 8 ký tự!");
+        }
+
+        // 3. Kiểm tra mật khẩu mới và xác nhận mật khẩu có khớp nhau không
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new RuntimeException("Xác nhận mật khẩu mới không khớp!");
+        }
+
+        // 4. Cập nhật và lưu
+        user.setPasswordHash(dto.getNewPassword());
+        userRepository.save(user);
+    }
+
+
+
     public void saveStaff(StaffDTO dto) {
-        if (dto.getEmail() == null || !dto.getEmail().contains("@")) {
-            throw new RuntimeException("Email không hợp lệ!");
-        }
-
-        if (dto.getPhone() == null || !dto.getPhone().matches("\\d{10}")) {
-            throw new RuntimeException("Số điện thoại phải bao gồm đúng 10 chữ số!");
-        }
-
-        Optional<User> userByEmail = userRepository.findByEmail(dto.getEmail());
-        if (userByEmail.isPresent() && !userByEmail.get().getUserId().equals(dto.getUser_id())) {
-            throw new RuntimeException("Email này đã được sử dụng bởi một tài khoản khác!");
-        }
-
         User user;
         if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+            user = userRepository.findById(dto.getUser_id()).orElse(new User());
         } else {
+            if ("ADMIN".equals(dto.getRole())) {
+                throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
+            }
             user = new User();
-            String rawPassword = (dto.getPassword() == null || dto.getPassword().isEmpty()) ? "123456" : dto.getPassword();
-            user.setPasswordHash(passwordEncoder.encode(rawPassword));
-            user.setIsVerify(true);
+            user.setPasswordHash(passwordEncoder.encode("123456"));
         }
 
         user.setFullName(dto.getFull_name());
@@ -87,11 +109,11 @@ public class UserService {
         user.setRole(role);
         user.setBranchId(dto.getBranch_id());
         user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
-        if (role != User.UserRole.CUSTOMER) {
+        if (role != User.UserRole.CUSTOMER && (user.getIsVerify() == null || !user.getIsVerify())) {
             user.setIsVerify(true);
         }
 
-        if (dto.getUser_id() != null && dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         }
 
@@ -107,10 +129,7 @@ public class UserService {
     }
 
     public void deleteStaff(Long id) {
-        userRepository.findById(id).ifPresent(user -> {
-            user.setStatus(User.UserStatus.inactive);
-            userRepository.save(user);
-        });
+        userRepository.deleteById(id);
     }
 
     public List<CinemaBranch> findAllBranches() {
@@ -118,20 +137,12 @@ public class UserService {
     }
 
 
-    public Page<CustomerDTO> findCustomersPaged(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        List<User.UserRole> customerRoles = Collections.singletonList(User.UserRole.CUSTOMER);
+    public List<CustomerDTO> findAllCustomers() {
+        List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
 
-        return userRepository.findByRoleIn(customerRoles, pageable)
-                .map(this::convertToCustomerDTO);
-    }
-
-    public Page<StaffDTO> findStaffPaged(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
-        List<User.UserRole> staffRoles = Arrays.asList(User.UserRole.MANAGER, User.UserRole.STAFF);
-
-        return userRepository.findByRoleIn(staffRoles, pageable)
-                .map(this::convertToDTO);
+        return userRepository.findByRoleIn(roles).stream()
+                .map(this::convertToCustomerDTO)
+                .collect(Collectors.toList());
     }
 
     private CustomerDTO convertToCustomerDTO(User user) {
@@ -149,41 +160,13 @@ public class UserService {
     public void updateCustomer(CustomerDTO dto) {
         User customer = userRepository.findById(dto.getUser_id())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+        customer.setFullName(dto.getFull_name());
+        customer.setPhone(dto.getPhone());
         customer.setStatus(User.UserStatus.valueOf(dto.getStatus()));
         userRepository.save(customer);
     }
 
-    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
-        Optional<User> userOptional = userRepository.findById(userId);
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            if (passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
-                if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
-                    throw new RuntimeException("Mật khẩu mới không được trùng với mật khẩu hiện tại!");
-                }
-
-                user.setPasswordHash(passwordEncoder.encode(newPassword));
-                userRepository.save(user);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void updateBasicInfo(Long userId, String fullName, String phone) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-
-        if (phone == null || !phone.matches("\\d{10}")) {
-            throw new RuntimeException("Số điện thoại không hợp lệ (10 chữ số)");
-        }
-
-        user.setFullName(fullName);
-        user.setPhone(phone);
-        userRepository.save(user);
-    }
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
@@ -192,12 +175,6 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
-
-    public void updateProfile(User updatedUser){
-        User user = userRepository.findById(updatedUser.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -242,10 +219,14 @@ public class UserService {
         }).collect(Collectors.toList());
     }
 
-
+    /**
+     * Xác thực đăng nhập
+     * @return Map chứa: success (boolean), message (String), user (User nếu thành công)
+     */
     public Map<String, Object> authenticateUser(String email, String password) {
         Map<String, Object> result = new HashMap<>();
 
+        // Tìm user theo email
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
@@ -256,6 +237,7 @@ public class UserService {
 
         User user = userOptional.get();
 
+        // Kiểm tra password (hỗ trợ legacy plain text)
         String rawPassword = password == null ? "" : password;
         String storedPassword = user.getPasswordHash();
         boolean passwordMatches = false;
@@ -277,6 +259,7 @@ public class UserService {
             return result;
         }
 
+        // Kiểm tra tài khoản chưa verify (chỉ áp dụng cho CUSTOMER)
         if (user.getRole() == User.UserRole.CUSTOMER &&
                 (user.getIsVerify() == null || !user.getIsVerify())) {
             result.put("success", false);
@@ -284,12 +267,14 @@ public class UserService {
             return result;
         }
 
+        // Kiểm tra tài khoản bị khóa
         if (user.getStatus() == User.UserStatus.inactive) {
             result.put("success", false);
             result.put("message", "Tài khoản đã bị khóa bởi Admin. Vui lòng liên hệ hỗ trợ.");
             return result;
         }
 
+        // Đăng nhập thành công
         result.put("success", true);
         result.put("message", "Đăng nhập thành công!");
         result.put("user", user);

@@ -1,6 +1,8 @@
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Movie;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
@@ -17,7 +20,20 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     List<Movie> findByIsHiddenFalse();
 
+    Page<Movie> findByIsHiddenFalse(Pageable pageable);
+
+    Optional<Movie> findByTitleIgnoreCase(String title);
+
     List<Movie> findByStatusAndIsHiddenFalse(Movie.MovieStatus status);
+
+    @Query("SELECT m FROM Movie m " +
+           "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:status IS NULL OR m.status = :status) " +
+           "AND (:hidden IS NULL OR m.isHidden = :hidden)")
+    Page<Movie> findAdminMoviesWithFilters(@Param("keyword") String keyword,
+                                           @Param("status") Movie.MovieStatus status,
+                                           @Param("hidden") Boolean hidden,
+                                           Pageable pageable);
 
     @Query("SELECT DISTINCT m FROM Movie m LEFT JOIN FETCH m.genres " +
            "WHERE m.isHidden = false " +

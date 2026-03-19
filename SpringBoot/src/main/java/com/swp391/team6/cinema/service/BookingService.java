@@ -230,10 +230,17 @@ public class BookingService {
             dto.setCustomerName(booking.getUser().getFullName());
             dto.setCustomerEmail(booking.getUser().getEmail());
             dto.setMovieTitle(booking.getShowtime().getMovie().getTitle());
+            dto.setMoviePosterUrl(booking.getShowtime().getMovie().getPosterUrl());
             dto.setShowtimeStart(booking.getShowtime().getStartTime());
             dto.setShowtimeEnd(booking.getShowtime().getEndTime());
             dto.setRoomName(booking.getShowtime().getRoom().getRoomName());
             dto.setBranchName(booking.getShowtime().getRoom().getBranch().getBranchName());
+
+            List<BookingSeat> bookingSeats = bookingSeatRepository.findByBookingBookingId(booking.getBookingId());
+            String seatLabels = bookingSeats.stream()
+                    .map(seat -> seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber())
+                    .collect(Collectors.joining(", "));
+            dto.setSeatLabels(seatLabels.isEmpty() ? "-" : seatLabels);
 
             Payment latestPayment = getLatestPayment(booking.getBookingId());
             if (latestPayment != null) {

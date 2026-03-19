@@ -1,0 +1,89 @@
+/* nền toàn trang */
+body {
+    background: #000;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* layout */
+.main-content {
+    margin-left: 220px;
+    padding: 30px;
+}
+
+/* tiêu đề */
+.page-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+/* tab menu */
+.tab-menu {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.tab-menu button {
+    background: #111;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.tab-menu button.active {
+    background: #fff;
+    color: #000;
+}
+
+/* branch select */
+.branch-select {
+    margin-bottom: 30px;
+}
+
+.branch-select select {
+    background: #111;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 6px 10px;
+}
+
+/* seat pricing layout */
+.seat-config-grid {
+    display: flex;
+    gap: 40px;
+}
+
+/* card */
+.seat-card {
+    background: #111;
+    border: 1px solid #333;
+    padding: 15px;
+    width: 200px;
+    border-radius: 6px;
+}
+
+/* card title */
+.seat-card h3 {
+    margin-bottom: 10px;
+}
+
+/* input */
+.seat-card input {
+    width: 100%;
+    padding: 5px;
+    background: #000;
+    border: 1px solid #555;
+    color: #fff;
+}
+
+/* description */
+.seat-card .desc {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 5px;
+}
