@@ -62,6 +62,21 @@
             <a th:href="@{/movies}" class="btn btn-secondary btn-lg">Quay lại</a>
         </div>
     </form>
+
+    <div class="card p-3 border-success mt-4"
+         th:if="${session.loggedInUser != null && (session.loggedInUser.role.toString() == 'STAFF' || session.loggedInUser.role.toString() == 'MANAGER')}">
+
+        <h5 class="text-success">Đặt vé tại quầy (Nhân viên)</h5>
+
+        <div class="mb-3">
+            <label>SĐT khách hàng:</label>
+            <input type="text" name="phone" class="form-control" placeholder="Nhập số điện thoại khách..." required>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100" formaction="/staff/booking/create">
+            Thanh toán tiền mặt tại quầy
+        </button>
+    </div>
 </div>
 
 <script th:inline="javascript">

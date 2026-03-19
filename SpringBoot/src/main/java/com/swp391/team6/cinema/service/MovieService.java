@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.service;
 
+import com.swp391.team6.cinema.dto.GenreDTO;
 import com.swp391.team6.cinema.dto.MovieDTO;
 import com.swp391.team6.cinema.entity.Genre;
 import com.swp391.team6.cinema.entity.Movie;
@@ -278,5 +279,21 @@ public class MovieService {
 
     private String normalizeText(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    public List<GenreDTO> getAllGenres() {
+        return genreRepository.findAllByOrderByGenreNameAsc()
+                .stream()
+                .map(this::convertGenresToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private GenreDTO convertGenresToDTO(Genre genre) {
+        GenreDTO dto = new GenreDTO();
+        dto.setGenreId(genre.getGenreId());
+        dto.setGenreName(genre.getGenreName());
+        dto.setDescription(genre.getDescription());
+        dto.setStatus(genre.getStatus());
+        return dto;
     }
 }
