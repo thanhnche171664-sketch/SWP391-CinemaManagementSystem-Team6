@@ -17,6 +17,10 @@
                 <h2>Thêm khuyến mãi mới</h2>
                 <a th:href="@{/admin/promotions/view}" class="btn-close" style="text-decoration: none;">&times;</a>
             </div>
+            <div th:if="${error}" class="alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
 
             <form th:action="@{/admin/promotions/create-action}" method="post" class="promotion-form">
 
@@ -57,18 +61,21 @@
                     </div>
                     <div class="form-group">
                         <label>Giới hạn số lần sử dụng</label>
-                        <input type="number" name="usageLimit" placeholder="VD: 1000">
+                        <input type="number" name="usageLimit"
+                               th:value="${promotion.usageLimit}"
+                               min="0"
+                               required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Ngày bắt đầu <span class="text-red">*</span></label>
-                        <input type="datetime-local" name="startDate" required>
+                        <input type="datetime-local" name="startDate" th:value="${promotion.startDate}" required>
                     </div>
                     <div class="form-group">
                         <label>Ngày kết thúc <span class="text-red">*</span></label>
-                        <input type="datetime-local" name="endDate" required>
+                        <input type="datetime-local" name="endDate" th:value="${promotion.endDate}" required>
                     </div>
                 </div>
 

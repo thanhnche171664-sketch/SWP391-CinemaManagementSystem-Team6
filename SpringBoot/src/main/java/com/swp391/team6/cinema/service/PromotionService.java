@@ -7,6 +7,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,14 @@ public class PromotionService {
     public Page<Promotion> getAllPromotions(int page, int size, String keyword, String status) {
         List<Promotion> allPromotions = promotionRepository.findAll(Sort.by("promotionId").descending());
 
+        LocalDateTime now = LocalDateTime.now();
+
+        // Tự động kiểm tra thời gian: Nếu hết hạn thì coi như inactive (Tạm dừng)
+        allPromotions.forEach(p -> {
+            if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
+                p.setStatus(Promotion.Status.inactive);
+            }
+        });
         // 2. Lọc bằng Stream API
         List<Promotion> filteredList = allPromotions.stream()
                 .filter(p -> {
@@ -56,9 +65,17 @@ public class PromotionService {
 
 
     // Thống kê
-    public long countAll() { return promotionRepository.count(); }
-    public long countActive() { return promotionRepository.countByStatus(Promotion.Status.active); }
-    public long countInactive() { return promotionRepository.countByStatus(Promotion.Status.inactive); }
+    public long countAll() {
+        return promotionRepository.count();
+    }
+
+    public long countActive() {
+        return promotionRepository.countByStatus(Promotion.Status.active);
+    }
+
+    public long countInactive() {
+        return promotionRepository.countByStatus(Promotion.Status.inactive);
+    }
 
     // Tìm kiếm theo ID
     public Promotion findById(Integer id) {
@@ -68,7 +85,16 @@ public class PromotionService {
 
     @Transactional
     public void create(Promotion promotion) {
-        // Business Logic: Mặc định giá trị ban đầu
+        // Kiểm tra logic số âm
+        if (promotion.getUsageLimit() != null && promotion.getUsageLimit() < 0) {
+            throw new RuntimeException("Giới hạn sử dụng không được là số âm");
+        }
+        // 2. Kiểm tra logic ngày tháng
+        if (promotion.getStartDate() != null && promotion.getEndDate() != null) {
+            if (promotion.getStartDate().isAfter(promotion.getEndDate())) {
+                throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
+            }
+        }
         if (promotion.getStatus() == null) promotion.setStatus(Promotion.Status.active);
         if (promotion.getUsedCount() == null) promotion.setUsedCount(0);
         promotionRepository.save(promotion);
@@ -76,26 +102,34 @@ public class PromotionService {
 
     @Transactional
     public void update(Promotion promotion) {
-        Promotion existing = findById(promotion.getPromotionId());
+        if (promotion.getUsageLimit() != null && promotion.getUsageLimit() < 0) {
+            throw new RuntimeException("Giới hạn sử dụng không được là số âm");
+        }
+        if (promotion.getStartDate() != null && promotion.getEndDate() != null) {
+            if (promotion.getStartDate().isAfter(promotion.getEndDate())) {
+                throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
+            }
+            Promotion existing = findById(promotion.getPromotionId());
 
-        // Cập nhật các trường dữ liệu
-        existing.setPromoCode(promotion.getPromoCode());
-        existing.setDescription(promotion.getDescription());
-        existing.setDiscountType(promotion.getDiscountType());
-        existing.setDiscountValue(promotion.getDiscountValue());
-        existing.setStartDate(promotion.getStartDate());
-        existing.setEndDate(promotion.getEndDate());
-        existing.setUsageLimit(promotion.getUsageLimit());
-        existing.setMinBookingAmount(promotion.getMinBookingAmount());
+            // Cập nhật các trường dữ liệu
+            existing.setPromoCode(promotion.getPromoCode());
+            existing.setDescription(promotion.getDescription());
+            existing.setDiscountType(promotion.getDiscountType());
+            existing.setDiscountValue(promotion.getDiscountValue());
+            existing.setStartDate(promotion.getStartDate());
+            existing.setEndDate(promotion.getEndDate());
+            existing.setUsageLimit(promotion.getUsageLimit());
+            existing.setMinBookingAmount(promotion.getMinBookingAmount());
 
-        promotionRepository.save(existing);
+            promotionRepository.save(existing);
+        }
     }
 
-    @Transactional
-    public void softDelete(Integer id) {
-        promotionRepository.findById(id).ifPresent(promo -> {
-            promo.setStatus(Promotion.Status.inactive);
-            promotionRepository.save(promo);
-        });
+        @Transactional
+        public void softDelete (Integer id){
+            promotionRepository.findById(id).ifPresent(promo -> {
+                promo.setStatus(Promotion.Status.inactive);
+                promotionRepository.save(promo);
+            });
+        }
     }
-}
