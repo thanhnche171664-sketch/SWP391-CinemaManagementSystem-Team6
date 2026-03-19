@@ -1,6 +1,8 @@
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Booking;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    
+
     List<Booking> findByUserUserId(Long userId);
 
     List<Booking> findByUserUserIdOrderByBookingTimeDesc(Long userId);
@@ -28,9 +30,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             order by b.bookingTime desc
             """)
     List<Booking> findByUserUserIdWithDetailsOrderByBookingTimeDesc(@Param("userId") Long userId);
-    
+
     List<Booking> findByShowtimeShowtimeId(Long showtimeId);
-    
+
     List<Booking> findByStatus(Booking.BookingStatus status);
 
     List<Booking> findByStatusAndBookingTimeBefore(Booking.BookingStatus status, LocalDateTime bookingTime);
@@ -63,6 +65,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             join fetch s.movie m
             join fetch s.room r
             join fetch r.branch br
+            left join fetch b.promotion p
             where b.bookingId = :bookingId
             """)
     Optional<Booking> findByIdWithDetails(@Param("bookingId") Long bookingId);
@@ -79,4 +82,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             """)
     Optional<Booking> findByIdAndBranchIdWithDetails(@Param("bookingId") Long bookingId,
                                                      @Param("branchId") Long branchId);
+
+    @Query("""
+    SELECT b FROM Booking b 
+    JOIN FETCH b.showtime s 
+    JOIN FETCH s.room r 
+    JOIN FETCH r.branch br 
+    WHERE br.branchId = :branchId 
+    AND (:name IS NULL OR :name = '' OR b.user.fullName LIKE %:name%)
+    ORDER BY b.bookingId DESC
+    """)
+    Page<Booking> findByBranchIdWithDetails(
+            @Param("branchId") Long branchId,
+            @Param("name") String name,
+            Pageable pageable);
 }

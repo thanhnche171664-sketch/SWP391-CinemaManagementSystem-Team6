@@ -12,6 +12,9 @@ import com.swp391.team6.cinema.service.PricingService;
 import com.swp391.team6.cinema.service.SeatService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.naming.Context;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.net.http.HttpHeaders;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,8 +84,8 @@ public class BookingController {
 
     @PostMapping("/create")
     public String createBooking(@RequestParam Long showtimeId,
-                               @RequestParam List<Long> seatIds,
-                               HttpSession session, RedirectAttributes redirectAttributes) {
+                                @RequestParam List<Long> seatIds,
+                                HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null) {
             redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập.");

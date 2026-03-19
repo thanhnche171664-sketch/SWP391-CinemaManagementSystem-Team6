@@ -3,17 +3,8 @@ package com.swp391.team6.cinema.service;
 import com.swp391.team6.cinema.dto.BookingDetailDTO;
 import com.swp391.team6.cinema.dto.BookingListDTO;
 import com.swp391.team6.cinema.dto.BookingPaymentDTO;
-import com.swp391.team6.cinema.entity.Booking;
-import com.swp391.team6.cinema.entity.BookingSeat;
-import com.swp391.team6.cinema.entity.Payment;
-import com.swp391.team6.cinema.entity.Seat;
-import com.swp391.team6.cinema.entity.Showtime;
-import com.swp391.team6.cinema.repository.BookingRepository;
-import com.swp391.team6.cinema.repository.BookingSeatRepository;
-import com.swp391.team6.cinema.repository.PaymentRepository;
-import com.swp391.team6.cinema.repository.SeatRepository;
-import com.swp391.team6.cinema.repository.ShowtimeRepository;
-import com.swp391.team6.cinema.repository.UserRepository;
+import com.swp391.team6.cinema.entity.*;
+import com.swp391.team6.cinema.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,6 +29,7 @@ public class BookingService {
     private final ShowtimeRepository showtimeRepository;
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
+    private final PromotionRepository promotionRepository;
     private final PricingService pricingService;
     private final PayOSService payOSService;
 
@@ -196,6 +188,13 @@ public class BookingService {
 
     private void cancelPendingBookingInternal(Booking booking) {
         if (booking.getStatus() != Booking.BookingStatus.pending) return;
+        if (booking.getPromotion() != null) {
+            Promotion promo = booking.getPromotion();
+            if (promo.getUsedCount() != null && promo.getUsedCount() > 0) {
+                promo.setUsedCount(promo.getUsedCount() - 1);
+                promotionRepository.save(promo);
+            }
+        }
         Long bookingId = booking.getBookingId();
         List<Payment> payments = paymentRepository.findByBookingBookingIdOrderByPaymentTimeDesc(bookingId);
         for (Payment p : payments) {

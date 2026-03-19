@@ -91,27 +91,38 @@ public class UserService {
 
 
     public void saveStaff(StaffDTO dto) {
+        if (dto.getEmail() == null || !dto.getEmail().contains("@")) {
+            throw new RuntimeException("Email không hợp lệ!");
+        }
+        if (dto.getPhone() == null || !dto.getPhone().matches("\\d{10}")) {
+            throw new RuntimeException("Số điện thoại phải bao gồm đúng 10 chữ số!");
+        }
+
+        Optional<User> userByEmail = userRepository.findByEmail(dto.getEmail());
+        if (userByEmail.isPresent() && !userByEmail.get().getUserId().equals(dto.getUser_id())) {
+            throw new RuntimeException("Email này đã được sử dụng bởi một tài khoản khác!");
+        }
+
         User user;
         if (dto.getUser_id() != null) {
-            user = userRepository.findById(dto.getUser_id()).orElse(new User());
+            user = userRepository.findById(dto.getUser_id())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
         } else {
             if ("ADMIN".equals(dto.getRole())) {
                 throw new RuntimeException("Không được phép tạo tài khoản ADMIN mới");
             }
             user = new User();
-            user.setPasswordHash(passwordEncoder.encode("123456"));
+            String rawPassword = (dto.getPassword() == null || dto.getPassword().isEmpty()) ? "123456" : dto.getPassword();
+            user.setPasswordHash(passwordEncoder.encode(rawPassword));
+            user.setIsVerify(true);
         }
 
         user.setFullName(dto.getFull_name());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
-        User.UserRole role = User.UserRole.valueOf(dto.getRole());
-        user.setRole(role);
+        user.setRole(User.UserRole.valueOf(dto.getRole()));
         user.setBranchId(dto.getBranch_id());
         user.setStatus(User.UserStatus.valueOf(dto.getStatus()));
-        if (role != User.UserRole.CUSTOMER && (user.getIsVerify() == null || !user.getIsVerify())) {
-            user.setIsVerify(true);
-        }
 
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
@@ -128,21 +139,25 @@ public class UserService {
         });
     }
 
+    public org.springframework.data.domain.Page<CustomerDTO> findCustomersPaged(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        return userRepository.findByRoleIn(Collections.singletonList(User.UserRole.CUSTOMER), pageable)
+                .map(this::convertToCustomerDTO);
+    }
+
+    public org.springframework.data.domain.Page<StaffDTO> findStaffPaged(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("userId").descending());
+        List<User.UserRole> staffRoles = Arrays.asList(User.UserRole.MANAGER, User.UserRole.STAFF);
+        return userRepository.findByRoleIn(staffRoles, pageable)
+                .map(this::convertToDTO);
+    }
+
     public void deleteStaff(Long id) {
         userRepository.deleteById(id);
     }
 
     public List<CinemaBranch> findAllBranches() {
         return branchRepository.findAll();
-    }
-
-
-    public List<CustomerDTO> findAllCustomers() {
-        List<User.UserRole> roles = Arrays.asList(User.UserRole.CUSTOMER);
-
-        return userRepository.findByRoleIn(roles).stream()
-                .map(this::convertToCustomerDTO)
-                .collect(Collectors.toList());
     }
 
     private CustomerDTO convertToCustomerDTO(User user) {
@@ -280,6 +295,38 @@ public class UserService {
         result.put("user", user);
 
         return result;
+    }
+
+    public boolean changeStaffPassword(Long userId, String oldPassword, String newPassword) {
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            if (passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+                if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+                    throw new RuntimeException("Mật khẩu mới không được trùng với mật khẩu hiện tại!");
+                }
+
+                user.setPasswordHash(passwordEncoder.encode(newPassword));
+                userRepository.save(user);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void updateBasicInfo(Long userId, String fullName, String phone) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (phone == null || !phone.matches("\\d{10}")) {
+            throw new RuntimeException("Số điện thoại không hợp lệ (10 chữ số)");
+        }
+
+        user.setFullName(fullName);
+        user.setPhone(phone);
+        userRepository.save(user);
     }
 
     public Optional<User> findByEmail(String email) {

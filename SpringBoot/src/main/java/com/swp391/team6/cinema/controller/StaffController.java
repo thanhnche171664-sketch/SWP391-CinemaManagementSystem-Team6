@@ -5,6 +5,7 @@ import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,37 +19,64 @@ public class StaffController {
     private UserService userService;
 
     @GetMapping
-    public String showStaffPage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String showStaffPage(@RequestParam(defaultValue = "0") int page,
+                                HttpSession session,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
-        if (user == null || (user.getRole() != User.UserRole.ADMIN && user.getRole() != User.UserRole.MANAGER)) {
+        if (user == null || (user.getRole() != User.UserRole.ADMIN)) {
             redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
             return "redirect:/auth/login";
         }
-        
-        model.addAttribute("staffList", userService.findAllStaff());
+
+        int pageSize = 10;
+        Page<StaffDTO> staffPage = userService.findStaffPaged(page, pageSize);
+
+        model.addAttribute("staffList", staffPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", staffPage.getTotalPages());
+        model.addAttribute("totalItems", staffPage.getTotalElements());
+
         model.addAttribute("branches", userService.findAllBranches());
         model.addAttribute("newStaff", new StaffDTO());
         model.addAttribute("user", user);
+
         return "staff-management";
     }
 
     @PostMapping("/save")
-    public String saveStaff(@ModelAttribute("newStaff") StaffDTO staffDTO) {
-        userService.saveStaff(staffDTO);
+    public String saveStaff(@ModelAttribute("newStaff") StaffDTO staffDTO,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            userService.saveStaff(staffDTO);
+            redirectAttributes.addFlashAttribute("success", "Lưu thông tin nhân viên thành công!");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi hệ thống. Vui lòng thử lại!");
+        }
         return "redirect:/admin/staff";
     }
 
     @GetMapping("/toggle/{id}")
-    public String toggleStatus(@PathVariable Long id) {
-        userService.toggleStatus(id);
+    public String toggleStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            userService.toggleStatus(id);
+            redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái tài khoản.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Không thể cập nhật trạng thái.");
+        }
         return "redirect:/admin/staff";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteStaff(@PathVariable Long id) {
-        userService.deleteStaff(id);
+    public String deleteStaff(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            userService.deleteStaff(id);
+            redirectAttributes.addFlashAttribute("success", "Đã tạm khóa tài khoản nhân viên.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi thực hiện thao tác này.");
+        }
         return "redirect:/admin/staff";
     }
-
-
 }
