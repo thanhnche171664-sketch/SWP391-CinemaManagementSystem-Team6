@@ -45,7 +45,7 @@ public class StaffProfileController {
         }
 
         try {
-            boolean success = userService.changePassword(user.getUserId(), oldPassword, newPassword);
+            boolean success = userService.changeStaffPassword(user.getUserId(), oldPassword, newPassword);
             if (success) {
                 ra.addFlashAttribute("success", "Đổi mật khẩu thành công!");
             } else {

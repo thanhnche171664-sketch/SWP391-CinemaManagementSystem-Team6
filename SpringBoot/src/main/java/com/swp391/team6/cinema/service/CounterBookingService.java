@@ -75,7 +75,7 @@ public class CounterBookingService {
 
         Promotion appliedPromo = null;
         if (promoCode != null && !promoCode.isBlank()) {
-            appliedPromo = promotionRepository.findByPromoCode(promoCode);
+            appliedPromo = promotionRepository.findByPromoCode(promoCode).orElse(null);
 
             if (appliedPromo == null || appliedPromo.getStatus() != Promotion.Status.active) {
                 throw new IllegalArgumentException("Mã giảm giá không tồn tại hoặc không khả dụng");
