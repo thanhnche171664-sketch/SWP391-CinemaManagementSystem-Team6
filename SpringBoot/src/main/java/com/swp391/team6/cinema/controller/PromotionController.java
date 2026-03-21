@@ -49,12 +49,17 @@ public class PromotionController {
     }
 
     @PostMapping("/create-action")
-    public String createPromotion(@ModelAttribute Promotion promotion) {
+    public String createPromotion(@ModelAttribute Promotion promotion, Model model) {
         try {
             promotionService.create(promotion);
             return "redirect:/admin/promotions/view";
+        } catch (RuntimeException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("promotion", promotion);
+            return "promotion-create";
         } catch (Exception e) {
             log.error("Lỗi khi tạo khuyến mãi: ", e);
+            model.addAttribute("error", "Có lỗi hệ thống xảy ra!");
             return "promotion-create";
         }
     }
@@ -62,20 +67,26 @@ public class PromotionController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Integer id, Model model) {
         try {
-            model.addAttribute("promotion", promotionService.findById(id));
+            Promotion promotion = promotionService.findById(id);
+            model.addAttribute("promotion", promotion);
             return "promotion-edit";
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return "redirect:/admin/promotions/view";
         }
     }
 
     @PostMapping("/update-action")
-    public String updatePromotion(@ModelAttribute Promotion promotion) {
+    public String updatePromotion(@ModelAttribute Promotion promotion, Model model) {
         try {
             promotionService.update(promotion);
             return "redirect:/admin/promotions/view";
+        }catch (RuntimeException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("promotion", promotion);
+            return "promotion-edit";
         } catch (Exception e) {
             log.error("Lỗi khi cập nhật khuyến mãi: ", e);
+            model.addAttribute("error", "Có lỗi hệ thống xảy ra!");
             return "promotion-edit";
         }
     }
