@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,16 @@ public class MovieService {
         List<Movie> movies = movieRepository.findByStatusAndIsHiddenFalse(status);
         movies.forEach(movie -> movie.getGenres().size());
         return movies;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Movie> getLatestVisibleMoviesByStatus(Movie.MovieStatus status, int limit) {
+        return getVisibleMoviesByStatus(status).stream()
+                .sorted(Comparator.comparing(Movie::getReleaseDate,
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(Movie::getMovieId, Comparator.reverseOrder()))
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tin tức - Cinema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="news-page">
+<div th:replace="~{fragments/public-header :: publicHeader}"></div>
+
+<section class="container py-5">
+    <div class="news-header">
+        <h1>Tin tức</h1>
+        <p>Cập nhật khuyến mãi, phim mới và sự kiện mới nhất</p>
+    </div>
+
+    <form class="news-filter-bar" method="get" th:action="@{/news}">
+        <input type="text" name="q" placeholder="Tìm kiếm tin tức..." th:value="${query}">
+        <select name="type">
+            <option value="">Tất cả loại tin</option>
+            <option th:each="item : ${newsTypes}"
+                    th:value="${item.name()}"
+                    th:selected="${typeFilter != null and typeFilter.name() == item.name()}"
+                    th:text="${item.name()}"></option>
+        </select>
+        <select name="branchId">
+            <option value="">Tất cả rạp</option>
+            <option th:each="b : ${branches}"
+                    th:value="${b.branchId}"
+                    th:selected="${branchFilter != null and branchFilter == b.branchId}"
+                    th:text="${b.branchName}"></option>
+        </select>
+        <select name="sort">
+            <option value="latest" th:selected="${sortFilter == 'latest'}">Mới nhất</option>
+            <option value="oldest" th:selected="${sortFilter == 'oldest'}">Cũ nhất</option>
+            <option value="title_asc" th:selected="${sortFilter == 'title_asc'}">Tiêu đề A-Z</option>
+            <option value="title_desc" th:selected="${sortFilter == 'title_desc'}">Tiêu đề Z-A</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Lọc</button>
+    </form>
+
+    <div class="row g-4" th:if="${!#lists.isEmpty(newsList)}">
+        <div class="col-md-6" th:each="item : ${newsList}">
+            <a th:href="@{/news/{id}(id=${item.newsId})}" class="news-card-link">
+            <article class="news-card">
+                <img th:if="${item.thumbnailUrl != null and !#strings.isEmpty(item.thumbnailUrl)}"
+                     th:src="${item.thumbnailUrl}" th:alt="${item.title}" class="news-thumb">
+                <div class="news-card-body">
+                    <div class="news-meta">
+                        <span th:text="${item.newsType}">announcement</span>
+                        <span th:text="${item.publishedAt != null ? #temporals.format(item.publishedAt, 'dd/MM/yyyy HH:mm') : ''}"></span>
+                    </div>
+                    <h3 th:text="${item.title}">Tiêu đề</h3>
+                    <p th:text="${#strings.abbreviate(item.content, 240)}">Nội dung...</p>
+                </div>
+            </article>
+            </a>
+        </div>
+    </div>
+
+    <div class="news-empty" th:if="${#lists.isEmpty(newsList)}">
+        Chưa có tin tức phù hợp với bộ lọc.
+    </div>
+
+    <div class="news-pagination" th:if="${totalPages > 1}">
+        <a class="news-page-link"
+           th:classappend="${currentPage == 0} ? ' disabled' : ''"
+           th:href="@{/news(page=${currentPage - 1}, q=${query}, type=${typeFilter}, branchId=${branchFilter}, sort=${sortFilter})}">Trước</a>
+        <a class="news-page-link"
+           th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+           th:classappend="${currentPage == i} ? ' active' : ''"
+           th:text="${i + 1}"
+           th:href="@{/news(page=${i}, q=${query}, type=${typeFilter}, branchId=${branchFilter}, sort=${sortFilter})}">1</a>
+        <a class="news-page-link"
+           th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''"
+           th:href="@{/news(page=${currentPage + 1}, q=${query}, type=${typeFilter}, branchId=${branchFilter}, sort=${sortFilter})}">Sau</a>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

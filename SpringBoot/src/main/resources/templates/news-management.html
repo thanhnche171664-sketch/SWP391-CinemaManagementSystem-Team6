@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý tin tức</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-news.css}">
+</head>
+<body>
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('news')"></div>
+
+    <main class="content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <header class="header">
+            <div>
+                <h1>Quản lý tin tức</h1>
+                <p>Admin và Manager quản lý bài viết tin tức</p>
+            </div>
+            <a class="btn-add" th:href="@{/admin/news/create}">+ Tạo tin mới</a>
+        </header>
+
+        <form class="filters" method="get" th:action="@{/admin/news}">
+            <div class="search-box">
+                <input type="text" name="keyword" placeholder="Tìm theo tiêu đề hoặc nội dung" th:value="${keyword}">
+            </div>
+            <select class="filter-select" name="type">
+                <option value="">Tất cả loại tin</option>
+                <option th:each="item : ${newsTypes}"
+                        th:value="${item.name()}"
+                        th:selected="${typeFilter != null and typeFilter.name() == item.name()}"
+                        th:text="${item.name()}"></option>
+            </select>
+            <select class="filter-select" name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option th:each="item : ${newsStatuses}"
+                        th:value="${item.name()}"
+                        th:selected="${statusFilter != null and statusFilter.name() == item.name()}"
+                        th:text="${item.name()}"></option>
+            </select>
+            <select class="filter-select" name="sort">
+                <option value="latest" th:selected="${sortFilter == 'latest'}">Mới nhất</option>
+                <option value="oldest" th:selected="${sortFilter == 'oldest'}">Cũ nhất</option>
+                <option value="title_asc" th:selected="${sortFilter == 'title_asc'}">Tiêu đề A-Z</option>
+                <option value="title_desc" th:selected="${sortFilter == 'title_desc'}">Tiêu đề Z-A</option>
+            </select>
+            <button class="btn-primary" type="submit">Lọc</button>
+        </form>
+
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ảnh</th>
+                    <th>Tiêu đề</th>
+                    <th>Loại</th>
+                    <th>Người tạo</th>
+                    <th>Chi nhánh</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày đăng</th>
+                    <th class="text-right">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${newsList}">
+                    <td>
+                        <img th:if="${row.thumbnailUrl != null and !#strings.isEmpty(row.thumbnailUrl)}"
+                             th:src="${row.thumbnailUrl}" th:alt="${row.title}" class="news-thumb-cell">
+                        <span th:unless="${row.thumbnailUrl != null and !#strings.isEmpty(row.thumbnailUrl)}" class="text-muted">No image</span>
+                    </td>
+                    <td>
+                        <div class="title-cell" th:text="${row.title}">Tiêu đề</div>
+                    </td>
+                    <td th:text="${row.newsType}">announcement</td>
+                    <td th:text="${row.author != null ? (row.author.fullName != null && !#strings.isEmpty(row.author.fullName) ? row.author.fullName : row.author.email) : '-'}">-</td>
+                    <td th:text="${row.branch != null ? row.branch.branchName : 'Toàn hệ thống'}">Toàn hệ thống</td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${row.status.name() == 'published' ? ' status-published' : (row.status.name() == 'draft' ? ' status-draft' : ' status-hidden')}"
+                              th:text="${row.status}">draft</span>
+                    </td>
+                    <td th:text="${row.publishedAt != null ? #temporals.format(row.publishedAt, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td class="text-right">
+                        <div class="action-buttons">
+                            <a class="icon-btn" th:href="@{/admin/news/edit/{id}(id=${row.newsId})}">Sửa</a>
+                            <a class="icon-btn danger"
+                               th:if="${row.status.name() != 'hidden'}"
+                               th:href="@{/admin/news/hide/{id}(id=${row.newsId})}"
+                               onclick="return confirm('Bạn có chắc muốn ẩn tin này?')">Ẩn</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(newsList)}">
+                    <td colspan="8" class="text-muted">Chưa có tin tức.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a class="page-link"
+               th:classappend="${currentPage == 0} ? ' disabled' : ''"
+               th:href="@{/admin/news(page=${currentPage - 1}, keyword=${keyword}, type=${typeFilter}, status=${statusFilter}, sort=${sortFilter})}">Trước</a>
+            <a class="page-link"
+               th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+               th:classappend="${currentPage == i} ? ' active' : ''"
+               th:href="@{/admin/news(page=${i}, keyword=${keyword}, type=${typeFilter}, status=${statusFilter}, sort=${sortFilter})}"
+               th:text="${i + 1}">1</a>
+            <a class="page-link"
+               th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''"
+               th:href="@{/admin/news(page=${currentPage + 1}, keyword=${keyword}, type=${typeFilter}, status=${statusFilter}, sort=${sortFilter})}">Sau</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>

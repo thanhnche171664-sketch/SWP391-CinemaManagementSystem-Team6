@@ -1,13 +1,17 @@
 package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.entity.Movie;
+import com.swp391.team6.cinema.entity.News;
 import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
 import com.swp391.team6.cinema.service.GenreService;
 import com.swp391.team6.cinema.service.MovieService;
+import com.swp391.team6.cinema.service.NewsService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,10 +29,13 @@ public class ViewController {
     private final MovieService movieService;
     private final GenreService genreService;
     private final ShowtimeRepository showtimeRepository;
+    private final NewsService newsService;
+    private final CinemaBranchRepository cinemaBranchRepository;
 
     @GetMapping("/")
     public String home(Model model) {
-        List<Movie> movies = movieService.getVisibleMoviesByStatus(Movie.MovieStatus.now_showing);
+        List<Movie> movies = movieService.getLatestVisibleMoviesByStatus(Movie.MovieStatus.now_showing, 6);
+        model.addAttribute("latestNews", newsService.getLatestPublishedNews(6));
         model.addAttribute("movies", movies);
         return "index";
     }
@@ -41,7 +48,8 @@ public class ViewController {
             return "redirect:/auth/login";
         }
         
-        List<Movie> movies = movieService.getVisibleMoviesByStatus(Movie.MovieStatus.now_showing);
+        List<Movie> movies = movieService.getLatestVisibleMoviesByStatus(Movie.MovieStatus.now_showing, 6);
+        model.addAttribute("latestNews", newsService.getLatestPublishedNews(6));
         model.addAttribute("movies", movies);
         model.addAttribute("user", user);
         return "index";
@@ -103,6 +111,47 @@ public class ViewController {
         model.addAttribute("genreFilter", genre != null ? genre : "");
         model.addAttribute("genreList", genreService.getAllGenres());
         return "movies";
+    }
+
+    @GetMapping("/news")
+    public String news(@RequestParam(required = false) String q,
+                       @RequestParam(required = false) News.NewsType type,
+                       @RequestParam(required = false) Long branchId,
+                       @RequestParam(defaultValue = "latest") String sort,
+                       @RequestParam(defaultValue = "0") int page,
+                       HttpSession session,
+                       Model model) {
+        Page<News> newsPage = newsService.getPublicNews(q, type, branchId, sort, page, 8);
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user != null) {
+            model.addAttribute("user", user);
+        }
+        model.addAttribute("newsList", newsPage.getContent());
+        model.addAttribute("currentPage", newsPage.getNumber());
+        model.addAttribute("totalPages", newsPage.getTotalPages());
+        model.addAttribute("query", q);
+        model.addAttribute("typeFilter", type);
+        model.addAttribute("branchFilter", branchId);
+        model.addAttribute("sortFilter", sort);
+        model.addAttribute("newsTypes", News.NewsType.values());
+        model.addAttribute("branches", cinemaBranchRepository.findByStatus(com.swp391.team6.cinema.entity.CinemaBranch.BranchStatus.active));
+        return "news";
+    }
+
+    @GetMapping("/news/{id}")
+    public String newsDetail(@PathVariable Long id, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            News news = newsService.getPublishedNewsById(id);
+            model.addAttribute("news", news);
+            User user = (User) session.getAttribute("loggedInUser");
+            if (user != null) {
+                model.addAttribute("user", user);
+            }
+            return "news-detail";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Tin tức không tồn tại hoặc chưa được xuất bản.");
+            return "redirect:/news";
+        }
     }
 
     @GetMapping("/movies/{id}")
