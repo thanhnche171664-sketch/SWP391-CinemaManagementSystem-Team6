@@ -3,117 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý nhân viên - Cinema System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-user-management.css}">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { background: #0f0f0f; color: #fff; }
-        .layout { display: flex; height: 100vh; }
-        .sidebar { width: 260px; background: #000; padding: 20px; border-right: 1px solid #222; }
-        .content { flex: 1; padding: 40px; overflow-y: auto; }
-        .sidebar nav a {
-            display: block; padding: 12px 15px; margin-bottom: 8px;
-            color: #bbb; text-decoration: none; border-radius: 8px;
-        }
-        .sidebar nav a.active, .sidebar nav a:hover { background: #fff; color: #000; }
-        .input-dark {
-            background: #1a1a1a !important;
-            border: 1px solid #333 !important;
-            color: white !important;
-        }
-    </style>
 </head>
 <body>
 
 <div class="layout">
     <div th:replace="~{fragments/sidebar :: sidebar('staff')}"></div>
 
-    <div class="content">
-        <div th:if="${success}" class="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-xl flex items-center gap-3 text-green-500">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
+    <main class="content">
+        <div th:if="${success}" class="alert alert-success">
+            <i data-lucide="check-circle"></i>
             <span th:text="${success}"></span>
         </div>
 
-        <div th:if="${error}" class="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-center gap-3 text-red-500">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+        <div th:if="${error}" class="alert alert-error">
+            <i data-lucide="alert-circle"></i>
             <span th:text="${error}"></span>
         </div>
 
-        <div class="flex justify-between items-center mb-8">
+        <div class="header">
             <div>
-                <h1 class="text-3xl font-bold uppercase tracking-tight">Quản lý nhân viên</h1>
-                <p class="text-gray-400 mt-1">Đội ngũ nhân sự & Phân quyền hệ thống</p>
+                <h1>Quản lý nhân viên</h1>
+                <p class="page-subtitle">Đội ngũ nhân sự và phân quyền hệ thống</p>
             </div>
-            <button onclick="openModalAdd()" class="bg-white text-black px-6 py-2.5 rounded-xl flex items-center gap-2 transition hover:bg-gray-200 font-bold shadow-lg">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            <button onclick="openModalAdd()" class="btn-add">
+                <i data-lucide="plus-circle"></i>
                 Thêm nhân viên
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="relative">
+        <div class="filters">
+            <div class="search-box has-icon">
+                <span class="search-icon"><i data-lucide="search"></i></span>
                 <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm tên, email..."
-                       class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 pl-10 text-white outline-none focus:border-white transition">
-                <i data-lucide="search" class="absolute left-3 top-3.5 w-4 h-4 text-gray-500"></i>
+                       class="form-input">
             </div>
 
-            <select id="roleFilter" onchange="filterTable()" class="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white cursor-pointer">
+            <select id="roleFilter" onchange="filterTable()" class="filter-select">
                 <option value="">Tất cả chức vụ</option>
                 <option value="MANAGER">MANAGER</option>
                 <option value="STAFF">STAFF</option>
             </select>
 
-            <select id="branchFilter" onchange="filterTable()" class="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white cursor-pointer">
+            <select id="branchFilter" onchange="filterTable()" class="filter-select">
                 <option value="">Tất cả chi nhánh</option>
                 <option th:each="b : ${branches}" th:value="${b.branchName}" th:text="${b.branchName}"></option>
             </select>
 
-            <select id="statusFilter" onchange="filterTable()" class="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-white cursor-pointer">
+            <select id="statusFilter" onchange="filterTable()" class="filter-select">
                 <option value="">Tất cả trạng thái</option>
                 <option value="Hoạt động">Hoạt động</option>
                 <option value="Tạm khóa">Tạm khóa</option>
             </select>
         </div>
 
-        <div class="bg-[#111] rounded-2xl border border-[#222] overflow-hidden shadow-2xl">
-            <table class="w-full text-left" id="staffTable">
-                <thead class="bg-[#000] border-b border-[#222]">
+        <div class="table-card">
+            <table class="data-table" id="staffTable">
+                <thead>
                 <tr>
-                    <th class="p-4 text-gray-500 font-medium uppercase text-xs">ID</th>
-                    <th class="p-4 text-gray-500 font-medium uppercase text-xs">Thông tin nhân viên</th>
-                    <th class="p-4 text-gray-500 font-medium uppercase text-xs">Chức vụ</th>
-                    <th class="p-4 text-gray-500 font-medium uppercase text-xs">Chi nhánh</th>
-                    <th class="p-4 text-gray-500 font-medium uppercase text-xs">Trạng thái</th>
-                    <th class="p-4 text-gray-500 font-medium uppercase text-xs text-right">Thao tác</th>
+                    <th>ID</th>
+                    <th>Thông tin nhân viên</th>
+                    <th>Chức vụ</th>
+                    <th>Chi nhánh</th>
+                    <th>Trạng thái</th>
+                    <th class="text-right">Thao tác</th>
                 </tr>
                 </thead>
                 <tbody id="staffTableBody">
-                <tr th:each="staff : ${staffList}" class="hover:bg-[#161616] transition border-b border-[#1a1a1a]">
-                    <td class="p-4 text-gray-500 font-mono text-sm" th:text="${staff.user_id}"></td>
-                    <td class="p-4">
-                        <div class="font-bold text-white" th:text="${staff.full_name}"></div>
-                        <div class="text-xs text-gray-500" th:text="${staff.email}"></div>
+                <tr th:each="staff : ${staffList}">
+                    <td class="mono text-muted" th:text="${staff.user_id}"></td>
+                    <td>
+                        <div class="entity-name" th:text="${staff.full_name}"></div>
+                        <div class="entity-sub" th:text="${staff.email}"></div>
                     </td>
-                    <td class="p-4">
-                        <span class="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border"
-                              th:classappend="${staff.role == 'ADMIN' ? 'border-red-500 text-red-500' : (staff.role == 'MANAGER' ? 'border-blue-500 text-blue-500' : 'border-green-500 text-green-500')}"
+                    <td>
+                        <span class="role-badge"
+                              th:classappend="${staff.role == 'ADMIN' ? ' role-admin' : (staff.role == 'MANAGER' ? ' role-manager' : ' role-staff')}"
                               th:text="${staff.role}"></span>
                     </td>
-                    <td class="p-4 text-gray-300" th:text="${staff.branch_name}"></td>
-                    <td class="p-4">
-                        <a th:href="@{'/admin/staff/toggle/' + ${staff.user_id}}" class="inline-flex items-center gap-2">
-                            <span th:class="${staff.status == 'active' ? 'bg-green-500' : 'bg-red-500'} + ' w-2 h-2 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]'"></span>
-                            <span th:text="${staff.status == 'active' ? 'Hoạt động' : 'Tạm khóa'}" class="text-sm font-medium"></span>
+                    <td th:text="${staff.branch_name}"></td>
+                    <td>
+                        <a th:href="@{'/admin/staff/toggle/' + ${staff.user_id}}" class="status-toggle">
+                            <span class="status-badge-soft"
+                                  th:classappend="${staff.status == 'active' ? ' active' : ' inactive'}"
+                                  th:text="${staff.status == 'active' ? 'Hoạt động' : 'Tạm khóa'}"></span>
                         </a>
                     </td>
-                    <td class="p-4 text-right">
-                        <div class="flex justify-end gap-3">
-                            <button th:onclick="prepareEdit([[${staff}]])" class="text-gray-400 hover:text-white transition">
-                                <i data-lucide="edit-2" class="w-5 h-5"></i>
+                    <td class="action-cell">
+                        <div class="action-buttons">
+                            <button th:onclick="prepareEdit([[${staff}]])" class="icon-btn" type="button">
+                                <i data-lucide="edit-2"></i>
                             </button>
                             <a th:href="@{'/admin/staff/delete/' + ${staff.user_id}}"
                                onclick="return confirm('Bạn có chắc chắn muốn TẠM KHÓA nhân viên này?')"
-                               class="text-gray-600 hover:text-red-500 transition">
-                                <i data-lucide="user-minus" class="w-5 h-5"></i>
+                               class="icon-btn">
+                                <i data-lucide="user-minus"></i>
                             </a>
                         </div>
                     </td>
@@ -121,86 +107,80 @@
                 </tbody>
             </table>
 
-            <div class="p-4 bg-[#000] border-t border-[#222] flex justify-between items-center" th:if="${totalPages > 0}">
-                <div class="text-xs text-gray-500 uppercase font-bold tracking-widest">
-                    Trang <span class="text-white" th:text="${currentPage + 1}"></span> / <span th:text="${totalPages}"></span>
+            <div class="table-footer" th:if="${totalPages > 0}">
+                <div class="text-muted">
+                    Trang <strong th:text="${currentPage + 1}"></strong> / <span th:text="${totalPages}"></span>
                 </div>
-                <div class="flex gap-2">
+                <div class="pagination">
                     <a th:href="@{/admin/staff(page=${currentPage - 1})}"
-                       th:classappend="${currentPage == 0} ? 'pointer-events-none opacity-20' : ''"
-                       class="p-2 bg-[#1a1a1a] border border-[#333] rounded-lg hover:bg-white hover:text-black transition">
-                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                       th:classappend="${currentPage == 0} ? ' disabled' : ''"
+                       class="page-link">
+                        <i data-lucide="chevron-left"></i>
                     </a>
-                    <div class="flex gap-1">
-                        <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                           th:href="@{/admin/staff(page=${i})}"
-                           th:text="${i + 1}"
-                           th:classappend="${currentPage == i} ? 'bg-blue-600 text-white border-blue-600' : 'bg-[#1a1a1a] border-[#333] text-gray-400'"
-                           class="px-3 py-1.5 border rounded-lg text-sm font-bold transition">
-                        </a>
-                    </div>
+                    <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                       th:href="@{/admin/staff(page=${i})}"
+                       th:text="${i + 1}"
+                       th:classappend="${currentPage == i} ? ' active' : ''"
+                       class="page-link">
+                    </a>
                     <a th:href="@{/admin/staff(page=${currentPage + 1})}"
-                       th:classappend="${currentPage + 1 >= totalPages} ? 'pointer-events-none opacity-20' : ''"
-                       class="p-2 bg-[#1a1a1a] border border-[#333] rounded-lg hover:bg-white hover:text-black transition">
-                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                       th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''"
+                       class="page-link">
+                        <i data-lucide="chevron-right"></i>
                     </a>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
-<div id="staffModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
-    <div class="bg-[#111] border border-[#333] rounded-3xl p-8 w-full max-w-lg shadow-2xl">
-        <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-white border-b border-[#222] pb-4 uppercase tracking-tighter">Nhân viên</h2>
-        <form th:action="@{/admin/staff/save}" th:object="${newStaff}" method="POST" id="staffForm" class="space-y-5">
+<div id="staffModal" class="modal-backdrop hidden">
+    <div class="modal" style="max-width: 760px;">
+        <h2 id="modalTitle" class="modal-title">Nhân viên</h2>
+        <form th:action="@{/admin/staff/save}" th:object="${newStaff}" method="POST" id="staffForm" class="form-grid">
             <input type="hidden" th:field="*{user_id}" id="form-id">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Họ tên</label>
-                <input type="text" th:field="*{full_name}" id="form-name" required class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
+            <div class="form-group full">
+                <label class="form-label">Họ tên</label>
+                <input type="text" th:field="*{full_name}" id="form-name" required class="form-input">
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email</label>
-                    <input type="email" th:field="*{email}" id="form-email" required class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">SĐT (10 số)</label>
-                    <input type="text" th:field="*{phone}" id="form-phone" required pattern="\d{10}" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
-                </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" th:field="*{email}" id="form-email" required class="form-input">
             </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Mật khẩu</label>
-                <input type="password" th:field="*{password}" id="form-password" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
-                <p id="passwordHint" class="text-[10px] text-gray-500 mt-1 italic"></p>
+            <div class="form-group">
+                <label class="form-label">SĐT (10 số)</label>
+                <input type="text" th:field="*{phone}" id="form-phone" required pattern="\d{10}" class="form-input">
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Vai trò</label>
-                    <select th:field="*{role}" id="form-role" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
-                        <option value="STAFF">STAFF</option>
-                        <option value="MANAGER">MANAGER</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Trạng thái</label>
-                    <select th:field="*{status}" id="form-status" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
-                        <option value="active">Hoạt động</option>
-                        <option value="inactive">Tạm khóa</option>
-                    </select>
-                </div>
+            <div class="form-group full">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" th:field="*{password}" id="form-password" class="form-input">
+                <p id="passwordHint" class="text-muted" style="font-size: 12px;"></p>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Chi nhánh</label>
-                <select th:field="*{branch_id}" id="form-branch" class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
+            <div class="form-group">
+                <label class="form-label">Vai trò</label>
+                <select th:field="*{role}" id="form-role" class="form-select">
+                    <option value="STAFF">STAFF</option>
+                    <option value="MANAGER">MANAGER</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Trạng thái</label>
+                <select th:field="*{status}" id="form-status" class="form-select">
+                    <option value="active">Hoạt động</option>
+                    <option value="inactive">Tạm khóa</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label class="form-label">Chi nhánh</label>
+                <select th:field="*{branch_id}" id="form-branch" class="form-select">
                     <option value="">-- Toàn hệ thống --</option>
                     <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
                 </select>
             </div>
-            <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-[#222]">
-                <button type="button" onclick="closeModal()" class="px-6 py-2.5 text-gray-400 font-bold hover:text-white transition">HỦY</button>
-                <button type="submit" id="submitBtn" class="px-8 py-2.5 bg-white text-black rounded-xl font-black hover:bg-gray-200 transition">
-                    LƯU THAY ĐỔI
+            <div class="modal-actions" style="grid-column: span 2;">
+                <button type="button" onclick="closeModal()" class="btn-secondary">Hủy</button>
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    Lưu thay đổi
                 </button>
             </div>
         </form>
@@ -232,7 +212,7 @@
 
     function openModalAdd() {
         document.getElementById('modalTitle').innerText = "Thêm nhân viên";
-        document.getElementById('submitBtn').innerText = "TẠO TÀI KHOẢN";
+        document.getElementById('submitBtn').innerText = "Tạo tài khoản";
         document.getElementById('staffForm').reset();
         document.getElementById('form-id').value = "";
         document.getElementById('form-password').placeholder = "Mặc định: 123456";
@@ -242,7 +222,7 @@
 
     function prepareEdit(staff) {
         document.getElementById('modalTitle').innerText = "Cập nhật";
-        document.getElementById('submitBtn').innerText = "CẬP NHẬT";
+        document.getElementById('submitBtn').innerText = "Cập nhật";
         document.getElementById('form-id').value = staff.user_id;
         document.getElementById('form-name').value = staff.full_name;
         document.getElementById('form-email').value = staff.email;
@@ -271,7 +251,7 @@
     };
 
     window.onclick = function(event) {
-        if (event.target == document.getElementById('staffModal')) closeModal();
+        if (event.target === document.getElementById('staffModal')) closeModal();
     }
 </script>
 </body>

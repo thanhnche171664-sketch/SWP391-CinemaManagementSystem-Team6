@@ -46,8 +46,8 @@
         <a th:classappend="${active == 'tickets'} ? 'active'"
            th:href="@{/admin/bookings}">Quản lý đặt vé</a>
 
-        <a th:classappend="${active == 'promotions/view'} ? 'active'"
-           href="#">Quản lý khuyến mãi</a>
+        <a th:classappend="${active == 'promotions'} ? 'active'"
+           th:href="@{/admin/promotions/view}">Quản lý khuyến mãi</a>
 
         <a th:classappend="${active == 'reports'} ? 'active'"
            th:href="@{/admin/reports}">Báo cáo & Thống kê</a>

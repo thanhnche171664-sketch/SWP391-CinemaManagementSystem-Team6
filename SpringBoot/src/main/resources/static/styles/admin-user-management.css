@@ -1,0 +1,100 @@
+.page-subtitle {
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.header .btn-add {
+    border: none;
+    cursor: pointer;
+}
+
+.table-card {
+    box-shadow: 0 12px 30px rgba(31, 90, 166, 0.08);
+}
+
+.entity-name {
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.entity-sub {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.role-badge,
+.status-badge-soft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+
+.role-admin {
+    background: #fff1f1;
+    color: #c6425b;
+    border-color: #f3b7c1;
+}
+
+.role-manager {
+    background: #eaf2ff;
+    color: #1f5aa6;
+    border-color: #d6e4ff;
+}
+
+.role-staff {
+    background: #e7f7ef;
+    color: #2f855a;
+    border-color: #cbeedb;
+}
+
+.status-badge-soft.active {
+    background: #e7f7ef;
+    color: #2f855a;
+    border-color: #cbeedb;
+}
+
+.status-badge-soft.inactive {
+    background: #fff1f1;
+    color: #c6425b;
+    border-color: #f3b7c1;
+}
+
+.status-toggle {
+    text-decoration: none;
+}
+
+.action-cell {
+    text-align: right;
+}
+
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-soft);
+    background: #fff9fa;
+}
+
+.modal-lg {
+    max-width: 980px;
+}
+
+.history-table-wrap {
+    max-height: 60vh;
+    overflow: auto;
+}
+
+.history-name {
+    color: var(--primary-color);
+    font-size: 14px;
+    margin-top: 4px;
+}
