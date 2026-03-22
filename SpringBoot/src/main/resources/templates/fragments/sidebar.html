@@ -23,7 +23,7 @@
 
     <nav>
         <a th:classappend="${active == 'dashboard'} ? 'active'"
-           href="#">Tổng quan</a>
+           th:href="@{/admin}">Tổng quan</a>
 
         <a th:classappend="${active == 'movies'} ? 'active'"
            th:href="@{/admin/movies}">Quản lý phim</a>

@@ -6,6 +6,7 @@ import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
+import com.swp391.team6.cinema.service.AdminDashboardService;
 import com.swp391.team6.cinema.service.GenreService;
 import com.swp391.team6.cinema.service.MovieService;
 import com.swp391.team6.cinema.service.NewsService;
@@ -31,6 +32,7 @@ public class ViewController {
     private final ShowtimeRepository showtimeRepository;
     private final NewsService newsService;
     private final CinemaBranchRepository cinemaBranchRepository;
+    private final AdminDashboardService adminDashboardService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -62,9 +64,11 @@ public class ViewController {
             redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
             return "redirect:/auth/login";
         }
-        
+
+        AdminDashboardService.AdminDashboardData dashboard = adminDashboardService.buildDashboard();
+        model.addAttribute("dashboard", dashboard);
         model.addAttribute("user", user);
-        return "redirect:/admin/customers"; // Hoặc trang dashboard admin
+        return "admin-dashboard";
     }
     
     @GetMapping("/manager")

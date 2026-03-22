@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tổng quan - Admin</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-dashboard.css}">
+</head>
+<body>
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('dashboard')"></div>
+
+    <main class="content">
+        <header class="header">
+            <div>
+                <h1>Tổng quan</h1>
+                <p>Dashboard quản lý hệ thống rạp chiếu phim</p>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-label">Tổng doanh thu</p>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(dashboard.totalRevenue, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                <span class="stat-trend" th:classappend="${dashboard.revenueTrend >= 0 ? ' up' : ' down'}"
+                      th:text="${(dashboard.revenueTrend >= 0 ? '+' : '') + dashboard.revenueTrend + '% so với tháng trước'}">+0%</span>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-label">Vé đã bán</p>
+                <div class="stat-value" th:text="${#numbers.formatInteger(dashboard.totalTickets, 0, 'COMMA')}">0</div>
+                <span class="stat-trend" th:classappend="${dashboard.ticketTrend >= 0 ? ' up' : ' down'}"
+                      th:text="${(dashboard.ticketTrend >= 0 ? '+' : '') + dashboard.ticketTrend + '% so với tháng trước'}">+0%</span>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-label">Tổng số phim</p>
+                <div class="stat-value" th:text="${dashboard.totalMovies}">0</div>
+                <span class="stat-trend muted">Tổng phim trong hệ thống</span>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-label">Tổng đơn đặt</p>
+                <div class="stat-value" th:text="${#numbers.formatInteger(dashboard.totalBookings, 0, 'COMMA')}">0</div>
+                <span class="stat-trend muted">Bao gồm mọi trạng thái</span>
+            </article>
+        </section>
+
+        <section class="charts-grid">
+            <article class="chart-card">
+                <h3>Doanh thu 6 tháng gần đây</h3>
+                <div class="bar-chart">
+                    <div class="bar-item" th:each="point : ${dashboard.monthlyRevenue}">
+                        <div class="bar-value" th:style="'height:' + ${point.percent} + '%'"></div>
+                        <span class="bar-label" th:text="${point.label}">01/26</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="chart-card">
+                <h3>Phim bán chạy nhất</h3>
+                <div class="top-movie-list" th:if="${!#lists.isEmpty(dashboard.topMovies)}">
+                    <div class="top-movie-item" th:each="item, stat : ${dashboard.topMovies}">
+                        <span class="rank" th:text="${stat.index + 1}">1</span>
+                        <span class="movie-title" th:text="${item.title}">Movie</span>
+                        <span class="movie-revenue"
+                              th:text="${#numbers.formatDecimal(item.value, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
+                    </div>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(dashboard.topMovies)}">Chưa có dữ liệu.</p>
+            </article>
+        </section>
+
+        <section class="branch-section">
+            <div class="section-header">
+                <h3>Danh sách các rạp</h3>
+                <span class="section-note" th:text="${dashboard.branches != null ? dashboard.branches.size() : 0} + ' rạp'">0 rạp</span>
+            </div>
+            <div class="branch-table-card">
+                <table class="branch-table">
+                    <thead>
+                    <tr>
+                        <th>Tên rạp</th>
+                        <th>Thành phố</th>
+                        <th>Địa chỉ</th>
+                        <th class="text-right">Số phòng</th>
+                        <th class="text-right">Tổng ghế</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="b : ${dashboard.branches}">
+                        <td th:text="${b.branchName}">FPT Cinema Quận 1</td>
+                        <td th:text="${b.city}">TP.HCM</td>
+                        <td th:text="${b.address}">Quận 1</td>
+                        <td class="text-right" th:text="${b.totalRooms}">0</td>
+                        <td class="text-right" th:text="${b.totalSeats}">0</td>
+                        <td>
+                            <span class="branch-status" th:classappend="${b.status == 'active'} ? ' status-active' : ' status-inactive'"
+                                  th:text="${b.status}">active</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${dashboard.branches == null or #lists.isEmpty(dashboard.branches)}">
+                        <td colspan="6" class="text-muted">Chưa có dữ liệu rạp.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
