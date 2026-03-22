@@ -177,6 +177,30 @@ CREATE TABLE movie_genres (
   FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
 );
 
+CREATE TABLE news (
+  news_id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  thumbnail_url VARCHAR(255),
+  
+  author_id INT,  -- admin hoặc manager đăng bài
+  
+  branch_id INT NULL,  
+  -- NULL = áp dụng toàn hệ thống
+  -- NOT NULL = chỉ áp dụng cho chi nhánh cụ thể
+  
+  news_type ENUM('promotion','movie','event','announcement') DEFAULT 'announcement',
+  
+  status ENUM('draft','published','hidden') DEFAULT 'draft',
+  
+  published_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (author_id) REFERENCES users(user_id),
+  FOREIGN KEY (branch_id) REFERENCES cinema_branches(branch_id)
+);
+
 INSERT INTO cinema_branches (branch_name, city, address) VALUES
 ('FPT Cinema Quận 1', 'TP.HCM', 'Quận 1'),
 ('FPT Cinema Quận 3', 'TP.HCM', 'Quận 3'),
@@ -300,3 +324,13 @@ VALUES
 ('Q1DISCOUNT20', 'Giảm 20k cho chi nhánh Q1', 'amount', 20000, 80000, '2026-02-01', '2026-06-30', 1, NULL),
 
 ('VIP30', 'Giảm 30% cho vé VIP', 'percent', 30, 150000, '2026-02-01', '2026-04-30', NULL, 200);
+
+INSERT INTO news (title, content, author_id, news_type, status, published_at)
+VALUES
+('Phim mới Avengers quay trở lại', 'Bom tấn Avengers chính thức công chiếu lại!', 1, 'movie', 'published', NOW()),
+
+('Khuyến mãi tháng 3', 'Giảm giá 50% cho tất cả khách hàng mới', 1, 'promotion', 'published', NOW()),
+
+('Sự kiện giao lưu diễn viên', 'Gặp gỡ diễn viên nổi tiếng tại rạp Q1', 2, 'event', 'published', NOW()),
+
+('Thông báo bảo trì hệ thống', 'Hệ thống sẽ bảo trì vào 2h sáng', 1, 'announcement', 'published', NOW());
