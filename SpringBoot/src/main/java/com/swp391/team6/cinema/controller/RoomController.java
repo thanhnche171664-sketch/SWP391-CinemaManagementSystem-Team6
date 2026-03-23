@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.controller;
 
+import com.swp391.team6.cinema.dto.RoomDTO;
 import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.entity.Seat;
@@ -8,16 +9,17 @@ import com.swp391.team6.cinema.service.CinemaBranchService;
 import com.swp391.team6.cinema.service.RoomService;
 import com.swp391.team6.cinema.service.SeatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/rooms")
 public class RoomController {
 
     private final RoomService roomService;
@@ -25,7 +27,7 @@ public class RoomController {
     private final CinemaBranchService branchService;
     private final SeatRepository seatRepository;
 
-    @GetMapping("/{id}")
+    @GetMapping("/rooms/{id}")
     public String roomDetails(@PathVariable Long id, Model model) {
 
         Room room = roomService.getRoomById(id);
@@ -39,17 +41,25 @@ public class RoomController {
         return "room-details";
     }
 
-    @GetMapping
+
+    @GetMapping("/rooms")
     public String roomManagement(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long branchId,
+            @RequestParam(defaultValue = "0") int page,
             Model model
     ) {
 
-        List<Room> rooms = roomService.searchRooms(keyword, branchId);
+        int pageSize = 6;
+
+        var roomPage = roomService.searchRoomsPaging(keyword, branchId, page, pageSize);
+
         List<CinemaBranch> branches = branchService.getAllBranches();
 
-        model.addAttribute("rooms", rooms);
+        model.addAttribute("rooms", roomPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", roomPage.getTotalPages());
+
         model.addAttribute("keyword", keyword);
         model.addAttribute("branchId", branchId);
 
@@ -58,7 +68,7 @@ public class RoomController {
         return "room-list";
     }
 
-    @GetMapping("/new")
+    @GetMapping("/rooms/new")
     public String showCreateRoomForm(Model model) {
 
         List<CinemaBranch> branches = branchService.getAllBranches();
@@ -69,7 +79,7 @@ public class RoomController {
         return "room-create";
     }
 
-    @PostMapping("/create")
+    @PostMapping("/rooms/create")
     public String createRoom(Room room, Model model) {
 
         List<String> errors = new ArrayList<>();
@@ -113,7 +123,7 @@ public class RoomController {
         return "redirect:/rooms";
     }
 
-    @PostMapping("/{id}/toggle-status")
+    @PostMapping("/rooms/{id}/toggle-status")
     public String toggleRoomStatus(@PathVariable Long id) {
 
         Room room = roomService.getRoomById(id);
@@ -129,7 +139,7 @@ public class RoomController {
         return "redirect:/rooms";
     }
 
-    @PostMapping("/change-type")
+    @PostMapping("/rooms/change-type")
     public String changeSeatType(
             @RequestParam Long seatId,
             @RequestParam Seat.SeatType seatType,
@@ -142,4 +152,17 @@ public class RoomController {
 
         return "redirect:/rooms/" + roomId;
     }
+
+    @PostMapping("/admin/seats/update-type")
+    @ResponseBody
+    public ResponseEntity<?> updateSeatType(@RequestBody Map<String, Object> req) {
+
+        Long seatId = Long.valueOf(req.get("seatId").toString());
+        String type = req.get("type").toString();
+
+        seatService.updateSeatType(seatId, type);
+
+        return ResponseEntity.ok().build();
+    }
+
 }

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm suất chiếu</title>
+
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-showtime.css}">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar('showtimes')"></div>
+
+    <main class="content">
+
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>Thêm suất chiếu</h1>
+                <p>Tạo lịch chiếu phim mới</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form th:action="@{/admin/showtimes/create}" method="post" class="form-box">
+
+            <!-- Movie -->
+            <div class="form-group">
+                <label>Phim</label>
+                <select name="movieId" required>
+                    <option value="">-- Chọn phim --</option>
+                    <option th:each="m : ${movies}"
+                            th:value="${m.movieId}"
+                            th:text="${m.title}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Branch -->
+            <div class="form-group">
+                <label>Rạp chiếu</label>
+                <select id="branchSelect" name="branchId">
+                    <option value="">-- Chọn rạp --</option>
+                    <option th:each="b : ${branches}"
+                            th:value="${b.branchId}"
+                            th:text="${b.branchName}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Room -->
+            <div class="form-group">
+                <label>Phòng</label>
+                <select name="roomId" id="roomSelect" required>
+                    <option value="">-- Chọn phòng --</option>
+                </select>
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+                <label>Ngày chiếu</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <!-- Time -->
+            <div class="form-group">
+                <label>Giờ chiếu</label>
+                <input type="time" id="time" required>
+            </div>
+
+            <!-- Hidden startTime -->
+            <input type="hidden" name="startTime" id="startTime">
+
+            <!-- Error -->
+            <div th:if="${error}" class="error-box">
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-submit">
+                Tạo suất chiếu
+            </button>
+
+        </form>
+
+    </main>
+</div>
+
+<script>
+    document.getElementById("branchSelect").addEventListener("change", function () {
+        const branchId = this.value;
+        const roomSelect = document.getElementById("roomSelect");
+
+        roomSelect.innerHTML = '<option value="">-- Chọn phòng --</option>';
+
+        if (!branchId) return;
+
+        fetch(`/admin/rooms/by-branch?branchId=${branchId}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log("DATA:", data);
+
+                if (data.length === 0) {
+                    const option = document.createElement("option");
+                    option.textContent = "Không có phòng";
+                    option.disabled = true;
+                    roomSelect.appendChild(option);
+                    return;
+                }
+
+                data.forEach(room => {
+                    const option = document.createElement("option");
+                    option.value = room.roomId ?? room.id;
+                    option.textContent = room.roomName ?? room.name;
+                    roomSelect.appendChild(option);
+                });
+            })
+            .catch(err => console.error("Lỗi fetch:", err));
+    });
+
+    // ✅ combine date + time
+    document.querySelector("form").addEventListener("submit", function (event) {
+        const date = document.getElementById("date").value;
+        const time = document.getElementById("time").value;
+
+        if (!date || !time) {
+            alert("Vui lòng chọn ngày và giờ");
+            event.preventDefault();
+            return;
+        }
+
+        document.getElementById("startTime").value = date + "T" + time;
+    });
+</script>
+
+</body>
+</html>

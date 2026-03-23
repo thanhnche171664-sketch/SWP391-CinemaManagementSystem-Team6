@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý suất chiếu</title>
+
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-showtime.css}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <div th:replace="fragments/sidebar :: sidebar('showtimes')"></div>
+
+    <main class="content">
+
+        <div class="header">
+            <div>
+                <h1>Quản lý suất chiếu</h1>
+                <p>Thêm, sửa, xóa lịch chiếu phim</p>
+            </div>
+
+            <a href="/admin/showtimes/create" class="btn-add">
+                + Thêm suất chiếu
+            </a>
+        </div>
+
+        <form method="get" action="/admin/showtimes">
+
+            <select name="branchId">
+                <option value="">-- Chọn rạp --</option>
+                <option th:each="b : ${branches}"
+                        th:value="${b.branchId}"
+                        th:text="${b.branchName}">
+                </option>
+            </select>
+
+            <input type="date" name="date">
+
+            <button type="submit">Lọc</button>
+
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Phim</th>
+                    <th>Rạp chiếu</th>
+                    <th>Phòng</th>
+                    <th>Ngày</th>
+                    <th>Giờ Bắt đầu</th>
+<!--                    <th>Ghế trống</th>-->
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="s : ${showtimes}">
+
+                    <td>
+                        <div class="movie-cell">
+<!--                            <img th:src="${s.movie.posterUrl}" alt="poster">-->
+                            <div>
+                                <div class="movie-name"
+                                     th:text="${s.movie.title}">Movie</div>
+                                <div class="movie-duration"
+                                     th:text="${s.movie.duration + ' phút'}"></div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td th:text="${s.room.branch.branchName}">CGV</td>
+
+                    <td th:text="${s.room.roomName}">Phòng 1</td>
+
+                    <td th:text="${#temporals.format(s.startTime, 'dd/MM/yyyy')}"></td>
+
+                    <td>
+                        <span class="time-badge"
+                              th:text="${#temporals.format(s.startTime, 'HH:mm')}">
+                        </span>
+                    </td>
+
+
+<!--                    <td>-->
+<!--                        <span class="seat-badge"-->
+<!--                              th:text="${s.availableSeats + '/' + s.room.capacity}">-->
+<!--                            45/100-->
+<!--                        </span>-->
+<!--                    </td>-->
+
+                    <td>
+                        <span th:text="${s.status}"
+                              th:classappend="
+                                ${s.status.name() == 'open'} ? 'status-open' :
+                                (${s.status.name() == 'closed'} ? 'status-closed' : 'status-cancel')
+                              ">
+                        </span>
+                    </td>
+
+                    <td>
+                        <a th:href="@{'/admin/showtimes/edit/' + ${s.showtimeId}}">
+                            ✏️
+                        </a>
+                    </td>
+
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(showtimes)}">
+                    <td colspan="8" style="text-align:center">
+                        Không có suất chiếu
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>

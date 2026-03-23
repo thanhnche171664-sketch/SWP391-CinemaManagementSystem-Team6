@@ -3,6 +3,7 @@ package com.swp391.team6.cinema.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Room {
 
     @Id
@@ -21,8 +23,8 @@ public class Room {
 
     @ManyToOne
     @JoinColumn(name = "branch_id", nullable = false)
+    @JsonIgnore
     private CinemaBranch branch;
-
     @Column(name = "room_name", length = 50)
     private String roomName;
 
@@ -35,9 +37,11 @@ public class Room {
 
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Seat> seats;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Showtime> showtimes;
 
     public enum RoomStatus {

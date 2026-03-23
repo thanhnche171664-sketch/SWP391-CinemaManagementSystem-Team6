@@ -4,7 +4,9 @@ import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
@@ -66,4 +68,26 @@ public class RoomService {
 
         return roomRepository.findAll();
     }
+
+    public Page<Room> searchRoomsPaging(String keyword, Long branchId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (keyword != null && !keyword.isEmpty() && branchId != null) {
+            return roomRepository.findByRoomNameContainingIgnoreCaseAndBranchBranchId(
+                    keyword, branchId, pageable);
+        }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            return roomRepository.findByRoomNameContainingIgnoreCase(keyword, pageable);
+        }
+
+        if (branchId != null) {
+            return roomRepository.findByBranchBranchId(branchId, pageable);
+        }
+
+        return roomRepository.findAll(pageable);
+    }
+
+
 }

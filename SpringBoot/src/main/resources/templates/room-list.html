@@ -103,7 +103,35 @@
       </tbody>
     </table>
 
+    <div class="pagination">
 
+      <!-- Prev -->
+      <a th:if="${currentPage > 0}"
+         th:href="@{/rooms(page=${currentPage - 1}, keyword=${keyword}, branchId=${branchId})}">
+        ←
+      </a>
+
+      <!-- Pages -->
+      <span th:if="${totalPages > 0}"
+            th:each="i : ${#numbers.sequence(
+            T(java.lang.Math).max(0, currentPage - 2),
+            T(java.lang.Math).min(totalPages - 1, currentPage + 2)
+        )}">
+
+    <a th:href="@{/rooms(page=${i}, keyword=${keyword}, branchId=${branchId})}"
+       th:text="${i + 1}"
+       th:classappend="${i == currentPage} ? ' active' : ''">
+    </a>
+
+  </span>
+
+      <!-- Next -->
+      <a th:if="${currentPage < totalPages - 1}"
+         th:href="@{/rooms(page=${currentPage + 1}, keyword=${keyword}, branchId=${branchId})}">
+        →
+      </a>
+
+    </div>
   </main>
 </div>
 

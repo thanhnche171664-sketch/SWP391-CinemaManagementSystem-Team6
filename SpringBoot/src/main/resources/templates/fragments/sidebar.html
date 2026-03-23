@@ -41,7 +41,7 @@
            th:href="@{/admin/customers}">Quản lý khách hàng</a>
 
         <a th:classappend="${active == 'shows'} ? 'active'"
-           href="#">Quản lý suất chiếu</a>
+           th:href="@{/admin/showtimes}">Quản lý suất chiếu</a>
 
         <a th:classappend="${active == 'tickets'} ? 'active'"
            th:href="@{/admin/bookings}">Quản lý đặt vé</a>
