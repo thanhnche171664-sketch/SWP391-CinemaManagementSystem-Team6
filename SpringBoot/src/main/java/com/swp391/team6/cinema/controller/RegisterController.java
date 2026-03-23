@@ -37,6 +37,7 @@ public class RegisterController {
     }
 
     @PostMapping("/auth/register")
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
     public String registerUser(
             @Valid @ModelAttribute("registerRequest") RegisterRequest request,
             BindingResult bindingResult,
@@ -55,6 +56,13 @@ public class RegisterController {
         }
 
         // Check if email already exists
+        userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
+            if (!u.getIsVerify()) {
+                // Delete unverified user to allow re-registration
+                userRepository.delete(u);
+            }
+        });
+
         if (userRepository.existsByEmail(request.getEmail())) {
             model.addAttribute("error", "Email already registered");
             return "auth/register";

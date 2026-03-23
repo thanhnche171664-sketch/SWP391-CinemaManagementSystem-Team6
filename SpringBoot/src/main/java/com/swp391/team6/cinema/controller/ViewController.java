@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -100,6 +104,7 @@ public class ViewController {
     public String movies(@RequestParam(required = false) String search,
                          @RequestParam(required = false) String status,
                          @RequestParam(required = false) String genre,
+                         @RequestParam(required = false) Long branchId,
                          Model model) {
         Movie.MovieStatus statusEnum = null;
         if (status != null && !status.isBlank()) {
@@ -107,12 +112,14 @@ public class ViewController {
                 statusEnum = Movie.MovieStatus.valueOf(status.trim().toLowerCase());
             } catch (IllegalArgumentException ignored) {}
         }
-        List<Movie> movies = movieService.getVisibleMoviesWithFilters(search, statusEnum, genre);
+        List<Movie> movies = movieService.getVisibleMoviesWithFilters(search, statusEnum, genre, branchId);
         model.addAttribute("movies", movies);
         model.addAttribute("search", search != null ? search : "");
         model.addAttribute("statusFilter", status != null ? status : "");
         model.addAttribute("genreFilter", genre != null ? genre : "");
+        model.addAttribute("branchFilter", branchId);
         model.addAttribute("genreList", genreService.getAllGenres());
+        model.addAttribute("branches", cinemaBranchService.getActiveBranches());
         return "movies";
     }
 
@@ -185,12 +192,53 @@ public class ViewController {
         if (keyword != null && !keyword.trim().isEmpty()) {
             branches = cinemaBranchService.searchBranches(keyword).stream()
                     .filter(b -> b.getStatus() == CinemaBranch.BranchStatus.active)
-                    .collect(java.util.stream.Collectors.toList());
+                    .collect(Collectors.toList());
         } else {
             branches = cinemaBranchService.getActiveBranches();
         }
         model.addAttribute("branches", branches);
         model.addAttribute("keyword", keyword != null ? keyword : "");
         return "cinema-list";
+    }
+
+    @GetMapping("/showtimes")
+    public String showtimes(@RequestParam(required = false) Long branchId,
+                            @RequestParam(required = false) Long movieId,
+                            HttpSession session,
+                            Model model) {
+        List<Showtime> showtimes = showtimeRepository.findAllOpenFromNow(LocalDateTime.now());
+
+        if (branchId != null) {
+            showtimes = showtimes.stream()
+                    .filter(s -> s.getRoom().getBranch().getBranchId().equals(branchId))
+                    .collect(Collectors.toList());
+        }
+        if (movieId != null) {
+            showtimes = showtimes.stream()
+                    .filter(s -> s.getMovie().getMovieId().equals(movieId))
+                    .collect(Collectors.toList());
+        }
+
+        // Group by date (LocalDate of startTime), preserving order
+        Map<LocalDate, List<Showtime>> showtimesByDate = showtimes.stream()
+                .collect(Collectors.groupingBy(
+                        s -> s.getStartTime().toLocalDate(),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        List<CinemaBranch> branches = cinemaBranchService.getActiveBranches();
+        List<Movie> movies = movieService.getVisibleMoviesByStatus(Movie.MovieStatus.now_showing);
+
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user != null) model.addAttribute("user", user);
+
+        model.addAttribute("showtimesByDate", showtimesByDate);
+        model.addAttribute("showtimes", showtimes);
+        model.addAttribute("branches", branches);
+        model.addAttribute("movies", movies);
+        model.addAttribute("selectedBranchId", branchId);
+        model.addAttribute("selectedMovieId", movieId);
+        return "showtimes";
     }
 }

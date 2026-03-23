@@ -45,11 +45,12 @@ public class MovieService {
     }
 
     @Transactional(readOnly = true)
-    public List<Movie> getVisibleMoviesWithFilters(String keyword, Movie.MovieStatus status, String genreName) {
+    public List<Movie> getVisibleMoviesWithFilters(String keyword, Movie.MovieStatus status, String genreName, Long branchId) {
         List<Movie> movies = movieRepository.findVisibleMoviesWithFilters(
                 (keyword != null && !keyword.isBlank()) ? keyword.trim() : null,
                 status,
-                (genreName != null && !genreName.isBlank()) ? genreName.trim() : null);
+                (genreName != null && !genreName.isBlank()) ? genreName.trim() : null,
+                branchId);
         movies.forEach(movie -> movie.getGenres().size());
         return movies;
     }

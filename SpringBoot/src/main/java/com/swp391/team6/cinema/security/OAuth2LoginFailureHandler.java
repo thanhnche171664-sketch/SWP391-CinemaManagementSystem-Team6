@@ -18,7 +18,7 @@ public class OAuth2LoginFailureHandler extends SimpleUrlAuthenticationFailureHan
     private static final Logger log = LoggerFactory.getLogger(OAuth2LoginFailureHandler.class);
 
     public OAuth2LoginFailureHandler() {
-        setDefaultFailureUrl("/login?error=oauth_failed");
+        setDefaultFailureUrl("/auth/login?error=oauth_failed");
     }
 
     @Override

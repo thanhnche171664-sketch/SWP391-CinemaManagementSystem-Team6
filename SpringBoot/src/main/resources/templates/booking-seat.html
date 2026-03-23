@@ -38,28 +38,6 @@
             font-size: 1rem;
             font-weight: 600;
         }
-        .countdown-timer {
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-align: center;
-            padding: 12px 24px;
-            border-radius: 8px;
-            margin-top: 16px;
-            background: rgba(255,255,255,0.2);
-        }
-        .countdown-timer.warning {
-            background: #ffc107;
-            color: #000;
-        }
-        .countdown-timer.danger {
-            background: #dc3545;
-            color: #fff;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
         .screen { text-align: center; margin: 20px 0 30px; font-weight: bold; color: #666; }
         .seat-map { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .seat-row { display: flex; gap: 6px; align-items: center; }
@@ -100,6 +78,9 @@
     </style>
 </head>
 <body class="booking-seat-page">
+<!-- Toast container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
 <div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
 <div class="container py-4">
@@ -135,9 +116,6 @@
                 <div class="value" th:text="${showtime.status}">OPEN</div>
             </div>
         </div>
-        <div class="countdown-timer" id="countdownTimer">
-            ⏰ Còn lại: <span id="countdownDisplay">05:00</span>
-        </div>
     </div>
 
     <!-- Seat Legend -->
@@ -168,7 +146,7 @@
                            th:attr="data-price=${seatPrices != null and seatPrices[seat.seatId] != null ? seatPrices[seat.seatId].intValue() : 0}">
                         <input type="checkbox" name="seatIds" th:value="${seat.seatId}"
                                th:disabled="${occupiedIds.contains(seat.seatId)}">
-                        <span th:text="${seat.seatNumber}">1</span>
+                        <span class="seat-label" th:text="${seat.seatNumber}">1</span>
                     </label>
                 </th:block>
             </div>
@@ -232,21 +210,16 @@
         </button>
     </div>
 </div>
-</div>
 
-<!-- Toast Container -->
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
 (function() {
     // Config
-    const PAYMENT_MINUTES = 5;
     const REFRESH_INTERVAL = 30000; // 30 seconds
     const showtimeId = /*[[${showtime.showtimeId}]]*/ 0;
 
-    // State
-    let bookingStartTime = Date.now();
-    let countdownInterval;
     let refreshInterval;
     const occupiedSeatIds = /*[[${occupiedIds}]]*/ [];
 
@@ -255,15 +228,13 @@
     const totalEl = document.getElementById('totalAmount');
     const selectedSeatsDisplay = document.getElementById('selectedSeatsDisplay');
     const selectedSeatsInput = document.getElementById('selectedSeatsInput');
-    const countdownTimer = document.getElementById('countdownTimer');
-    const countdownDisplay = document.getElementById('countdownDisplay');
     const submitBtn = document.getElementById('submitBtn');
-    const checkboxes = form.querySelectorAll('input[name="seatIds"]:not([disabled])');
+    const checkboxes = form.querySelectorAll('input[name="seatIds"]');
 
     // Seat data for display
     const seatsData = /*[[${seats}]]*/ [];
 
-    // Toast function
+    // Toast summary
     function showToast(message, type = 'warning') {
         const toastHtml = `
             <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -271,254 +242,69 @@
                     <div class="toast-body">${message}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-            </div>
-        `;
+            </div>`;
         const container = document.querySelector('.toast-container');
-        container.insertAdjacentHTML('beforeend', toastHtml);
-        const toastEl = container.lastElementChild;
-        const toast = new bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
-        toast.show();
-        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        if (container) {
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = container.lastElementChild;
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
     }
 
-    // Get seat label
+    // Label lookup mapper
     function getSeatLabel(seatId) {
-        const seat = seatsData.find(s => s.seatId === seatId);
-        return seat ? seat.seatRow + seat.seatNumber : seatId;
+        const seat = seatsData.find(s => String(s.seatId) === String(seatId));
+        return seat ? (seat.seatRow + seat.seatNumber) : ("Ghế " + seatId);
     }
 
-    // Countdown timer
-    function startCountdown() {
-        countdownInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - bookingStartTime) / 1000);
-            const remaining = (PAYMENT_MINUTES * 60) - elapsed;
-
-            if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                clearInterval(refreshInterval);
-                countdownDisplay.textContent = '00:00';
-                countdownTimer.className = 'countdown-timer danger';
-                showToast('⏰ Hết thời gian thanh toán!', 'danger');
-                submitBtn.disabled = true;
-                form.querySelectorAll('input[name="seatIds"]').forEach(cb => cb.disabled = true);
-                setTimeout(() => {
-                    window.location.href = '/movies';
-                }, 3000);
-                return;
-            }
-
-            const minutes = Math.floor(remaining / 60);
-            const seconds = remaining % 60;
-            countdownDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-            if (remaining <= 60) {
-                countdownTimer.className = 'countdown-timer danger';
-            } else if (remaining <= 120) {
-                countdownTimer.className = 'countdown-timer warning';
-            }
-        }, 1000);
-    }
-
-    // Refresh occupied seats
-    function refreshOccupiedSeats() {
-        fetch(`/booking/api/occupied-seats?showtimeId=${showtimeId}`)
-            .then(res => res.json())
-            .then(data => {
-                const newOccupied = new Set(data);
-                const currentSelected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => parseInt(cb.value));
-
-                // Check if any selected seat became occupied
-                currentSelected.forEach(seatId => {
-                    if (newOccupied.has(seatId)) {
-                        showToast(`⚠️ Ghế ${getSeatLabel(seatId)} đã được đặt bởi người khác!`, 'danger');
-                        const cb = form.querySelector(`input[value="${seatId}"]`);
-                        if (cb) {
-                            cb.checked = false;
-                            cb.disabled = true;
-                            cb.closest('label').classList.remove('selected');
-                            cb.closest('label').classList.add('occupied');
-                        }
-                    }
-                });
-
-                // Update occupied seats UI
-                checkboxes.forEach(cb => {
-                    const seatId = parseInt(cb.value);
-                    const label = cb.closest('label');
-                    if (newOccupied.has(seatId) && !cb.checked) {
-                        label.classList.remove('available');
-                        label.classList.add('occupied');
-                        cb.disabled = true;
-                    }
-                });
-
-                updateTotal();
-            })
-            .catch(err => console.error('Error refreshing seats:', err));
-    }
-
-    // Update total and selected seats display
-    function updateTotal() {
+    // Global update UI
+    function updateSelectedUI() {
         let total = 0;
-        const selected = [];
+        let selectedNames = [];
         checkboxes.forEach(cb => {
             if (cb.checked) {
-                const label = cb.closest('label');
-                const price = parseInt(label.getAttribute('data-price') || '0', 10);
+                const label = cb.closest('.seat-option');
+                const price = parseInt(label.getAttribute('data-price') || 0);
                 total += price;
-                selected.push(getSeatLabel(parseInt(cb.value)));
+                selectedNames.push(getSeatLabel(cb.value));
             }
         });
+
         totalEl.textContent = total.toLocaleString() + ' VND';
-        selectedSeatsDisplay.textContent = selected.length > 0 ? selected.join(', ') : 'Chưa chọn ghế';
-        selectedSeatsInput.value = selected.join(',');
-        submitBtn.disabled = total === 0;
+        selectedSeatsDisplay.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Chưa chọn ghế';
+        selectedSeatsInput.value = selectedNames.join(',');
+        submitBtn.disabled = (selectedNames.length === 0);
     }
 
-    // Seat click handler
-    form.querySelectorAll('.seat-option:not(.occupied)').forEach(label => {
-        label.addEventListener('click', function(e) {
-            if (this.classList.contains('occupied')) return;
-            const cb = this.querySelector('input');
-            if (cb && !cb.disabled) {
-                cb.checked = !cb.checked;
-                this.classList.toggle('selected', cb.checked);
-                updateTotal();
-            }
-        });
-    });
-
-    // Checkbox change handler
+    // MAIN: Handle seat change
     checkboxes.forEach(cb => {
         cb.addEventListener('change', function() {
-            const label = this.closest('label');
-            if (label) label.classList.toggle('selected', this.checked);
-            updateTotal();
+            const label = this.closest('.seat-option');
+            if (label) {
+                // IMPORTANT: Only toggle class based on native checked state
+                if (this.checked) label.classList.add('selected');
+                else label.classList.remove('selected');
+            }
+            updateSelectedUI();
         });
     });
 
-    // Form submit - validate before submit
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const selectedSeats = Array.from(checkboxes).filter(cb => cb.checked).map(cb => parseInt(cb.value));
-        if (selectedSeats.length === 0) {
-            showToast('Vui lòng chọn ít nhất một ghế!', 'warning');
+    // Handle form submit
+    form.addEventListener('submit', async function(e) {
+        const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+        if (selected.length === 0) {
+            e.preventDefault();
+            showToast('Vui lòng chọn ghế!', 'warning');
             return;
         }
 
-        // Validate occupied seats one more time
-        fetch(`/booking/api/validate-seats`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                showtimeId: showtimeId,
-                seatIds: selectedSeats
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.valid) {
-                // Submit form
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'validatedAt';
-                input.value = Date.now();
-                form.appendChild(input);
-                form.submit();
-            } else {
-                showToast('Một số ghế đã được đặt: ' + data.occupiedSeats.join(', '), 'danger');
-                refreshOccupiedSeats();
-            }
-        })
-        .catch(() => {
-            // If validation fails, allow submit (fallback)
-            form.submit();
-        });
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
     });
 
-    // Voucher handling
-    let appliedDiscount = 0;
-    const voucherCodeInput = document.getElementById('voucherCode');
-    const applyVoucherBtn = document.getElementById('applyVoucherBtn');
-    const voucherMessage = document.getElementById('voucherMessage');
-    const promotionIdInput = document.getElementById('promotionId');
-    const discountRow = document.getElementById('discountRow');
-    const discountAmountEl = document.getElementById('discountAmount');
-
-    applyVoucherBtn?.addEventListener('click', async function() {
-        const code = voucherCodeInput?.value.trim();
-        if (!code) {
-            showToast('Vui lòng nhập mã voucher!', 'warning');
-            return;
-        }
-
-        // Get current total
-        let currentTotal = 0;
-        checkboxes.forEach(cb => {
-            if (cb.checked) {
-                const label = cb.closest('label');
-                const price = parseInt(label.getAttribute('data-price') || '0', 10);
-                currentTotal += price;
-            }
-        });
-
-        if (currentTotal === 0) {
-            showToast('Vui lòng chọn ghế trước khi áp dụng voucher!', 'warning');
-            return;
-        }
-
-        try {
-            const res = await fetch(`/api/promotions/validate?code=${encodeURIComponent(code)}&amount=${currentTotal}`);
-            const data = await res.json();
-
-            if (data.valid) {
-                appliedDiscount = data.discountAmount;
-                promotionIdInput.value = data.promotionId || '';
-                voucherMessage.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ${data.message}</span>`;
-                voucherMessage.className = 'mt-2 small text-success';
-                discountRow.style.display = 'block';
-                discountAmountEl.textContent = appliedDiscount.toLocaleString();
-                updateTotal();
-                showToast('Áp dụng voucher thành công!', 'success');
-            } else {
-                appliedDiscount = 0;
-                promotionIdInput.value = '';
-                voucherMessage.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${data.message}</span>`;
-                voucherMessage.className = 'mt-2 small text-danger';
-                discountRow.style.display = 'none';
-            }
-        } catch (err) {
-            showToast('Lỗi xác thực voucher. Vui lòng thử lại!', 'danger');
-        }
-    });
-
-    // Update total with discount
-    const originalUpdateTotal = updateTotal;
-    updateTotal = function() {
-        let total = 0;
-        const selected = [];
-        checkboxes.forEach(cb => {
-            if (cb.checked) {
-                const label = cb.closest('label');
-                const price = parseInt(label.getAttribute('data-price') || '0', 10);
-                total += price;
-                selected.push(getSeatLabel(parseInt(cb.value)));
-            }
-        });
-
-        // Apply discount
-        const finalTotal = Math.max(0, total - appliedDiscount);
-        totalEl.textContent = finalTotal.toLocaleString() + ' VND';
-        selectedSeatsDisplay.textContent = selected.length > 0 ? selected.join(', ') : 'Chưa chọn ghế';
-        selectedSeatsInput.value = selected.join(',');
-        submitBtn.disabled = total === 0;
-    };
-
-    // Start countdown and refresh
-    startCountdown();
-    refreshInterval = setInterval(refreshOccupiedSeats, REFRESH_INTERVAL);
-
+    console.log("Booking flow initialized.");
 })();
 </script>
 </body>
