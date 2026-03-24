@@ -45,6 +45,37 @@
                 </div>
             </div>
         </div>
+        <div class="text-center mt-4">
+            <a th:href="@{/movies(status='now_showing')}" class="btn btn-outline-light home-news-more-btn">Xem thêm</a>
+        </div>
+    </section>
+
+    <section class="container pb-5 home-news-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">News</h2>
+            <a th:href="@{/news}" class="btn btn-outline-light home-news-more-btn">Xem thêm</a>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4" th:each="item : ${latestNews}">
+                <a th:href="@{/news/{id}(id=${item.newsId})}" class="home-news-card-link">
+                <article class="home-news-card h-100">
+                    <img th:if="${item.thumbnailUrl != null and !#strings.isEmpty(item.thumbnailUrl)}"
+                         th:src="${item.thumbnailUrl}" th:alt="${item.title}" class="home-news-thumb">
+                    <div class="home-news-content">
+                        <div class="home-news-meta">
+                            <span th:text="${item.newsType}">announcement</span>
+                            <span th:text="${item.publishedAt != null ? #temporals.format(item.publishedAt, 'dd/MM/yyyy') : ''}"></span>
+                        </div>
+                        <h5 th:text="${item.title}">Tiêu đề</h5>
+                        <p th:text="${#strings.abbreviate(item.content, 130)}">Nội dung...</p>
+                    </div>
+                </article>
+                </a>
+            </div>
+            <div class="col-12" th:if="${#lists.isEmpty(latestNews)}">
+                <div class="home-news-empty">Chưa có tin tức mới.</div>
+            </div>
+        </div>
     </section>
 
     <footer class="bg-dark text-white text-center py-3">

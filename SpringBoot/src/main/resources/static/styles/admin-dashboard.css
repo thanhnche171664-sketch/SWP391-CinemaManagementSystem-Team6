@@ -1,0 +1,234 @@
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 24px rgba(31, 90, 166, 0.08);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1.1;
+    margin-bottom: 8px;
+}
+
+.stat-trend {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stat-trend.up {
+    color: #2f855a;
+}
+
+.stat-trend.down {
+    color: #c6425b;
+}
+
+.stat-trend.muted {
+    color: var(--text-muted);
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.chart-card {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 24px rgba(31, 90, 166, 0.08);
+}
+
+.chart-card h3 {
+    margin: 0 0 14px;
+    font-size: 22px;
+    color: var(--text-color);
+}
+
+.bar-chart {
+    height: 260px;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    align-items: end;
+}
+
+.bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    height: 100%;
+}
+
+.bar-value {
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(180deg, #3b82f6, #1f5aa6);
+    min-height: 8px;
+}
+
+.bar-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.top-movie-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top-movie-item {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff9fa;
+}
+
+.rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--primary-color);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.movie-title {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.movie-revenue {
+    color: #2f855a;
+    font-weight: 700;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.branch-section {
+    margin-top: 4px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 22px;
+}
+
+.section-note {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.branch-table-card {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(31, 90, 166, 0.08);
+}
+
+.branch-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.branch-table thead {
+    background: #fff3f6;
+}
+
+.branch-table th,
+.branch-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text-color);
+    font-size: 14px;
+    text-align: left;
+}
+
+.branch-table th {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+
+.branch-table tbody tr:hover {
+    background: #fff9fa;
+}
+
+.branch-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-active {
+    color: #2f855a;
+    background: #e7f7ef;
+    border-color: #cbeedb;
+}
+
+.status-inactive {
+    color: #c6425b;
+    background: #fff1f1;
+    border-color: #f3b7c1;
+}
+
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}

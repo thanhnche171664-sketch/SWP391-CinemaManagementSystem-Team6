@@ -14,10 +14,21 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" th:href="@{/movies}">Movies</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/news}">News</a></li>
                     <li class="nav-item"><a class="nav-link" th:href="@{/showtimes}">Showtimes</a></li>
                     <li class="nav-item" th:if="${user != null}"><a class="nav-link" th:href="@{/booking/history}">Lịch sử đặt vé</a></li>
-                    <li class="nav-item" th:if="${user != null}"><span class="nav-link text-light" th:text="${user.fullName != null && !user.fullName.isEmpty() ? user.fullName : user.email}">User</span></li>
-                    <li class="nav-item" th:if="${user != null}"><a class="nav-link" th:href="@{/auth/logout}">Đăng xuất</a></li>
+                    <li class="nav-item public-user-menu" th:if="${user != null}">
+                        <details class="public-user-dropdown-wrap">
+                            <summary class="public-user-trigger">
+                                <span th:text="${user.fullName != null && !user.fullName.isEmpty() ? user.fullName : user.email}">User</span>
+                                <span class="public-user-caret">▾</span>
+                            </summary>
+                            <div class="public-user-dropdown">
+                                <a th:href="@{/profile}" class="public-user-link">Profile</a>
+                                <a th:href="@{/auth/logout}" class="public-user-link">Đăng xuất</a>
+                            </div>
+                        </details>
+                    </li>
                     <li class="nav-item" th:if="${user == null}"><a class="nav-link" th:href="@{/auth/login}">Đăng nhập</a></li>
                 </ul>
             </div>

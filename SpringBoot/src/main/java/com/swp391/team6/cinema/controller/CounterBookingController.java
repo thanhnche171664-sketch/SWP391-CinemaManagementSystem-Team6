@@ -60,7 +60,20 @@ public class CounterBookingController {
         if (user == null || user.getRole() != User.UserRole.STAFF) return "redirect:/auth/login";
 
         Pageable pageable = PageRequest.of(page, 12);
-        Page<Movie> moviePage = movieRepository.findMoviesForPOS(user.getBranchId(), (keyword != null && !keyword.isEmpty()) ? keyword : null, status, (genre != null && !genre.isEmpty()) ? genre : null, pageable);
+        String normalizedKeyword = (keyword != null && !keyword.isEmpty()) ? keyword : null;
+        String normalizedGenre = (genre != null && !genre.isEmpty()) ? genre : null;
+        Long branchId = user.getBranchId();
+
+        Page<Movie> moviePage;
+        if (branchId != null) {
+            moviePage = movieRepository.findMoviesForPOS(branchId, normalizedKeyword, status, normalizedGenre, pageable);
+            if (moviePage.isEmpty()) {
+                // Fallback to avoid blank POS when branch mapping data is missing.
+                moviePage = movieRepository.findMoviesForPOSAllBranches(normalizedKeyword, status, normalizedGenre, pageable);
+            }
+        } else {
+            moviePage = movieRepository.findMoviesForPOSAllBranches(normalizedKeyword, status, normalizedGenre, pageable);
+        }
 
         model.addAttribute("moviePage", moviePage);
         model.addAttribute("keyword", keyword);
@@ -234,7 +247,7 @@ public class CounterBookingController {
                 String desc = "Quầy - Đơn #" + booking.getBookingId();
 
                 String returnPath = "/staff/booking/success?bookingId=" + booking.getBookingId();
-                String cancelPath = "/staff/booking/pos";
+                String cancelPath = "/staff/booking/payment-cancel?bookingId=" + booking.getBookingId();
 
                 String checkoutUrl = payOSService.createPaymentLink(
                         booking.getBookingId(), amountVnd, desc, returnPath, cancelPath
@@ -265,6 +278,17 @@ public class CounterBookingController {
             return "staff/booking-success-pos";
         }
         return "redirect:/staff/booking/pos";
+    }
+
+    @GetMapping("/payment-cancel")
+    public String counterPaymentCancel(@RequestParam(required = false) Long bookingId, Model model) {
+        if (bookingId != null) {
+            try {
+                counterBookingService.cancelBooking(bookingId);
+            } catch (Exception e) {
+            }
+        }
+        return "staff/payment-cancel-pos";
     }
 
     private CustomerDTO toCustomerDTO(User u) {

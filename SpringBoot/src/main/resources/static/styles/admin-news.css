@@ -1,0 +1,121 @@
+.alert {
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+.alert-success {
+    border: 1px solid #bfe7d4;
+    background: #e7f7ef;
+    color: #2f855a;
+}
+
+.alert-error {
+    border: 1px solid #f3b7c1;
+    background: #fff1f1;
+    color: #c6425b;
+}
+
+.filters {
+    margin-bottom: 16px;
+}
+
+.title-cell {
+    font-weight: 600;
+}
+
+.news-thumb-cell {
+    width: 64px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    display: block;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.status-published {
+    background: #e7f7ef;
+    color: #2f855a;
+    border-color: #cbeedb;
+}
+
+.status-draft {
+    background: #fff6dd;
+    color: #a96a08;
+    border-color: #f6e1aa;
+}
+
+.status-hidden {
+    background: #fff1f1;
+    color: #c6425b;
+    border-color: #f3b7c1;
+}
+
+.form-shell {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.news-form .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.news-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.news-form .form-group.full {
+    grid-column: span 2;
+}
+
+.news-form .form-group label {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.news-form textarea.form-input {
+    resize: vertical;
+}
+
+.form-actions {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.icon-btn {
+    text-decoration: none;
+}
+
+.icon-btn.danger {
+    color: #c6425b;
+}
+
+@media (max-width: 900px) {
+    .news-form .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .news-form .form-group.full {
+        grid-column: span 1;
+    }
+}

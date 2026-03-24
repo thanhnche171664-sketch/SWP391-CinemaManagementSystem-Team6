@@ -6,7 +6,7 @@
      class="sidebar">
 
     <div class="sidebar-top">
-        <h2 class="logo">Admin</h2>
+        <h2 class="logo" th:text="${user != null and user.role != null and user.role.name() == 'MANAGER' ? 'Manager' : 'Admin'}">Admin</h2>
 
         <details class="admin-user-menu" th:if="${user != null}">
             <summary class="admin-user-trigger">
@@ -23,31 +23,41 @@
 
     <nav>
         <a th:classappend="${active == 'dashboard'} ? 'active'"
-           href="#">Tổng quan</a>
+           th:href="${user != null and user.role != null and user.role.name() == 'MANAGER' ? '/manager/dashboard' : '/admin'}">Tổng quan</a>
 
         <a th:classappend="${active == 'movies'} ? 'active'"
-           th:href="@{/admin/movies}">Quản lý phim</a>
+           th:href="${user != null and user.role != null and user.role.name() == 'MANAGER' ? '/manager/movies' : '/admin/movies'}">Quản lý phim</a>
 
         <a th:classappend="${active == 'genres'} ? 'active'"
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
            th:href="@{/admin/genres}">Quản lý thể loại</a>
 
         <a th:classappend="${active == 'branches'} ? 'active'"
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
            th:href="@{/branches}">Quản lý rạp</a>
 
         <a th:classappend="${active == 'staff'} ? 'active'"
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
            th:href="@{/admin/staff}">Quản lý nhân viên</a>
 
         <a th:classappend="${active == 'customers'} ? 'active'"
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
            th:href="@{/admin/customers}">Quản lý khách hàng</a>
 
         <a th:classappend="${active == 'shows'} ? 'active'"
            th:href="@{/admin/showtimes}">Quản lý suất chiếu</a>
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
+           href="#">Quản lý suất chiếu</a>
 
         <a th:classappend="${active == 'tickets'} ? 'active'"
            th:href="@{/admin/bookings}">Quản lý đặt vé</a>
 
-        <a th:classappend="${active == 'promotions/view'} ? 'active'"
-           href="#">Quản lý khuyến mãi</a>
+        <a th:classappend="${active == 'news'} ? 'active'"
+           th:href="@{/admin/news}">Quản lý tin tức</a>
+
+        <a th:classappend="${active == 'promotions'} ? 'active'"
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
+           th:href="@{/admin/promotions/view}">Quản lý khuyến mãi</a>
 
         <a th:classappend="${active == 'reports'} ? 'active'"
            th:href="@{/admin/reports}">Báo cáo & Thống kê</a>

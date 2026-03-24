@@ -293,3 +293,41 @@ body {
 .text-right {
     text-align: right;
 }
+
+.report-pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    padding: 7px 11px;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.page-link:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.page-link.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+.page-link.disabled {
+    pointer-events: none;
+    opacity: 0.45;
+}
