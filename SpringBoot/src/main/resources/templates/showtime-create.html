@@ -25,12 +25,12 @@
         </div>
 
         <!-- Form -->
-        <form th:action="@{/admin/showtimes/create}" method="post" class="form-box">
+        <form th:action="@{|${showtimeBasePath}/create|}" method="post" class="showtime-form">
 
             <!-- Movie -->
             <div class="form-group">
                 <label>Phim</label>
-                <select name="movieId" required>
+                <select name="movieId" class="form-select" required>
                     <option value="">-- Chọn phim --</option>
                     <option th:each="m : ${movies}"
                             th:value="${m.movieId}"
@@ -42,10 +42,11 @@
             <!-- Branch -->
             <div class="form-group">
                 <label>Rạp chiếu</label>
-                <select id="branchSelect" name="branchId">
+                <select id="branchSelect" name="branchId" class="form-select" th:disabled="${isManager}">
                     <option value="">-- Chọn rạp --</option>
                     <option th:each="b : ${branches}"
                             th:value="${b.branchId}"
+                            th:selected="${selectedBranchId != null and b.branchId == selectedBranchId}"
                             th:text="${b.branchName}">
                     </option>
                 </select>
@@ -54,7 +55,7 @@
             <!-- Room -->
             <div class="form-group">
                 <label>Phòng</label>
-                <select name="roomId" id="roomSelect" required>
+                <select name="roomId" id="roomSelect" class="form-select" required>
                     <option value="">-- Chọn phòng --</option>
                 </select>
             </div>
@@ -62,13 +63,13 @@
             <!-- Date -->
             <div class="form-group">
                 <label>Ngày chiếu</label>
-                <input type="date" id="date" required>
+                <input type="date" id="date" class="form-input" required>
             </div>
 
             <!-- Time -->
             <div class="form-group">
                 <label>Giờ chiếu</label>
-                <input type="time" id="time" required>
+                <input type="time" id="time" class="form-input" required>
             </div>
 
             <!-- Hidden startTime -->
@@ -80,29 +81,29 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn-submit">
-                Tạo suất chiếu
-            </button>
+            <div class="form-actions">
+                <a class="btn-secondary" th:href="@{|${showtimeBasePath}|}">Quay lại</a>
+                <button type="submit" class="btn-primary">Tạo suất chiếu</button>
+            </div>
 
         </form>
 
     </main>
 </div>
 
-<script>
-    document.getElementById("branchSelect").addEventListener("change", function () {
-        const branchId = this.value;
-        const roomSelect = document.getElementById("roomSelect");
+<script th:inline="javascript">
+    const roomsUrl = /*[[${roomsBasePath}]]*/ '/admin/rooms/by-branch';
+    const branchSelect = document.getElementById("branchSelect");
+    const roomSelect = document.getElementById("roomSelect");
 
+    function loadRooms(branchId) {
         roomSelect.innerHTML = '<option value="">-- Chọn phòng --</option>';
 
         if (!branchId) return;
 
-        fetch(`/admin/rooms/by-branch?branchId=${branchId}`)
+        fetch(`${roomsUrl}?branchId=${branchId}`)
             .then(res => res.json())
             .then(data => {
-                console.log("DATA:", data);
-
                 if (data.length === 0) {
                     const option = document.createElement("option");
                     option.textContent = "Không có phòng";
@@ -119,7 +120,17 @@
                 });
             })
             .catch(err => console.error("Lỗi fetch:", err));
-    });
+    }
+
+    if (branchSelect) {
+        branchSelect.addEventListener("change", function () {
+            loadRooms(this.value);
+        });
+
+        if (branchSelect.value) {
+            loadRooms(branchSelect.value);
+        }
+    }
 
     // ✅ combine date + time
     document.querySelector("form").addEventListener("submit", function (event) {

@@ -12,7 +12,7 @@
 
 <div class="layout">
 
-    <div th:replace="fragments/sidebar :: sidebar('cinema')"></div>
+    <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
 
     <main class="content">
 
@@ -22,14 +22,14 @@
             <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
 
             <div class="tabs">
-                <a th:href="@{/branches}" class="tab">Rạp chiếu</a>
-                <a th:href="@{/rooms}" class="tab">Phòng chiếu</a>
-                <a th:href="@{/admin/pricing}" class="tab active">Cấu hình ghế</a>
+                <a th:if="${!isManager}" th:href="@{|${branchBasePath}|}" class="tab">Rạp chiếu</a>
+                <a th:href="@{|${roomBasePath}|}" class="tab">Phòng chiếu</a>
+                <a th:href="@{|${pricingBasePath}|}" class="tab active">Cấu hình ghế</a>
             </div>
 
         </header>
 
-        <form method="get" action="/admin/pricing" class="branch-filter">
+        <form method="get" th:action="@{|${pricingBasePath}|}" class="branch-filter" th:if="${!isManager}">
 
             <label>Chi nhánh</label>
 
@@ -45,7 +45,12 @@
 
         </form>
 
-        <form th:action="@{/admin/pricing/update}" method="post">
+        <div class="branch-filter" th:if="${isManager}">
+            <label>Chi nhánh</label>
+            <div class="filter-select" th:text="${branchName}">Chi nhánh</div>
+        </div>
+
+        <form th:action="@{|${pricingBasePath}/update|}" method="post">
 
             <input type="hidden" name="branchId" th:value="${branchId}">
 

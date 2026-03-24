@@ -3,6 +3,7 @@ package com.swp391.team6.cinema.repository;
 import com.swp391.team6.cinema.entity.Promotion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +19,11 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
     Optional<Promotion> findByPromoCode(String promoCode);
 
     // Lọc theo chi nhánh (Dành cho Branch Manager)
-    List<Promotion> findAllByBranch_BranchIdOrBranchIsNull(Integer branchId);
+    List<Promotion> findAllByBranch_BranchIdOrBranchIsNull(Long branchId);
+
+    List<Promotion> findAllByBranch_BranchId(Long branchId);
+
+    List<Promotion> findAllByBranch_BranchId(Long branchId, Sort sort);
 
     // Thống kê số lượng theo trạng thái (Cho 4 ô dashboard)
     long countByStatus(Promotion.Status status);

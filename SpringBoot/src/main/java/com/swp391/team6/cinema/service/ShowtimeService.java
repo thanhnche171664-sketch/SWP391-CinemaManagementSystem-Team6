@@ -31,6 +31,11 @@ public class ShowtimeService {
         return showtimeRepository.findByDateRange(start, end);
     }
 
+    public Showtime getByIdWithDetails(Long id) {
+        return showtimeRepository.findByIdWithMovieRoomBranch(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy suất chiếu"));
+    }
+
     public void createShowtime(Long movieId, Long roomId, LocalDateTime startTime) {
 
         Movie movie = movieService.getMovieById(movieId);

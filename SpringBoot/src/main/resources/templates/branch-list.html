@@ -18,29 +18,29 @@
                 <h1>Quản lý rạp chiếu</h1>
                 <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
                 <div class="tabs">
-                    <a th:href="@{/branches}"
+                    <a th:href="${branchBasePath}"
                        class="tab active">
                         Rạp chiếu
                     </a>
 
-                    <a th:href="@{/rooms}"
+                    <a th:href="${roomBasePath}"
                        class="tab">
                         Phòng chiếu
                     </a>
 
-                    <a th:href="@{/admin/pricing}"
+                    <a th:href="${pricingBasePath}"
                        class="tab">
                         Cấu hình ghế
                     </a>
                 </div>
             </div>
 
-            <a class="btn-add" href="/branches/new">+ Thêm rạp mới</a>
+            <a class="btn-add" th:href="${branchBasePath + '/new'}">+ Thêm rạp mới</a>
         </header>
 
 
 
-        <form class="search-box" th:action="@{/branches/search}" method="get">
+        <form class="search-box" th:action="${branchBasePath + '/search'}" method="get">
             <input type="text"
                    name="keyword"
                    placeholder="Tìm kiếm theo tên rạp"
@@ -68,7 +68,7 @@
 
                     <div class="actions">
 
-                        <a th:href="@{/branches/edit/{id}(id=${branch.branchId})}"
+                        <a th:href="${branchBasePath + '/edit/' + branch.branchId}"
                            class="edit-link"
                            title="Chỉnh sửa">
                             <img th:src="@{/images/edit.png}"
@@ -76,7 +76,7 @@
                                  class="edit-icon">
                         </a>
 
-                        <a th:href="@{/branches/toggle-status/{id}(id=${branch.branchId})}"
+                        <a th:href="${branchBasePath + '/toggle-status/' + branch.branchId}"
                            class="status-btn"
                            th:title="${branch.status.name() == 'active'
            ? 'Ngưng hoạt động'
@@ -95,14 +95,13 @@
                         <div class="room-header">
                             <h4 th:text="${room.roomName}">Phòng</h4>
 
-                            <button class="room-edit-btn"
-                                    type="button"
-                                    th:onclick="|window.location.href='/rooms/${room.roomId}'|"
-                                    title="Sửa phòng">
+                            <a class="room-edit-btn"
+                               th:href="${roomBasePath + '/' + room.roomId}"
+                               title="Sửa phòng">
                                 <img th:src="@{/images/edit.png}"
                                      alt="edit"
                                      class="edit-icon">
-                            </button>
+                            </a>
                         </div>
 
                         <p>

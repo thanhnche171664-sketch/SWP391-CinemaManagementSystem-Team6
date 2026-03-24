@@ -2,12 +2,15 @@ package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.entity.Pricing;
 import com.swp391.team6.cinema.entity.Seat;
+import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.service.PricingService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,7 +26,13 @@ public class PricingController {
     @GetMapping
     public String pricingPage(
             @RequestParam(required = false) Long branchId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes,
             Model model) {
+        User user = requireAdmin(session, redirectAttributes);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
         var branches = branchRepository.findAll();
 
@@ -59,6 +68,10 @@ public class PricingController {
         model.addAttribute("branches", branches);
         model.addAttribute("branchId", branchId);
         model.addAttribute("pricings", pricings);
+        model.addAttribute("pricingBasePath", "/admin/pricing");
+        model.addAttribute("roomBasePath", "/rooms");
+        model.addAttribute("branchBasePath", "/branches");
+        model.addAttribute("isManager", false);
 
         return "pricing-config";
     }
@@ -73,8 +86,14 @@ public class PricingController {
             @RequestParam("pricings[1].price") BigDecimal vipPrice,
 
             @RequestParam("pricings[2].seatType") Seat.SeatType coupleType,
-            @RequestParam("pricings[2].price") BigDecimal couplePrice
+            @RequestParam("pricings[2].price") BigDecimal couplePrice,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
     ) {
+        User user = requireAdmin(session, redirectAttributes);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
         pricingService.updatePrice(branchId, normalType, normalPrice);
         pricingService.updatePrice(branchId, vipType, vipPrice);
@@ -83,5 +102,13 @@ public class PricingController {
         return "redirect:/admin/pricing?branchId=" + branchId;
     }
 
+    private User requireAdmin(HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
+            return null;
+        }
+        return user;
+    }
 
 }

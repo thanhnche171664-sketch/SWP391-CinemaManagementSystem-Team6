@@ -1,6 +1,5 @@
 package com.swp391.team6.cinema.controller;
 
-import com.swp391.team6.cinema.dto.RoomDTO;
 import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.entity.Seat;
@@ -14,7 +13,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
@@ -22,105 +27,106 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
+@RequestMapping("/manager/rooms")
 @RequiredArgsConstructor
-public class RoomController {
+public class ManagerRoomController {
 
     private final RoomService roomService;
     private final SeatService seatService;
     private final CinemaBranchService branchService;
     private final SeatRepository seatRepository;
 
-    @GetMapping("/rooms/{id}")
+    @GetMapping("/{id}")
     public String roomDetails(@PathVariable Long id,
                               HttpSession session,
                               RedirectAttributes redirectAttributes,
                               Model model) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
 
         Room room = roomService.getRoomById(id);
+        if (!belongsToBranch(room, user.getBranchId())) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập phòng chiếu này.");
+            return "redirect:/manager/rooms";
+        }
 
-        List<Seat> seats =
-                seatService.getSeatsByRoomOrGenerate(id, room.getTotalSeats());
+        List<Seat> seats = seatService.getSeatsByRoomOrGenerate(id, room.getTotalSeats());
 
         model.addAttribute("room", room);
         model.addAttribute("seats", seats);
-        model.addAttribute("roomBasePath", "/rooms");
-        model.addAttribute("seatUpdatePath", "/admin/seats/update-type");
-        model.addAttribute("isManager", false);
+        model.addAttribute("roomBasePath", "/manager/rooms");
+        model.addAttribute("seatUpdatePath", "/manager/rooms/seats/update-type");
+        model.addAttribute("isManager", true);
 
         return "room-details";
     }
 
-
-    @GetMapping("/rooms")
-    public String roomManagement(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long branchId,
-            @RequestParam(defaultValue = "0") int page,
-            HttpSession session,
-            RedirectAttributes redirectAttributes,
-            Model model
-    ) {
-        User user = requireAdmin(session, redirectAttributes);
+    @GetMapping
+    public String roomManagement(@RequestParam(required = false) String keyword,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
+        User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
 
         int pageSize = 6;
+        Long branchId = user.getBranchId();
 
         var roomPage = roomService.searchRoomsPaging(keyword, branchId, page, pageSize);
-
-        List<CinemaBranch> branches = branchService.getAllBranches();
+        List<CinemaBranch> branches = List.of(branchService.getBranchById(branchId));
 
         model.addAttribute("rooms", roomPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", roomPage.getTotalPages());
-
         model.addAttribute("keyword", keyword);
         model.addAttribute("branchId", branchId);
-
         model.addAttribute("branches", branches);
-        model.addAttribute("roomBasePath", "/rooms");
+        model.addAttribute("roomBasePath", "/manager/rooms");
         model.addAttribute("branchBasePath", "/branches");
-        model.addAttribute("pricingBasePath", "/admin/pricing");
-        model.addAttribute("isManager", false);
+        model.addAttribute("pricingBasePath", "/manager/pricing");
+        model.addAttribute("isManager", true);
 
         return "room-list";
     }
 
-    @GetMapping("/rooms/new")
+    @GetMapping("/new")
     public String showCreateRoomForm(HttpSession session,
                                      RedirectAttributes redirectAttributes,
                                      Model model) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
 
-        List<CinemaBranch> branches = branchService.getAllBranches();
-
+        CinemaBranch branch = branchService.getBranchById(user.getBranchId());
         model.addAttribute("room", new Room());
-        model.addAttribute("branches", branches);
-        model.addAttribute("roomBasePath", "/rooms");
+        model.addAttribute("branches", List.of(branch));
+        model.addAttribute("selectedBranchId", user.getBranchId());
+        model.addAttribute("roomBasePath", "/manager/rooms");
         model.addAttribute("branchBasePath", "/branches");
-        model.addAttribute("pricingBasePath", "/admin/pricing");
-        model.addAttribute("isManager", false);
+        model.addAttribute("pricingBasePath", "/manager/pricing");
+        model.addAttribute("isManager", true);
 
         return "room-create";
     }
 
-    @PostMapping("/rooms/create")
+    @PostMapping("/create")
     public String createRoom(Room room,
                              HttpSession session,
                              RedirectAttributes redirectAttributes,
                              Model model) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
+
+        CinemaBranch branch = branchService.getBranchById(user.getBranchId());
+        room.setBranch(branch);
 
         List<String> errors = new ArrayList<>();
 
@@ -133,7 +139,6 @@ public class RoomController {
         if (room.getTotalSeats() == null) {
             errors.add("Số lượng ghế không được để trống");
         } else {
-
             if (room.getTotalSeats() <= 0) {
                 errors.add("Tổng số lượng ghế không được nhỏ hơn 1");
             }
@@ -147,36 +152,38 @@ public class RoomController {
                 room.getRoomName(),
                 room.getBranch().getBranchId()
         )) {
-            errors.add("Phòng chiếu đã tồn tại trong rạp bạn chọn");
+            errors.add("Phòng chiếu đã tồn tại trong rạp bạn quản lý");
         }
 
         if (!errors.isEmpty()) {
-
             model.addAttribute("errors", errors);
-            model.addAttribute("branches", branchService.getAllBranches());
-            model.addAttribute("roomBasePath", "/rooms");
+            model.addAttribute("branches", List.of(branch));
+            model.addAttribute("selectedBranchId", user.getBranchId());
+            model.addAttribute("roomBasePath", "/manager/rooms");
             model.addAttribute("branchBasePath", "/branches");
-            model.addAttribute("pricingBasePath", "/admin/pricing");
-            model.addAttribute("isManager", false);
-
+            model.addAttribute("pricingBasePath", "/manager/pricing");
+            model.addAttribute("isManager", true);
             return "room-create";
         }
 
         roomService.save(room);
-
-        return "redirect:/rooms";
+        return "redirect:/manager/rooms";
     }
 
-    @PostMapping("/rooms/{id}/toggle-status")
+    @PostMapping("/{id}/toggle-status")
     public String toggleRoomStatus(@PathVariable Long id,
                                    HttpSession session,
                                    RedirectAttributes redirectAttributes) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
 
         Room room = roomService.getRoomById(id);
+        if (!belongsToBranch(room, user.getBranchId())) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền thao tác phòng chiếu này.");
+            return "redirect:/manager/rooms";
+        }
 
         if (room.getStatus() == Room.RoomStatus.active) {
             room.setStatus(Room.RoomStatus.inactive);
@@ -185,54 +192,47 @@ public class RoomController {
         }
 
         roomService.save(room);
-
-        return "redirect:/rooms";
+        return "redirect:/manager/rooms";
     }
 
-    @PostMapping("/rooms/change-type")
-    public String changeSeatType(
-            @RequestParam Long seatId,
-            @RequestParam Seat.SeatType seatType,
-            @RequestParam Long roomId,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
-        User user = requireAdmin(session, redirectAttributes);
-        if (user == null) {
-            return "redirect:/auth/login";
-        }
-
-        Seat seat = seatRepository.findById(seatId).orElseThrow();
-        seat.setSeatType(seatType);
-
-        seatRepository.save(seat);
-
-        return "redirect:/rooms/" + roomId;
-    }
-
-    @PostMapping("/admin/seats/update-type")
+    @PostMapping("/seats/update-type")
     @ResponseBody
     public ResponseEntity<?> updateSeatType(@RequestBody Map<String, Object> req,
                                             HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
-        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+        if (user == null || user.getRole() != User.UserRole.MANAGER || user.getBranchId() == null) {
             return ResponseEntity.status(403).build();
         }
 
         Long seatId = Long.valueOf(req.get("seatId").toString());
         String type = req.get("type").toString();
 
-        seatService.updateSeatType(seatId, type);
+        Seat seat = seatRepository.findById(seatId).orElseThrow();
+        if (seat.getRoom() == null || seat.getRoom().getBranch() == null
+                || !user.getBranchId().equals(seat.getRoom().getBranch().getBranchId())) {
+            return ResponseEntity.status(403).build();
+        }
 
+        seatService.updateSeatType(seatId, type);
         return ResponseEntity.ok().build();
     }
 
-    private User requireAdmin(HttpSession session, RedirectAttributes redirectAttributes) {
+    private User requireManager(HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
-        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+        if (user == null || user.getRole() != User.UserRole.MANAGER) {
             redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
+            return null;
+        }
+        if (user.getBranchId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Tài khoản quản lý chưa có chi nhánh.");
             return null;
         }
         return user;
     }
 
+    private boolean belongsToBranch(Room room, Long branchId) {
+        return room.getBranch() != null
+                && room.getBranch().getBranchId() != null
+                && room.getBranch().getBranchId().equals(branchId);
+    }
 }

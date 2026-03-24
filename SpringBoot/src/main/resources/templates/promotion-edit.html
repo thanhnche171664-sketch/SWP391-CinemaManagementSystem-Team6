@@ -19,7 +19,7 @@
                 <span th:text="${error}"></span>
             </div>
 
-            <form th:action="@{/admin/promotions/update-action}" method="post" class="promotion-form">
+            <form th:action="@{|${promotionBasePath}/update-action|}" method="post" class="promotion-form">
 
                 <input type="hidden" name="promotionId" th:value="${promotion.promotionId}">
 
@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="actions" style="margin-top: 2rem; display: flex; gap: 10px;">
-                    <a th:href="@{/admin/promotions/view}" class="btn-dark" style="text-decoration: none; padding: 10px 20px; border-radius: 4px;">Quay lại</a>
+                    <a th:href="@{|${promotionBasePath}/view|}" class="btn-dark" style="text-decoration: none; padding: 10px 20px; border-radius: 4px;">Quay lại</a>
                     <button type="submit" class="btn-white" style="cursor: pointer;">Cập nhật ngay</button>
                 </div>
             </form>

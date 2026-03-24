@@ -15,14 +15,14 @@
 
         <header class="header">
             <div>
-                <a href="/branches" class="btn-back">← Quay lại</a>
+                <a th:href="${branchBasePath}" class="btn-back">← Quay lại</a>
                 <h1>Cập nhật rạp chiếu</h1>
                 <p>Chỉnh sửa thông tin rạp</p>
             </div>
         </header>
 
         <div class="edit-branch-card">
-            <form th:action="@{/branches/update/{id}(id=${branch.branchId})}"
+            <form th:action="${branchBasePath + '/update/' + branch.branchId}"
                   th:object="${branch}"
                   method="post"
                   class="edit-branch-form">
@@ -44,7 +44,7 @@
 
                 <div class="form-actions">
                     <button type="submit" class="btn-add">Cập nhật</button>
-                    <a href="/branches" class="btn-cancel">Hủy</a>
+                    <a th:href="${branchBasePath}" class="btn-cancel">Hủy</a>
                 </div>
             </form>
             </div>

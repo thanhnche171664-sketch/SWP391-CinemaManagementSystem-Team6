@@ -1,52 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Cập nhật suất chiếu</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-showtime.css}">
 </head>
 <body>
 
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('showtimes')"></div>
 
-  <form th:action="@{/admin/showtimes/update}" method="post">
+    <main class="content">
+        <div class="header">
+            <div>
+                <h1>Cập nhật suất chiếu</h1>
+                <p>Chỉnh sửa lịch chiếu phim</p>
+            </div>
+        </div>
 
-    <input type="hidden" name="showtimeId" th:value="${showtime.showtimeId}">
+        <form th:action="@{|${showtimeBasePath}/update|}" method="post" class="showtime-form">
+            <input type="hidden" name="showtimeId" th:value="${showtime.showtimeId}">
 
-    <!-- Movie -->
-    <select name="movieId">
-      <option th:each="m : ${movies}"
-              th:value="${m.movieId}"
-              th:text="${m.title}"
-              th:selected="${m.movieId == showtime.movie.movieId}">
-      </option>
-    </select>
+            <div class="form-group">
+                <label>Phim</label>
+                <select name="movieId" class="form-select">
+                    <option th:each="m : ${movies}"
+                            th:value="${m.movieId}"
+                            th:text="${m.title}"
+                            th:selected="${m.movieId == showtime.movie.movieId}">
+                    </option>
+                </select>
+            </div>
 
-    <!-- Branch -->
-    <select id="branchSelect">
-      <option th:each="b : ${branches}"
-              th:value="${b.branchId}"
-              th:text="${b.branchName}"
-              th:selected="${b.branchId == showtime.room.branch.branchId}">
-      </option>
-    </select>
+            <div class="form-group">
+                <label>Rạp chiếu</label>
+                <select id="branchSelect" class="form-select" th:disabled="${isManager}">
+                    <option th:each="b : ${branches}"
+                            th:value="${b.branchId}"
+                            th:text="${b.branchName}"
+                            th:selected="${b.branchId == showtime.room.branch.branchId}">
+                    </option>
+                </select>
+            </div>
 
-    <!-- Room -->
-    <select name="roomId" id="roomSelect">
-      <option th:value="${showtime.room.roomId}"
-              th:text="${showtime.room.roomName}">
-      </option>
-    </select>
+            <div class="form-group">
+                <label>Phòng</label>
+                <select name="roomId" id="roomSelect" class="form-select">
+                    <option th:value="${showtime.room.roomId}"
+                            th:text="${showtime.room.roomName}">
+                    </option>
+                </select>
+            </div>
 
-    <!-- Date -->
-    <input type="date" id="date"
-           th:value="${#temporals.format(showtime.startTime, 'yyyy-MM-dd')}">
+            <div class="form-group">
+                <label>Ngày chiếu</label>
+                <input type="date" id="date" class="form-input"
+                       th:value="${#temporals.format(showtime.startTime, 'yyyy-MM-dd')}">
+            </div>
 
-    <!-- Time -->
-    <input type="time" id="time"
-           th:value="${#temporals.format(showtime.startTime, 'HH:mm')}">
+            <div class="form-group">
+                <label>Giờ chiếu</label>
+                <input type="time" id="time" class="form-input"
+                       th:value="${#temporals.format(showtime.startTime, 'HH:mm')}">
+            </div>
 
-    <input type="hidden" name="startTime" id="startTime">
+            <input type="hidden" name="startTime" id="startTime">
 
-    <button type="submit">Cập nhật</button>
-  </form>
+            <div th:if="${error}" class="error-box">
+                <span th:text="${error}"></span>
+            </div>
+
+            <div class="form-actions">
+                <a class="btn-secondary" th:href="@{|${showtimeBasePath}|}">Quay lại</a>
+                <button type="submit" class="btn-primary">Cập nhật</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    const roomsUrl = /*[[${roomsBasePath}]]*/ '/admin/rooms/by-branch';
+    const branchSelect = document.getElementById("branchSelect");
+    const roomSelect = document.getElementById("roomSelect");
+
+    function loadRooms(branchId) {
+      if (!roomSelect) return;
+      roomSelect.innerHTML = '';
+      if (!branchId) return;
+
+      fetch(`${roomsUrl}?branchId=${branchId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.length === 0) {
+            const option = document.createElement("option");
+            option.textContent = "Không có phòng";
+            option.disabled = true;
+            roomSelect.appendChild(option);
+            return;
+          }
+
+          data.forEach(room => {
+            const option = document.createElement("option");
+            option.value = room.roomId ?? room.id;
+            option.textContent = room.roomName ?? room.name;
+            if (roomSelect.dataset.currentRoomId && option.value === roomSelect.dataset.currentRoomId) {
+              option.selected = true;
+            }
+            roomSelect.appendChild(option);
+          });
+        })
+        .catch(err => console.error("Lỗi fetch:", err));
+    }
+
+    if (roomSelect) {
+      roomSelect.dataset.currentRoomId = roomSelect.value;
+    }
+    if (branchSelect && branchSelect.value) {
+      loadRooms(branchSelect.value);
+      branchSelect.addEventListener("change", function () {
+        loadRooms(this.value);
+      });
+    }
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+
+      if (!date || !time) {
+        alert("Vui lòng chọn ngày và giờ");
+        event.preventDefault();
+        return;
+      }
+
+      document.getElementById("startTime").value = date + "T" + time;
+    });
+  </script>
 </body>
 </html>

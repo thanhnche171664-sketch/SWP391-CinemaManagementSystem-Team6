@@ -3,10 +3,12 @@ package com.swp391.team6.cinema.controller;
 import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.entity.Showtime;
+import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.service.MovieService;
 import com.swp391.team6.cinema.service.RoomService;
 import com.swp391.team6.cinema.service.ShowtimeService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,7 +33,13 @@ public class ShowtimeController {
     public String showtimePage(
             @RequestParam(required = false) String date,
             @RequestParam(required = false) Long branchId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes,
             Model model) {
+        User user = requireAdmin(session, redirectAttributes);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
         List<Showtime> showtimes;
 
@@ -54,12 +62,19 @@ public class ShowtimeController {
         model.addAttribute("showtimes", showtimes);
         model.addAttribute("date", date);
         model.addAttribute("branchId", branchId);
+        model.addAttribute("showtimeBasePath", "/admin/showtimes");
+        model.addAttribute("roomsBasePath", "/admin/rooms/by-branch");
+        model.addAttribute("isManager", false);
 
         return "showtime-list";
     }
 
     @GetMapping("/admin/showtimes/create")
-    public String showCreatePage(Model model) {
+    public String showCreatePage(HttpSession session, RedirectAttributes redirectAttributes, Model model) {
+        User user = requireAdmin(session, redirectAttributes);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
         model.addAttribute("movies", movieService.getAllMovies());
 
@@ -67,13 +82,20 @@ public class ShowtimeController {
         model.addAttribute("branches", branches);
 
         model.addAttribute("rooms", new ArrayList<>());
+        model.addAttribute("showtimeBasePath", "/admin/showtimes");
+        model.addAttribute("roomsBasePath", "/admin/rooms/by-branch");
+        model.addAttribute("isManager", false);
 
         return "showtime-create";
     }
 
     @GetMapping("/admin/rooms/by-branch")
     @ResponseBody
-    public List<Room> getRoomsByBranch(@RequestParam Long branchId) {
+    public List<Room> getRoomsByBranch(@RequestParam Long branchId, HttpSession session) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+            return List.of();
+        }
         return roomService.getRoomsByBranch(branchId);
     }
 
@@ -82,8 +104,13 @@ public class ShowtimeController {
             @RequestParam Long movieId,
             @RequestParam Long roomId,
             @RequestParam String startTime,
+            HttpSession session,
             RedirectAttributes ra
     ) {
+        User user = requireAdmin(session, ra);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
         try {
 
@@ -103,13 +130,22 @@ public class ShowtimeController {
     }
 
     @GetMapping("/admin/showtimes/edit/{id}")
-    public String showEditPage(@PathVariable Long id, Model model) {
+    public String showEditPage(@PathVariable Long id,
+                               HttpSession session,
+                               RedirectAttributes redirectAttributes,
+                               Model model) {
+        User user = requireAdmin(session, redirectAttributes);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
-//        Showtime showtime = showtimeService.getById(id);
-
-//        model.addAttribute("showtime", showtime);
+        Showtime showtime = showtimeService.getByIdWithDetails(id);
+        model.addAttribute("showtime", showtime);
         model.addAttribute("movies", movieService.getAllMovies());
         model.addAttribute("branches", branchRepository.findAll());
+        model.addAttribute("showtimeBasePath", "/admin/showtimes");
+        model.addAttribute("roomsBasePath", "/admin/rooms/by-branch");
+        model.addAttribute("isManager", false);
 
         return "showtime-edit";
     }
@@ -120,8 +156,13 @@ public class ShowtimeController {
             @RequestParam Long movieId,
             @RequestParam Long roomId,
             @RequestParam String startTime,
+            HttpSession session,
             RedirectAttributes ra
     ) {
+        User user = requireAdmin(session, ra);
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
         try {
             LocalDateTime time = LocalDateTime.parse(startTime);
 
@@ -136,4 +177,12 @@ public class ShowtimeController {
         return "redirect:/admin/showtimes";
     }
 
+    private User requireAdmin(HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập!");
+            return null;
+        }
+        return user;
+    }
 }

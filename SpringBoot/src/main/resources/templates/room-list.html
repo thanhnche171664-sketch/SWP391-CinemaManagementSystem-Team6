@@ -19,16 +19,16 @@
         <p>Quản lý rạp, phòng chiếu và ghế ngồi</p>
 
         <div class="tabs">
-          <a th:href="@{/branches}" class="tab">Rạp chiếu</a>
-          <a th:href="@{/rooms}" class="tab active">Phòng chiếu</a>
-          <a th:href="@{/admin/pricing}" class="tab">Cấu hình ghế</a>
+          <a th:if="${!isManager}" th:href="${branchBasePath}" class="tab">Rạp chiếu</a>
+          <a th:href="${roomBasePath}" class="tab active">Phòng chiếu</a>
+          <a th:href="${pricingBasePath}" class="tab">Cấu hình ghế</a>
         </div>
       </div>
 
-      <a class="btn-add" th:href="@{/rooms/new}">+ Thêm phòng mới</a>
+      <a class="btn-add" th:href="${roomBasePath + '/new'}">+ Thêm phòng mới</a>
     </header>
 
-    <form method="get" th:action="@{/rooms}" class="filter-form">
+    <form method="get" th:action="${roomBasePath}" class="filter-form">
 
       <input type="text"
              name="keyword"
@@ -36,7 +36,7 @@
              th:value="${keyword}"
              class="filter-input">
 
-      <select name="branchId" class="filter-select">
+      <select name="branchId" class="filter-select" th:if="${!isManager}">
         <option value="">Tất cả chi nhánh</option>
 
         <option th:each="branch : ${branches}"
@@ -46,6 +46,7 @@
         </option>
       </select>
 
+      <input type="hidden" name="branchId" th:if="${isManager}" th:value="${branchId}">
       <button type="submit" class="filter-btn">Filter</button>
 
     </form>
@@ -77,22 +78,21 @@
         </td>
 
         <td class="actions">
-          <button class="room-edit-btn"
-                  type="button"
-                  th:onclick="|window.location.href='/rooms/${room.roomId}'|"
-                  title="Sửa phòng">
+          <a class="room-edit-btn"
+             th:href="${roomBasePath + '/' + room.roomId}"
+             title="Sửa phòng">
             <img th:src="@{/images/edit.png}"
                  alt="edit"
                  class="edit-icon">
-          </button>
+          </a>
 
-          <form th:action="@{/rooms/{id}/toggle-status(id=${room.roomId})}"
+          <form th:action="${roomBasePath + '/' + room.roomId + '/toggle-status'}"
                 method="post"
                 style="display:inline">
 
             <button type="submit"
                     class="status-btn"
-                    th:onclick="return confirm('Bạn có chắc muốn đổi trạng thái phòng ' + '${room.roomName}' + '?')">
+                    onclick="return confirm('Bạn có chắc muốn đổi trạng thái phòng này?')">
 
               Đổi trạng thái
             </button>
@@ -107,7 +107,10 @@
 
       <!-- Prev -->
       <a th:if="${currentPage > 0}"
-         th:href="@{/rooms(page=${currentPage - 1}, keyword=${keyword}, branchId=${branchId})}">
+         th:href="${roomBasePath
+           + '?page=' + (currentPage - 1)
+           + '&keyword=' + (keyword != null ? keyword : '')
+           + '&branchId=' + (branchId != null ? branchId : '')}">
         ←
       </a>
 
@@ -118,7 +121,10 @@
             T(java.lang.Math).min(totalPages - 1, currentPage + 2)
         )}">
 
-    <a th:href="@{/rooms(page=${i}, keyword=${keyword}, branchId=${branchId})}"
+    <a th:href="${roomBasePath
+      + '?page=' + i
+      + '&keyword=' + (keyword != null ? keyword : '')
+      + '&branchId=' + (branchId != null ? branchId : '')}"
        th:text="${i + 1}"
        th:classappend="${i == currentPage} ? ' active' : ''">
     </a>
@@ -127,7 +133,10 @@
 
       <!-- Next -->
       <a th:if="${currentPage < totalPages - 1}"
-         th:href="@{/rooms(page=${currentPage + 1}, keyword=${keyword}, branchId=${branchId})}">
+         th:href="${roomBasePath
+           + '?page=' + (currentPage + 1)
+           + '&keyword=' + (keyword != null ? keyword : '')
+           + '&branchId=' + (branchId != null ? branchId : '')}">
         →
       </a>
 

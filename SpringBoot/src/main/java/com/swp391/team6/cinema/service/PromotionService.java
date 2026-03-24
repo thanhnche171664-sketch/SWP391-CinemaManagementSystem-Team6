@@ -4,6 +4,7 @@ import com.swp391.team6.cinema.entity.Promotion;
 import com.swp391.team6.cinema.repository.PromotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,47 +21,16 @@ public class PromotionService {
     // Phân trang
     public Page<Promotion> getAllPromotions(int page, int size, String keyword, String status) {
         List<Promotion> allPromotions = promotionRepository.findAll(Sort.by("promotionId").descending());
+        return buildPromotionPage(allPromotions, page, size, keyword, status);
+    }
 
-        LocalDateTime now = LocalDateTime.now();
+    public Page<Promotion> getPromotionsForBranch(Long branchId, int page, int size, String keyword, String status) {
+        List<Promotion> promotions = promotionRepository.findAllByBranch_BranchId(branchId, Sort.by("promotionId").descending());
+        return buildPromotionPage(promotions, page, size, keyword, status);
+    }
 
-        // Tự động kiểm tra thời gian: Nếu hết hạn thì coi như inactive (Tạm dừng)
-        allPromotions.forEach(p -> {
-            if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
-                p.setStatus(Promotion.Status.inactive);
-            }
-        });
-        // 2. Lọc bằng Stream API
-        List<Promotion> filteredList = allPromotions.stream()
-                .filter(p -> {
-                    // Lọc theo trạng thái
-                    if (status != null && !status.isEmpty()) {
-                        return p.getStatus().name().equalsIgnoreCase(status);
-                    }
-                    return true;
-                })
-                .filter(p -> {
-                    // Lọc theo từ khóa (Code hoặc Description)
-                    if (keyword != null && !keyword.trim().isEmpty()) {
-                        String k = keyword.toLowerCase();
-                        boolean matchCode = p.getPromoCode().toLowerCase().contains(k);
-                        boolean matchDesc = (p.getDescription() != null && p.getDescription().toLowerCase().contains(k));
-                        return matchCode || matchDesc;
-                    }
-                    return true;
-                })
-                .collect(Collectors.toList());
-
-        // 3. Phân trang thủ công cho List kết quả
-        Pageable pageable = PageRequest.of(page, size);
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filteredList.size());
-
-        List<Promotion> pagedList = new ArrayList<>();
-        if (start <= filteredList.size()) {
-            pagedList = filteredList.subList(start, end);
-        }
-
-        return new PageImpl<>(pagedList, pageable, filteredList.size());
+    public List<Promotion> getPromotionsByBranch(Long branchId) {
+        return promotionRepository.findAllByBranch_BranchId(branchId, Sort.by("promotionId").descending());
     }
 
 
@@ -132,4 +102,50 @@ public class PromotionService {
                 promotionRepository.save(promo);
             });
         }
+
+    private Page<Promotion> buildPromotionPage(List<Promotion> promotions,
+                                               int page,
+                                               int size,
+                                               String keyword,
+                                               String status) {
+        applyExpiryStatus(promotions);
+
+        List<Promotion> filteredList = promotions.stream()
+                .filter(p -> {
+                    if (status != null && !status.isEmpty()) {
+                        return p.getStatus().name().equalsIgnoreCase(status);
+                    }
+                    return true;
+                })
+                .filter(p -> {
+                    if (keyword != null && !keyword.trim().isEmpty()) {
+                        String k = keyword.toLowerCase();
+                        boolean matchCode = p.getPromoCode().toLowerCase().contains(k);
+                        boolean matchDesc = (p.getDescription() != null && p.getDescription().toLowerCase().contains(k));
+                        return matchCode || matchDesc;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filteredList.size());
+
+        List<Promotion> pagedList = new ArrayList<>();
+        if (start <= filteredList.size()) {
+            pagedList = filteredList.subList(start, end);
+        }
+
+        return new PageImpl<>(pagedList, pageable, filteredList.size());
+    }
+
+    private void applyExpiryStatus(List<Promotion> promotions) {
+        LocalDateTime now = LocalDateTime.now();
+        promotions.forEach(p -> {
+            if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
+                p.setStatus(Promotion.Status.inactive);
+            }
+        });
+    }
     }
