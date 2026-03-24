@@ -502,7 +502,6 @@ window.addEventListener('beforeunload', function (e) {
 
       const paymentMethod = document.querySelector('input[name="paymentMethodRadio"]:checked').value;
 
-      if (!contactVal) { alert("Vui lòng nhập SĐT hoặc Email khách hàng!"); return; }
       if (!activeShowtime) { alert("Vui lòng chọn suất chiếu!"); return; }
 
       document.getElementById('reviewCustomer').innerText = customerName || "Khách vãng lai";
