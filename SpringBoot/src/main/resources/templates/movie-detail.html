@@ -77,6 +77,87 @@
         </div>
     </div>
 
+    <div class="container py-5" id="reviewSection">
+        <div class="movie-detail-shell">
+            <div class="row g-4 align-items-start">
+                <div class="mt-4" >
+
+                    <div id="review-section" class="mt-5">
+                        <!-- lỗi -->
+                        <div th:if="${error}" class="alert alert-danger">
+                            <span th:text="${error}"></span>
+                        </div>
+
+                        <!-- thành công -->
+                        <div th:if="${message}" class="alert alert-success">
+                            <span th:text="${message}"></span>
+                        </div>
+
+                        <div th:if="${session.loggedInUser != null}" class="card border rounded p-3 mb-3 text-white p-4 shadow-sm mb-5">
+                            <form th:action="@{/reviews/add}" th:object="${review}" method="post">
+                                <input type="hidden" name="movie.movieId" th:value="${movie.movieId}" />
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-black">Xếp hạng của bạn:</label>
+                                        <select th:field="*{rating}" class="form-select" required>
+                                            <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                                            <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                                            <option value="3">⭐⭐⭐ (3/5)</option>
+                                            <option value="2">⭐⭐ (2/5)</option>
+                                            <option value="1">⭐ (1/5)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-black">Nội dung bình luận:</label>
+                                    <textarea th:field="*{comment}" class="form-control" rows="4"
+                                              placeholder="Cảm nghĩ của bạn về bộ phim..." required></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-warning fw-bold px-4">Gửi đánh giá</button>
+                            </form>
+                        </div>
+
+                        <div th:unless="${session.loggedInUser != null}" class="alert alert-dark border-secondary text-white p-4">
+                            <i class="fas fa-info-circle me-2 text-info"></i> Bạn cần
+                            <a th:href="@{/auth/login}" class="text-warning text-decoration-none fw-bold">đăng nhập</a> để để lại đánh giá cho bộ phim này.
+                        </div>
+
+                        <h3 class="mb-4"><i class="fas fa-edit text-warning me-2"></i>Đánh giá từ khán giả</h3>
+                        <div id="reviewList">
+
+                            <div th:if="${reviews == null or reviews.isEmpty()}">
+                                <p>Chưa có đánh giá nào</p>
+                            </div>
+
+                            <div th:each="review : ${reviews}" class="border rounded p-3 mb-3">
+
+                                <div class="d-flex justify-content-between">
+                                    <strong th:text="${review.user.fullName}"></strong>
+
+                                    <span>
+                <span th:text="'⭐ ' + ${review.rating} + '/5'"></span>
+            </span>
+                                </div>
+
+                                <p class="mt-2" th:text="${review.comment}"></p>
+
+                                <small class="text-muted"
+                                       th:text="${#temporals.format(review.createdAt,'dd/MM/yyyy HH:mm')}">
+                                </small>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="showtimesModal" tabindex="-1" aria-labelledby="showtimesModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">

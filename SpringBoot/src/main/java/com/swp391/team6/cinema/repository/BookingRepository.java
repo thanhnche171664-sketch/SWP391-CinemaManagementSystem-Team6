@@ -96,4 +96,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("branchId") Long branchId,
             @Param("name") String name,
             Pageable pageable);
+
+    // Kiểm tra xem User có vé đã xác nhận cho Movie này và suất chiếu đã kết thúc chưa
+    // showtime.startTime < :time (Ví dụ: hiện tại - 120 phút)
+    boolean existsByUserUserIdAndShowtimeMovieMovieIdAndStatusAndShowtimeStartTimeBefore(
+            Long userId,
+            Long movieId,
+            Booking.BookingStatus status,
+            LocalDateTime time
+    );
 }

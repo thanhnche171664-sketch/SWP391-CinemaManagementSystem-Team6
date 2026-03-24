@@ -45,6 +45,10 @@
         <a th:classappend="${active == 'promotions'} ? 'active'"
            th:href="${user != null and user.role != null and user.role.name() == 'MANAGER' ? '/manager/promotions/view' : '/admin/promotions/view'}">Quản lý khuyến mãi</a>
 
+        <a th:classappend="${active == 'reviews'} ? 'active'"
+           th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
+           th:href="@{/admin/reviews}">Quản lý đánh giá</a>
+
         <a th:classappend="${active == 'reports'} ? 'active'"
            th:href="@{/admin/reports}">Báo cáo & Thống kê</a>
     </nav>
