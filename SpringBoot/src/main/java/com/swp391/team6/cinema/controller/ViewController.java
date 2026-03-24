@@ -94,7 +94,10 @@ public class ViewController {
         }
         
         model.addAttribute("user", user);
-        return "redirect:/admin/staff"; // Trang quản lý staff
+        if (user.getRole() == User.UserRole.STAFF) {
+            return "redirect:/staff/booking/pos";
+        }
+        return "redirect:/admin/staff";
     }
 
     @GetMapping("/movies")
