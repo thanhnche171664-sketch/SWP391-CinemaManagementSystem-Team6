@@ -60,7 +60,20 @@ public class CounterBookingController {
         if (user == null || user.getRole() != User.UserRole.STAFF) return "redirect:/auth/login";
 
         Pageable pageable = PageRequest.of(page, 12);
-        Page<Movie> moviePage = movieRepository.findMoviesForPOS(user.getBranchId(), (keyword != null && !keyword.isEmpty()) ? keyword : null, status, (genre != null && !genre.isEmpty()) ? genre : null, pageable);
+        String normalizedKeyword = (keyword != null && !keyword.isEmpty()) ? keyword : null;
+        String normalizedGenre = (genre != null && !genre.isEmpty()) ? genre : null;
+        Long branchId = user.getBranchId();
+
+        Page<Movie> moviePage;
+        if (branchId != null) {
+            moviePage = movieRepository.findMoviesForPOS(branchId, normalizedKeyword, status, normalizedGenre, pageable);
+            if (moviePage.isEmpty()) {
+                // Fallback to avoid blank POS when branch mapping data is missing.
+                moviePage = movieRepository.findMoviesForPOSAllBranches(normalizedKeyword, status, normalizedGenre, pageable);
+            }
+        } else {
+            moviePage = movieRepository.findMoviesForPOSAllBranches(normalizedKeyword, status, normalizedGenre, pageable);
+        }
 
         model.addAttribute("moviePage", moviePage);
         model.addAttribute("keyword", keyword);

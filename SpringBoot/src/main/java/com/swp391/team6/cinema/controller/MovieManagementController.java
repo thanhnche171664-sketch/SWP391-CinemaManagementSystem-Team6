@@ -2,8 +2,10 @@ package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.dto.MovieDTO;
 import com.swp391.team6.cinema.entity.Movie;
+import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.GenreService;
 import com.swp391.team6.cinema.service.MovieService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -28,6 +30,7 @@ public class MovieManagementController {
 
     @GetMapping
     public String list(Model model,
+                       HttpSession session,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "8") int size,
                        @RequestParam(required = false) String search,
@@ -66,6 +69,10 @@ public class MovieManagementController {
         model.addAttribute("hiddenFilter", hidden == null ? "" : hidden);
         model.addAttribute("newMovie", new MovieDTO());
         model.addAttribute("genreList", genreService.getAllGenres());
+        model.addAttribute("readOnlyMode", false);
+        model.addAttribute("movieBasePath", "/admin/movies");
+        User user = (User) session.getAttribute("loggedInUser");
+        model.addAttribute("user", user);
         return "movie-management";
     }
 

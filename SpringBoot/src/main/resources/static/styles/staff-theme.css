@@ -1,0 +1,129 @@
+:root {
+    --staff-primary: #1f5aa6;
+    --staff-primary-hover: #184a8a;
+    --staff-text: #1f3b67;
+    --staff-muted: #6a7a93;
+    --staff-surface: #ffffff;
+    --staff-surface-muted: #fff5f7;
+    --staff-border: #f0c9d1;
+}
+
+body.staff-page {
+    background: var(--staff-surface-muted);
+    color: var(--staff-text);
+}
+
+.staff-top-nav {
+    background: var(--staff-surface);
+    border-bottom: 1px solid var(--staff-border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.staff-nav-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.staff-nav-link {
+    text-decoration: none;
+    color: var(--staff-muted);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 999px;
+    transition: 0.2s;
+}
+
+.staff-nav-link:hover {
+    color: var(--staff-text);
+    background: #ffeef1;
+}
+
+.staff-nav-link.active {
+    background: var(--staff-primary);
+    color: #fff;
+}
+
+.staff-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.staff-user-pill {
+    background: var(--staff-primary);
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.staff-logout-link {
+    color: #c6425b;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid #f3b7c1;
+    padding: 8px 12px;
+    border-radius: 999px;
+    transition: 0.2s;
+}
+
+.staff-logout-link:hover {
+    background: #fff1f1;
+}
+
+.staff-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px 32px;
+}
+
+.staff-panel {
+    background: var(--staff-surface);
+    border: 1px solid var(--staff-border);
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(31, 90, 166, 0.08);
+}
+
+.staff-page-title {
+    color: var(--staff-primary);
+    margin: 0;
+    font-weight: 700;
+}
+
+.staff-muted {
+    color: var(--staff-muted);
+}
+
+.staff-btn-primary {
+    background: var(--staff-primary);
+    color: #fff;
+    border: 1px solid var(--staff-primary);
+}
+
+.staff-btn-primary:hover {
+    background: var(--staff-primary-hover);
+    border-color: var(--staff-primary-hover);
+    color: #fff;
+}
+
+.staff-btn-outline {
+    background: #fff;
+    color: var(--staff-primary);
+    border: 1px solid #d6e4ff;
+}
+
+.staff-btn-outline:hover {
+    background: #edf4ff;
+    color: var(--staff-primary);
+}

@@ -2,28 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<nav th:fragment="staffNav(activePage)" class="nav-menu" style="background: #0a0a0a; border-bottom: 1px solid #1c1c1c; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 999;">
-  <div class="nav-links" style="display: flex; gap: 30px;">
+<nav th:fragment="staffNav(activePage)" class="staff-top-nav">
+  <div class="staff-nav-links">
     <a href="/staff/booking/pos"
-       th:style="${activePage == 'pos' ? 'color: #fff;' : 'color: #888;'}"
-       style="text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; transition: 0.3s;">Đặt vé POS</a>
+       class="staff-nav-link"
+       th:classappend="${activePage == 'pos'} ? ' active' : ''">Đặt vé POS</a>
 
     <a href="/staff/booking/manage"
-       th:style="${activePage == 'manage' ? 'color: #fff;' : 'color: #888;'}"
-       style="text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; transition: 0.3s;">Danh sách vé</a>
+       class="staff-nav-link"
+       th:classappend="${activePage == 'manage'} ? ' active' : ''">Danh sách vé</a>
 
     <a href="/staff/profile"
-       th:style="${activePage == 'profile' ? 'color: #fff;' : 'color: #888;'}"
-       style="text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; transition: 0.3s;">Hồ sơ cá nhân</a>
+       class="staff-nav-link"
+       th:classappend="${activePage == 'profile'} ? ' active' : ''">Hồ sơ cá nhân</a>
   </div>
 
-  <div style="display: flex; align-items: center; gap: 20px;">
-    <div style="color: #666; font-size: 12px; font-family: monospace;">
+  <div class="staff-nav-right">
+    <div class="staff-user-pill">
       ID: <span th:text="${session.loggedInUser?.userId}">#000</span>
     </div>
-    <a href="/auth/logout" style="color: #ef4444; font-size: 12px; font-weight: bold; text-transform: uppercase; text-decoration: none;">
-      Đăng xuất
-    </a>
+    <a href="/auth/logout" class="staff-logout-link">Đăng xuất</a>
   </div>
 </nav>
 
