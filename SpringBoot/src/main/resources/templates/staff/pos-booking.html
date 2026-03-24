@@ -417,12 +417,11 @@
       fetch('/staff/booking/api/showtimes?movieId=' + id)
       .then(r => r.json())
       .then(data => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+          const now = new Date();
 
           const filteredData = data.filter(s => {
-            const showDate = new Date(s.startTime);
-            return showDate >= today;
+            const cutoffTime = new Date(s.startTime) + (20 * 60 * 1000);
+            return cutoffTime >= now;
         });
 
           const grouped = filteredData.reduce((acc, s) => {
