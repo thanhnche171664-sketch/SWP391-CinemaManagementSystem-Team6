@@ -108,6 +108,25 @@ public class MovieService {
     }
 
     @Transactional(readOnly = true)
+    public Page<MovieDTO> getBranchMoviesPageWithFilters(Long branchId, int page, int size, String keyword,
+                                                         Movie.MovieStatus status, Boolean hidden) {
+        if (branchId == null) {
+            throw new IllegalArgumentException("Branch không hợp lệ.");
+        }
+        String normalizedKeyword = (keyword != null && !keyword.isBlank())
+                ? keyword.trim()
+                : null;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        Page<Movie> moviePage = movieRepository.findBranchMoviesForManagement(
+                branchId,
+                normalizedKeyword,
+                status,
+                hidden,
+                pageRequest);
+        return moviePage.map(this::convertToDTO);
+    }
+
+    @Transactional(readOnly = true)
     public MovieDTO getMovieById(Long id, boolean includeHidden) {
         Movie movie = getMovieEntityById(id);
         if (!includeHidden && Boolean.TRUE.equals(movie.getIsHidden())) {

@@ -77,4 +77,20 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             @Param("genre") String genre,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT m FROM Movie m " +
+            "JOIN BranchMovie bm ON m.movieId = bm.movie.movieId " +
+            "LEFT JOIN MovieGenre mg ON m.movieId = mg.movie.movieId " +
+            "LEFT JOIN Genre g ON mg.genre.genreId = g.genreId " +
+            "WHERE bm.branch.branchId = :branchId " +
+            "AND (:keyword IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:status IS NULL OR m.status = :status) " +
+            "AND (:hidden IS NULL OR m.isHidden = :hidden)")
+    Page<Movie> findBranchMoviesForManagement(
+            @Param("branchId") Long branchId,
+            @Param("keyword") String keyword,
+            @Param("status") Movie.MovieStatus status,
+            @Param("hidden") Boolean hidden,
+            Pageable pageable
+    );
 }

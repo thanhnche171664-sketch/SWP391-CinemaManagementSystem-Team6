@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tổng quan chi nhánh</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-dashboard.css}">
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+
+    <main class="content">
+        <header class="header">
+            <div>
+                <h1>Tổng quan chi nhánh</h1>
+                <p th:text="'Dữ liệu theo rạp: ' + ${branchName}">Dữ liệu theo rạp</p>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-label">Doanh thu chi nhánh</p>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(summary.totalRevenue, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                <span class="stat-trend muted">Tổng doanh thu từ đơn paid</span>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Đơn đã thanh toán</p>
+                <div class="stat-value" th:text="${#numbers.formatInteger(summary.totalBookings, 0, 'COMMA')}">0</div>
+                <span class="stat-trend muted">Tổng đơn paid theo chi nhánh</span>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Phim có doanh thu</p>
+                <div class="stat-value" th:text="${summary.totalMovies}">0</div>
+                <span class="stat-trend muted">Số phim phát sinh doanh thu</span>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Giá trị trung bình/đơn</p>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(summary.avgRevenue, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                <span class="stat-trend muted">Trung bình trên mỗi đơn paid</span>
+            </article>
+        </section>
+
+        <section class="charts-grid">
+            <article class="chart-card">
+                <h3>Top phim theo doanh thu</h3>
+                <div class="top-movie-list" th:if="${!#lists.isEmpty(movieRows)}">
+                    <div class="top-movie-item" th:each="item, stat : ${movieRows}">
+                        <span class="rank" th:text="${stat.index + 1}">1</span>
+                        <span class="movie-title" th:text="${item.movieTitle}">Movie</span>
+                        <span class="movie-revenue"
+                              th:text="${#numbers.formatDecimal(item.totalRevenue, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
+                    </div>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(movieRows)}">Chưa có dữ liệu.</p>
+            </article>
+            <article class="chart-card">
+                <h3>Truy cập nhanh</h3>
+                <div class="top-movie-list">
+                    <a class="top-movie-item" th:href="@{/manager/movies}">
+                        <span class="rank">#</span>
+                        <span class="movie-title">Phim theo chi nhánh (chỉ xem)</span>
+                        <span class="movie-revenue">Mở</span>
+                    </a>
+                    <a class="top-movie-item" th:href="@{/admin/bookings}">
+                        <span class="rank">#</span>
+                        <span class="movie-title">Quản lý đặt vé theo chi nhánh</span>
+                        <span class="movie-revenue">Mở</span>
+                    </a>
+                    <a class="top-movie-item" th:href="@{/admin/news}">
+                        <span class="rank">#</span>
+                        <span class="movie-title">Quản lý tin tức theo chi nhánh</span>
+                        <span class="movie-revenue">Mở</span>
+                    </a>
+                    <a class="top-movie-item" th:href="@{/admin/reports}">
+                        <span class="rank">#</span>
+                        <span class="movie-title">Báo cáo doanh thu chi nhánh</span>
+                        <span class="movie-revenue">Mở</span>
+                    </a>
+                </div>
+            </article>
+        </section>
+
+        <section class="branch-section">
+            <div class="section-header">
+                <h3>Đơn đặt gần đây</h3>
+                <span class="section-note">Theo chi nhánh quản lý</span>
+            </div>
+            <div class="branch-table-card">
+                <table class="branch-table">
+                    <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Phim</th>
+                        <th>Suất chiếu</th>
+                        <th class="text-right">Tổng tiền</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="b : ${recentBookings}">
+                        <td th:text="${b.bookingId}">1</td>
+                        <td th:text="${b.customerName}">Khách hàng</td>
+                        <td th:text="${b.movieTitle}">Phim</td>
+                        <td th:text="${b.showtimeStart != null ? #temporals.format(b.showtimeStart, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                        <td class="text-right" th:text="${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</td>
+                        <td>
+                            <span class="branch-status"
+                                  th:classappend="${b.status != null and b.status.name() == 'paid'} ? ' status-active' : ' status-inactive'"
+                                  th:text="${b.status}">pending</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentBookings)}">
+                        <td colspan="6" class="text-muted">Chưa có dữ liệu đặt vé.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

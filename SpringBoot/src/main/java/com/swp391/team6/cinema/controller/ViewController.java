@@ -80,7 +80,7 @@ public class ViewController {
         }
         
         model.addAttribute("user", user);
-        return "redirect:/admin/branch"; // Trang quản lý branch
+        return "redirect:/manager/dashboard";
     }
     
     @GetMapping("/staff")

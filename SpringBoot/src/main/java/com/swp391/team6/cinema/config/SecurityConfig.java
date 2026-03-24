@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .requestMatchers("/booking/**", "/showtimes/**").authenticated()
                 .requestMatchers("/admin/news/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/bookings/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/admin/reports/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/staff/**").hasAnyRole("ADMIN", "MANAGER", "STAFF")
