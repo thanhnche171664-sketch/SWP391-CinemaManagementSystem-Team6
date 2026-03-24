@@ -1,15 +1,9 @@
 package com.swp391.team6.cinema.controller;
 
-import com.swp391.team6.cinema.entity.Movie;
-import com.swp391.team6.cinema.entity.News;
-import com.swp391.team6.cinema.entity.Showtime;
-import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.entity.*;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
-import com.swp391.team6.cinema.service.AdminDashboardService;
-import com.swp391.team6.cinema.service.GenreService;
-import com.swp391.team6.cinema.service.MovieService;
-import com.swp391.team6.cinema.service.NewsService;
+import com.swp391.team6.cinema.service.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,6 +27,7 @@ public class ViewController {
     private final NewsService newsService;
     private final CinemaBranchRepository cinemaBranchRepository;
     private final AdminDashboardService adminDashboardService;
+    private final ReviewService reviewService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -169,6 +164,11 @@ public class ViewController {
         model.addAttribute("showtimes", showtimes);
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null) model.addAttribute("user", user);
+
+        model.addAttribute("review", new Review());
+        List<Review> reviews = reviewService.getReviewsByMovieId(id);
+        model.addAttribute("reviews", reviews);
+
         return "movie-detail";
     }
 
