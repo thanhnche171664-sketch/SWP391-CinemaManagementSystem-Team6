@@ -334,3 +334,25 @@ VALUES
 ('Sự kiện giao lưu diễn viên', 'Gặp gỡ diễn viên nổi tiếng tại rạp Q1', 2, 'event', 'published', NOW()),
 
 ('Thông báo bảo trì hệ thống', 'Hệ thống sẽ bảo trì vào 2h sáng', 1, 'announcement', 'published', NOW());
+
+INSERT INTO news (title, content, author_id, branch_id, news_type, status, published_at)
+VALUES
+-- Movie news
+('Avatar 2 sắp ra mắt', 'Bom tấn Avatar 2 sẽ được công chiếu trong tháng này.', 1, NULL, 'movie', 'published', NOW()),
+('Kungfu Panda 4 chuẩn bị chiếu', 'Phim hoạt hình hấp dẫn cho gia đình.', 1, NULL, 'movie', 'published', NOW()),
+
+-- Promotion
+('Giảm giá vé buổi sáng', 'Giảm 30% cho tất cả suất chiếu trước 12h.', 1, NULL, 'promotion', 'published', NOW()),
+('Ưu đãi sinh viên', 'Sinh viên được giảm 20% khi xuất trình thẻ.', 1, 1, 'promotion', 'published', NOW()),
+
+-- Event
+('Mini game nhận vé miễn phí', 'Tham gia mini game để nhận vé xem phim miễn phí.', 2, 1, 'event', 'published', NOW()),
+('Ngày hội phim kinh dị', 'Trải nghiệm loạt phim kinh dị hấp dẫn tại rạp.', 2, 3, 'event', 'published', NOW()),
+
+-- Announcement
+('Thông báo thay đổi giờ chiếu', 'Một số suất chiếu sẽ được điều chỉnh.', 1, NULL, 'announcement', 'published', NOW()),
+('Bảo trì hệ thống cuối tuần', 'Hệ thống sẽ bảo trì vào Chủ nhật.', 1, NULL, 'announcement', 'published', NOW()),
+
+-- Mixed cases
+('Combo bắp nước giá sốc', 'Combo chỉ từ 49k trong tuần này.', 2, 2, 'promotion', 'published', NOW()),
+('Ra mắt phòng chiếu VIP mới', 'Phòng chiếu VIP hiện đại tại chi nhánh Q7.', 2, 3, 'announcement', 'published', NOW());

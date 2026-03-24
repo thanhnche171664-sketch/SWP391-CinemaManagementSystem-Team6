@@ -43,18 +43,15 @@ public class CounterBookingService {
                 .orElseThrow(() -> new IllegalArgumentException("Suất chiếu không tồn tại"));
 
         User customer = null;
-        if (email != null && !email.isBlank()) {
-            customer = userRepository.findByEmail(email).orElse(null);
-        } else if (phone != null && !phone.isBlank()) {
-            customer = userRepository.findByPhone(phone).orElse(null);
+        if (email != null && !email.trim().isEmpty()) {
+            customer = userRepository.findByEmail(email.trim()).orElse(null);
+        } else if (phone != null && !phone.trim().isEmpty()) {
+            customer = userRepository.findByPhone(phone.trim()).orElse(null);
         }
 
         if (customer == null) {
-
-            customer = userRepository.findByFullName("GUEST")
-
-                    .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản 'GUEST'"));
-
+            customer = userRepository.findFirstByRole(User.UserRole.CUSTOMER)
+                    .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản mặc định cho Role CUSTOMER"));
         }
 
         Long branchId = showtime.getRoom().getBranch().getBranchId();
