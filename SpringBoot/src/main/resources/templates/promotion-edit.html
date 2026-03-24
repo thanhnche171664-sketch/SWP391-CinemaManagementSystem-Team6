@@ -14,6 +14,11 @@
         <div class="card-dark max-w-2xl">
             <h2>Cập nhật: <span th:text="${promotion.promoCode}" style="color: #3b82f6;"></span></h2>
 
+            <div th:if="${error}" class="alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
             <form th:action="@{/admin/promotions/update-action}" method="post" class="promotion-form">
 
                 <input type="hidden" name="promotionId" th:value="${promotion.promotionId}">

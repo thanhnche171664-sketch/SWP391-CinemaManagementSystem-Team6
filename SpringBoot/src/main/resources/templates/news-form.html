@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit} ? 'Cập nhật tin tức' : 'Tạo tin tức'">Tin tức</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-news.css}">
+</head>
+<body>
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('news')"></div>
+
+    <main class="content">
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <div class="form-shell">
+            <div class="header">
+                <div>
+                    <h1 th:text="${isEdit} ? 'Cập nhật tin tức' : 'Tạo tin tức mới'">Tạo tin tức mới</h1>
+                    <p>Quản lý nội dung hiển thị trên trang Home và News</p>
+                </div>
+                <a class="btn-secondary" th:href="@{/admin/news}">Quay lại</a>
+            </div>
+
+            <form th:action="@{/admin/news/save}" method="post" th:object="${news}" class="news-form" id="newsForm">
+                <input type="hidden" th:field="*{newsId}">
+
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label>Tiêu đề</label>
+                        <input class="form-input"
+                               type="text"
+                               th:field="*{title}"
+                               required
+                               minlength="1"
+                               maxlength="255"
+                               pattern=".*\S.*">
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Nội dung</label>
+                        <textarea class="form-input"
+                                  th:field="*{content}"
+                                  rows="8"
+                                  required
+                                  minlength="11"
+                                  id="newsContent"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thumbnail URL</label>
+                        <input class="form-input" type="text" th:field="*{thumbnailUrl}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại tin</label>
+                        <select class="form-input" th:field="*{newsType}">
+                            <option th:each="item : ${newsTypes}" th:value="${item}" th:text="${item}"></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <select class="form-input" th:field="*{status}" id="newsStatus">
+                            <option th:each="item : ${newsStatuses}" th:value="${item}" th:text="${item}"></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày đăng (nếu để trống sẽ lấy hiện tại khi published)</label>
+                        <input class="form-input" type="datetime-local" th:field="*{publishedAt}" id="publishedAt">
+                    </div>
+
+                    <div class="form-group full" th:if="${isAdmin}">
+                        <label>Chi nhánh áp dụng</label>
+                        <select class="form-input" th:field="*{branchId}">
+                            <option value="">Toàn hệ thống</option>
+                            <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a class="btn-secondary" th:href="@{/admin/news}">Hủy</a>
+                    <button class="btn-primary" type="submit" th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo tin'">Tạo tin</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+<script>
+    (function () {
+        const form = document.getElementById('newsForm');
+        const contentEl = document.getElementById('newsContent');
+        const statusEl = document.getElementById('newsStatus');
+        const publishedAtEl = document.getElementById('publishedAt');
+
+        function syncPublishedRequired() {
+            if (!statusEl || !publishedAtEl) return;
+            publishedAtEl.required = statusEl.value === 'published';
+        }
+
+        function validateContent() {
+            if (!contentEl) return;
+            const trimmed = contentEl.value.trim();
+            if (!trimmed) {
+                contentEl.setCustomValidity('Please fill out this field.');
+                return;
+            }
+            if (trimmed.length <= 10) {
+                contentEl.setCustomValidity('Please lengthen this text to 11 characters or more.');
+                return;
+            }
+            contentEl.setCustomValidity('');
+        }
+
+        if (statusEl) {
+            statusEl.addEventListener('change', syncPublishedRequired);
+            syncPublishedRequired();
+        }
+
+        if (contentEl) {
+            contentEl.addEventListener('input', validateContent);
+            contentEl.addEventListener('blur', validateContent);
+        }
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                validateContent();
+                syncPublishedRequired();
+            });
+        }
+    })();
+</script>
+</body>
+</html>

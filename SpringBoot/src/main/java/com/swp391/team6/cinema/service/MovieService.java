@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +58,16 @@ public class MovieService {
     }
 
     @Transactional(readOnly = true)
+    public List<Movie> getLatestVisibleMoviesByStatus(Movie.MovieStatus status, int limit) {
+        return getVisibleMoviesByStatus(status).stream()
+                .sorted(Comparator.comparing(Movie::getReleaseDate,
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(Movie::getMovieId, Comparator.reverseOrder()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Movie getVisibleMovieById(Long id) {
         Movie movie = getMovieEntityById(id);
         movie.getGenres().size();
@@ -89,6 +100,25 @@ public class MovieService {
                 : null;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
         Page<Movie> moviePage = movieRepository.findAdminMoviesWithFilters(
+                normalizedKeyword,
+                status,
+                hidden,
+                pageRequest);
+        return moviePage.map(this::convertToDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MovieDTO> getBranchMoviesPageWithFilters(Long branchId, int page, int size, String keyword,
+                                                         Movie.MovieStatus status, Boolean hidden) {
+        if (branchId == null) {
+            throw new IllegalArgumentException("Branch không hợp lệ.");
+        }
+        String normalizedKeyword = (keyword != null && !keyword.isBlank())
+                ? keyword.trim()
+                : null;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        Page<Movie> moviePage = movieRepository.findBranchMoviesForManagement(
+                branchId,
                 normalizedKeyword,
                 status,
                 hidden,

@@ -15,9 +15,10 @@
         <div class="header">
             <div>
                 <h1>Quản lý phim</h1>
-                <p>Tạo mới, cập nhật và ẩn/hiện phim.</p>
+                <p th:if="${readOnlyMode}">Xem danh sách phim theo chi nhánh (chỉ xem, không chỉnh sửa).</p>
+                <p th:unless="${readOnlyMode}">Tạo mới, cập nhật và ẩn/hiện phim.</p>
             </div>
-            <button type="button" onclick="openModalAdd()" class="btn-add">
+            <button type="button" onclick="openModalAdd()" class="btn-add" th:if="${!readOnlyMode}">
                 <i data-lucide="plus-circle"></i>
                 Thêm phim
             </button>
@@ -30,7 +31,7 @@
             <span th:text="${success}"></span>
         </div>
 
-        <form id="filterForm" class="filters" method="get" th:action="@{/admin/movies}">
+        <form id="filterForm" class="filters" method="get" th:action="${movieBasePath}">
             <div class="search-box has-icon">
                 <span class="search-icon">
                     <i data-lucide="search"></i>
@@ -87,18 +88,26 @@
                               th:text="${movie.status}"></span>
                     </td>
                     <td>
-                        <a th:href="@{'/admin/movies/toggle/' + ${movie.movieId}}" class="visibility-link">
+                        <a th:if="${!readOnlyMode}" th:href="@{'/admin/movies/toggle/' + ${movie.movieId}}" class="visibility-link">
                             <span th:class="'visibility-dot ' + (${movie.hidden} ? 'dot-hidden' : 'dot-shown')"></span>
                             <span th:text="${movie.hidden ? 'Hidden' : 'Shown'}"
                                   th:class="'visibility-label ' + (${movie.hidden} ? 'text-muted' : 'text-success')"></span>
                         </a>
+                        <span th:if="${readOnlyMode}" class="visibility-link">
+                            <span th:class="'visibility-dot ' + (${movie.hidden} ? 'dot-hidden' : 'dot-shown')"></span>
+                            <span th:text="${movie.hidden ? 'Hidden' : 'Shown'}"
+                                  th:class="'visibility-label ' + (${movie.hidden} ? 'text-muted' : 'text-success')"></span>
+                        </span>
                     </td>
                     <td class="text-right">
                         <div class="action-buttons">
-                            <button type="button" th:onclick="prepareEdit([[${movie}]])" class="icon-btn">
+                            <button type="button" th:onclick="prepareEdit([[${movie}]])" class="icon-btn" th:if="${!readOnlyMode}">
                                 <i data-lucide="edit-3"></i>
                             </button>
-                            <a th:href="@{'/admin/movies/view/' + ${movie.movieId}}" class="icon-btn">
+                            <a th:if="${!readOnlyMode}" th:href="@{'/admin/movies/view/' + ${movie.movieId}}" class="icon-btn">
+                                <i data-lucide="eye"></i>
+                            </a>
+                            <a th:if="${readOnlyMode}" th:href="@{'/movies/' + ${movie.movieId}}" class="icon-btn">
                                 <i data-lucide="eye"></i>
                             </a>
                         </div>
@@ -110,19 +119,42 @@
 
         <div class="pagination" th:if="${totalPages > 1}">
             <a class="page-link"
+               th:if="${!readOnlyMode}"
                th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
                th:classappend="${currentPage == 0} ? ' disabled' : ''">
                 &laquo;
             </a>
             <a class="page-link"
+               th:if="${readOnlyMode}"
+               th:href="@{/manager/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:classappend="${currentPage == 0} ? ' disabled' : ''">
+                &laquo;
+            </a>
+            <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+               th:if="${!readOnlyMode}"
                th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
                th:classappend="${i == currentPage} ? ' active' : ''"
                th:text="${i + 1}">
                 1
             </a>
             <a class="page-link"
+               th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+               th:if="${readOnlyMode}"
+               th:href="@{/manager/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:classappend="${i == currentPage} ? ' active' : ''"
+               th:text="${i + 1}">
+                1
+            </a>
+            <a class="page-link"
+               th:if="${!readOnlyMode}"
                th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
+                &raquo;
+            </a>
+            <a class="page-link"
+               th:if="${readOnlyMode}"
+               th:href="@{/manager/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
                 &raquo;
             </a>

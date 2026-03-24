@@ -243,21 +243,23 @@ body {
 }
 
 .actions a {
+    margin-left: 0;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
     text-decoration: none;
     border-radius: 10px;
     border: 1px solid var(--border-soft);
     background: #f6f9ff;
+    font-size: 16px;
     transition: all 0.2s ease;
 }
 
 .actions a:hover {
-    border-color: var(--primary-color);
     background: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .actions .danger {
@@ -297,8 +299,8 @@ body {
 }
 
 .room-edit-btn .edit-icon {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     opacity: 1;
     filter: brightness(0) saturate(100%) invert(31%) sepia(21%) saturate(2959%) hue-rotate(195deg) brightness(88%) contrast(87%);
     transition: 0.2s;
@@ -315,8 +317,8 @@ body {
 }
 
 .edit-link .edit-icon {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     opacity: 1;
     filter: brightness(0) saturate(100%) invert(31%) sepia(21%) saturate(2959%) hue-rotate(195deg) brightness(88%) contrast(87%);
     transition: 0.2s;
@@ -329,10 +331,12 @@ body {
 
 .edit-link {
     cursor: pointer;
+    padding: 0;
 }
 
 .status-btn {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1;
 }
 
 .room-header {
@@ -555,6 +559,95 @@ body {
 .btn-add svg {
     width: 18px;
     height: 18px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: var(--primary-color);
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-back:hover {
+    background: #184a8a;
+}
+
+.edit-branch-card {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 12px 30px rgba(31, 90, 166, 0.08);
+    max-width: 900px;
+}
+
+.edit-branch-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.edit-branch-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-branch-form .form-group.full {
+    grid-column: span 2;
+}
+
+.edit-branch-form label {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.edit-branch-form input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    background: #fff;
+    color: var(--text-color);
+    outline: none;
+}
+
+.edit-branch-form input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(31, 90, 166, 0.12);
+}
+
+.form-actions {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 8px;
+}
+
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    background: #fff1f4;
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-cancel:hover {
+    background: var(--accent-pink);
 }
 
 .modal-backdrop {

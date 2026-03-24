@@ -79,6 +79,19 @@
                     </tbody>
                 </table>
             </div>
+            <div class="report-pagination" th:if="${movieTotalPages > 1}">
+                <a class="page-link"
+                   th:href="@{/admin/reports(moviePage=${moviePage - 1}, datePage=${datePage}, branchPage=${branchPage})}"
+                   th:classappend="${moviePage == 0} ? ' disabled' : ''">Trước</a>
+                <a class="page-link"
+                   th:each="i : ${#numbers.sequence(0, movieTotalPages - 1)}"
+                   th:href="@{/admin/reports(moviePage=${i}, datePage=${datePage}, branchPage=${branchPage})}"
+                   th:text="${i + 1}"
+                   th:classappend="${moviePage == i} ? ' active' : ''"></a>
+                <a class="page-link"
+                   th:href="@{/admin/reports(moviePage=${moviePage + 1}, datePage=${datePage}, branchPage=${branchPage})}"
+                   th:classappend="${moviePage + 1 >= movieTotalPages} ? ' disabled' : ''">Sau</a>
+            </div>
         </section>
 
         <section class="report-section">
@@ -109,6 +122,19 @@
                     </tbody>
                 </table>
             </div>
+            <div class="report-pagination" th:if="${dateTotalPages > 1}">
+                <a class="page-link"
+                   th:href="@{/admin/reports(moviePage=${moviePage}, datePage=${datePage - 1}, branchPage=${branchPage})}"
+                   th:classappend="${datePage == 0} ? ' disabled' : ''">Trước</a>
+                <a class="page-link"
+                   th:each="i : ${#numbers.sequence(0, dateTotalPages - 1)}"
+                   th:href="@{/admin/reports(moviePage=${moviePage}, datePage=${i}, branchPage=${branchPage})}"
+                   th:text="${i + 1}"
+                   th:classappend="${datePage == i} ? ' active' : ''"></a>
+                <a class="page-link"
+                   th:href="@{/admin/reports(moviePage=${moviePage}, datePage=${datePage + 1}, branchPage=${branchPage})}"
+                   th:classappend="${datePage + 1 >= dateTotalPages} ? ' disabled' : ''">Sau</a>
+            </div>
         </section>
 
         <section class="report-section">
@@ -138,6 +164,19 @@
                     </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="report-pagination" th:if="${branchTotalPages > 1}">
+                <a class="page-link"
+                   th:href="@{/admin/reports(moviePage=${moviePage}, datePage=${datePage}, branchPage=${branchPage - 1})}"
+                   th:classappend="${branchPage == 0} ? ' disabled' : ''">Trước</a>
+                <a class="page-link"
+                   th:each="i : ${#numbers.sequence(0, branchTotalPages - 1)}"
+                   th:href="@{/admin/reports(moviePage=${moviePage}, datePage=${datePage}, branchPage=${i})}"
+                   th:text="${i + 1}"
+                   th:classappend="${branchPage == i} ? ' active' : ''"></a>
+                <a class="page-link"
+                   th:href="@{/admin/reports(moviePage=${moviePage}, datePage=${datePage}, branchPage=${branchPage + 1})}"
+                   th:classappend="${branchPage + 1 >= branchTotalPages} ? ' disabled' : ''">Sau</a>
             </div>
         </section>
     </main>
