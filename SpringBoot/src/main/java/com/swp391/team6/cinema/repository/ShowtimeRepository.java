@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,5 +33,41 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
 
     @Query("SELECT s FROM Showtime s JOIN s.room r WHERE s.movie.movieId = :movieId AND r.branch.branchId = :branchId")
     List<Showtime> findByMovieAndBranch(@Param("movieId") Long movieId, @Param("branchId") Long branchId);
+
+    @Query("""
+        SELECT s FROM Showtime s
+        WHERE s.startTime BETWEEN :start AND :end
+        ORDER BY s.startTime ASC
+    """)
+    List<Showtime> findByDateRange(LocalDateTime start, LocalDateTime end);
+
+    // Check trùng giờ phòng
+    @Query("""
+        SELECT s FROM Showtime s
+        WHERE s.room.roomId = :roomId
+        AND (:start < s.endTime AND :end > s.startTime)
+    """)
+    List<Showtime> checkOverlap(
+            Long roomId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    // (Optional) lấy tất cả có sort
+    List<Showtime> findAllByOrderByStartTimeAsc();
+
+    @Query("""
+    SELECT s FROM Showtime s
+    WHERE s.startTime BETWEEN :start AND :end
+    AND s.room.branch.branchId = :branchId
+""")
+    List<Showtime> findByDateAndBranch(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("branchId") Long branchId
+    );
+
+    @Query("SELECT s FROM Showtime s WHERE s.room.branch.branchId = :branchId")
+    List<Showtime> findByBranchId(@Param("branchId") Long branchId);
 
 }

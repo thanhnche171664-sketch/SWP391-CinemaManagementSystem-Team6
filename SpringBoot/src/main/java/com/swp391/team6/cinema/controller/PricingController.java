@@ -65,13 +65,23 @@ public class PricingController {
 
     @PostMapping("/update")
     public String updatePricing(
-            @ModelAttribute("pricings") List<Pricing> pricings,
-            @RequestParam Long branchId) {
+            @RequestParam Long branchId,
+            @RequestParam("pricings[0].seatType") Seat.SeatType normalType,
+            @RequestParam("pricings[0].price") BigDecimal normalPrice,
 
-        pricings.forEach(p ->
-                pricingService.updatePrice(branchId, p.getSeatType(), p.getPrice())
-        );
+            @RequestParam("pricings[1].seatType") Seat.SeatType vipType,
+            @RequestParam("pricings[1].price") BigDecimal vipPrice,
+
+            @RequestParam("pricings[2].seatType") Seat.SeatType coupleType,
+            @RequestParam("pricings[2].price") BigDecimal couplePrice
+    ) {
+
+        pricingService.updatePrice(branchId, normalType, normalPrice);
+        pricingService.updatePrice(branchId, vipType, vipPrice);
+        pricingService.updatePrice(branchId, coupleType, couplePrice);
 
         return "redirect:/admin/pricing?branchId=" + branchId;
     }
+
+
 }

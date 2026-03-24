@@ -7,4 +7,13 @@ public class RoomDTO {
 
     private Long branchId;
     private String branchName;
+
+    public RoomDTO(Long roomId, String roomName) {
+    }
+
+    public class SeatUpdateRequest {
+        private Long seatId;
+        private String type;
+
+    }
 }

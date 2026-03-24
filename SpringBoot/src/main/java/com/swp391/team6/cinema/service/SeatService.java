@@ -69,4 +69,14 @@ public class SeatService {
 
         return seatRepository.saveAll(generatedSeats);
     }
+
+    public void updateSeatType(Long seatId, String type) {
+
+        Seat seat = seatRepository.findById(seatId)
+                .orElseThrow(() -> new RuntimeException("Seat not found"));
+
+        seat.setSeatType(Seat.SeatType.valueOf(type));
+
+        seatRepository.save(seat);
+    }
 }

@@ -26,13 +26,24 @@ public class PricingService {
         return pricingRepository.findByBranch(branch);
     }
 
-    public void updatePrice(Long branchId, Seat.SeatType seatType, BigDecimal price) {
+    public void updatePrice(Long branchId, Seat.SeatType type, BigDecimal price) {
 
-        CinemaBranch branch = branchRepository.findById(branchId).orElseThrow();
+        // null → 0
+        if (price == null) {
+            price = BigDecimal.ZERO;
+        }
+
+        CinemaBranch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new RuntimeException("Branch not found"));
 
         Pricing pricing = pricingRepository
-                .findByBranchAndSeatType(branch, seatType)
-                .orElseThrow();
+                .findByBranchAndSeatType(branch, type)
+                .orElseGet(() -> {
+                    Pricing p = new Pricing();
+                    p.setBranch(branch);
+                    p.setSeatType(type);
+                    return p;
+                });
 
         pricing.setPrice(price);
 

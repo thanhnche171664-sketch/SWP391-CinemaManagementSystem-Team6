@@ -33,6 +33,10 @@ public class MovieService {
             "G", "PG", "PG-13", "C13", "C16", "C18", "P"
     ));
 
+    public List<Movie> getAllMovies() {
+        return movieRepository.findAll();
+    }
+
     @Transactional(readOnly = true)
     public List<Movie> getVisibleMovies() {
         List<Movie> movies = movieRepository.findByIsHiddenFalse();
@@ -133,6 +137,11 @@ public class MovieService {
             throw new RuntimeException("Movie is hidden with id: " + id);
         }
         return convertToDTO(movie);
+    }
+
+    public Movie getMovieById(Long movieId) {
+        return movieRepository.findById(movieId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phim với id = " + movieId));
     }
 
     @Transactional

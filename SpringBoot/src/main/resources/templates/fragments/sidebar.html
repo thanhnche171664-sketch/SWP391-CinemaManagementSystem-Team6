@@ -46,7 +46,9 @@
 
         <a th:classappend="${active == 'shows'} ? 'active'"
            th:if="${user == null or user.role == null or user.role.name() != 'MANAGER'}"
-           href="#">Quản lý suất chiếu</a>
+           th:href="@{/admin/showtimes}">Quản lý suất chiếu</a>
+
+
 
         <a th:classappend="${active == 'tickets'} ? 'active'"
            th:href="@{/admin/bookings}">Quản lý đặt vé</a>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+  <form th:action="@{/admin/showtimes/update}" method="post">
+
+    <input type="hidden" name="showtimeId" th:value="${showtime.showtimeId}">
+
+    <!-- Movie -->
+    <select name="movieId">
+      <option th:each="m : ${movies}"
+              th:value="${m.movieId}"
+              th:text="${m.title}"
+              th:selected="${m.movieId == showtime.movie.movieId}">
+      </option>
+    </select>
+
+    <!-- Branch -->
+    <select id="branchSelect">
+      <option th:each="b : ${branches}"
+              th:value="${b.branchId}"
+              th:text="${b.branchName}"
+              th:selected="${b.branchId == showtime.room.branch.branchId}">
+      </option>
+    </select>
+
+    <!-- Room -->
+    <select name="roomId" id="roomSelect">
+      <option th:value="${showtime.room.roomId}"
+              th:text="${showtime.room.roomName}">
+      </option>
+    </select>
+
+    <!-- Date -->
+    <input type="date" id="date"
+           th:value="${#temporals.format(showtime.startTime, 'yyyy-MM-dd')}">
+
+    <!-- Time -->
+    <input type="time" id="time"
+           th:value="${#temporals.format(showtime.startTime, 'HH:mm')}">
+
+    <input type="hidden" name="startTime" id="startTime">
+
+    <button type="submit">Cập nhật</button>
+  </form>
+</body>
+</html>
