@@ -945,6 +945,134 @@ body.cinemas-page {
     background: rgba(47, 128, 237, 0.08);
 }
 
+.movie-detail-page .showtimes-modal-content {
+    border-radius: 18px;
+    border: 1px solid var(--border-soft);
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(31, 90, 166, 0.2);
+    overflow: hidden;
+}
+
+.movie-detail-page .showtimes-modal-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 240, 244, 0.9));
+    border-bottom: 1px solid var(--border-soft);
+    align-items: flex-start;
+}
+
+.movie-detail-page .showtimes-modal-subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.movie-detail-page .showtimes-modal-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.movie-detail-page .showtimes-modal-filter-action {
+    display: flex;
+    align-items: flex-end;
+}
+
+.movie-detail-page .showtimes-modal-input {
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    background: #fff;
+    color: var(--text-color);
+}
+
+.movie-detail-page .showtimes-modal-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(31, 90, 166, 0.12);
+}
+
+.movie-detail-page .showtimes-modal-clear-btn {
+    border-radius: 12px;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    background: #fff;
+}
+
+.movie-detail-page .showtimes-modal-clear-btn:hover {
+    background: rgba(31, 90, 166, 0.08);
+    color: var(--primary-color);
+}
+
+.movie-detail-page .showtimes-modal-table {
+    margin-bottom: 0;
+    color: var(--text-color);
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: #fff0f3;
+    --bs-table-striped-color: var(--text-color);
+    --bs-table-border-color: var(--border-soft);
+}
+
+.movie-detail-page .showtimes-modal-table thead th {
+    background: #fff6f8;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.movie-detail-page .showtime-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.movie-detail-page .showtime-status.status-open {
+    background: #e7f7ef;
+    color: #2f855a;
+    border: 1px solid #cbeedb;
+}
+
+.movie-detail-page .showtime-status.status-full,
+.movie-detail-page .showtime-status.status-closed {
+    background: #fff1f1;
+    color: #c6425b;
+    border: 1px solid #f3b7c1;
+}
+
+.movie-detail-page .showtimes-modal-book-btn {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+}
+
+.movie-detail-page .showtimes-modal-book-btn:hover {
+    background: #184a8a;
+    border-color: #184a8a;
+    color: #fff;
+}
+
+.movie-detail-page .showtimes-modal-empty {
+    background: #fff5f7;
+    border: 1px solid var(--border-soft);
+    color: var(--text-color);
+}
+
+.movie-detail-page .showtimes-modal-footer {
+    border-top: 1px solid var(--border-soft);
+    background: #fff;
+}
+
+@media (max-width: 992px) {
+    .movie-detail-page .showtimes-modal-filters {
+        grid-template-columns: 1fr;
+    }
+}
 .detail-chip.status-now_showing {
     background: #e7f7ef;
     color: #2f855a;
