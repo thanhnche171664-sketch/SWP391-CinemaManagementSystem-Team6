@@ -4,11 +4,16 @@ import com.swp391.team6.cinema.entity.Promotion;
 import com.swp391.team6.cinema.repository.PromotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,47 +25,16 @@ public class PromotionService {
     // Phân trang
     public Page<Promotion> getAllPromotions(int page, int size, String keyword, String status) {
         List<Promotion> allPromotions = promotionRepository.findAll(Sort.by("promotionId").descending());
+        return buildPromotionPage(allPromotions, page, size, keyword, status);
+    }
 
-        LocalDateTime now = LocalDateTime.now();
+    public Page<Promotion> getPromotionsForBranch(Long branchId, int page, int size, String keyword, String status) {
+        List<Promotion> promotions = promotionRepository.findAllByBranch_BranchId(branchId, Sort.by("promotionId").descending());
+        return buildPromotionPage(promotions, page, size, keyword, status);
+    }
 
-        // Tự động kiểm tra thời gian: Nếu hết hạn thì coi như inactive (Tạm dừng)
-        allPromotions.forEach(p -> {
-            if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
-                p.setStatus(Promotion.Status.inactive);
-            }
-        });
-        // 2. Lọc bằng Stream API
-        List<Promotion> filteredList = allPromotions.stream()
-                .filter(p -> {
-                    // Lọc theo trạng thái
-                    if (status != null && !status.isEmpty()) {
-                        return p.getStatus().name().equalsIgnoreCase(status);
-                    }
-                    return true;
-                })
-                .filter(p -> {
-                    // Lọc theo từ khóa (Code hoặc Description)
-                    if (keyword != null && !keyword.trim().isEmpty()) {
-                        String k = keyword.toLowerCase();
-                        boolean matchCode = p.getPromoCode().toLowerCase().contains(k);
-                        boolean matchDesc = (p.getDescription() != null && p.getDescription().toLowerCase().contains(k));
-                        return matchCode || matchDesc;
-                    }
-                    return true;
-                })
-                .collect(Collectors.toList());
-
-        // 3. Phân trang thủ công cho List kết quả
-        Pageable pageable = PageRequest.of(page, size);
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filteredList.size());
-
-        List<Promotion> pagedList = new ArrayList<>();
-        if (start <= filteredList.size()) {
-            pagedList = filteredList.subList(start, end);
-        }
-
-        return new PageImpl<>(pagedList, pageable, filteredList.size());
+    public List<Promotion> getPromotionsByBranch(Long branchId) {
+        return promotionRepository.findAllByBranch_BranchId(branchId, Sort.by("promotionId").descending());
     }
 
 
@@ -132,4 +106,127 @@ public class PromotionService {
                 promotionRepository.save(promo);
             });
         }
+
+    private Page<Promotion> buildPromotionPage(List<Promotion> promotions,
+                                               int page,
+                                               int size,
+                                               String keyword,
+                                               String status) {
+        applyExpiryStatus(promotions);
+
+        List<Promotion> filteredList = promotions.stream()
+                .filter(p -> {
+                    if (status != null && !status.isEmpty()) {
+                        return p.getStatus().name().equalsIgnoreCase(status);
+                    }
+                    return true;
+                })
+                .filter(p -> {
+                    if (keyword != null && !keyword.trim().isEmpty()) {
+                        String k = keyword.toLowerCase();
+                        boolean matchCode = p.getPromoCode().toLowerCase().contains(k);
+                        boolean matchDesc = (p.getDescription() != null && p.getDescription().toLowerCase().contains(k));
+                        return matchCode || matchDesc;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filteredList.size());
+
+        List<Promotion> pagedList = new ArrayList<>();
+        if (start <= filteredList.size()) {
+            pagedList = filteredList.subList(start, end);
+        }
+
+        return new PageImpl<>(pagedList, pageable, filteredList.size());
     }
+
+    private void applyExpiryStatus(List<Promotion> promotions) {
+        LocalDateTime now = LocalDateTime.now();
+        promotions.forEach(p -> {
+            if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
+                p.setStatus(Promotion.Status.inactive);
+            }
+        });
+    }
+
+    public Map<String, Object> validatePromoCode(String code, BigDecimal orderAmount) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", false);
+        result.put("message", "Mã voucher không hợp lệ");
+        result.put("discountAmount", 0);
+        result.put("promotionId", null);
+
+        if (code == null || code.trim().isEmpty()) {
+            return result;
+        }
+
+        try {
+            Optional<Promotion> promoOpt = promotionRepository.findByPromoCode(code.trim().toUpperCase());
+            if (promoOpt.isEmpty()) {
+                result.put("message", "Mã voucher không tồn tại");
+                return result;
+            }
+
+            Promotion promo = promoOpt.get();
+
+            // Check status
+            if (promo.getStatus() != Promotion.Status.active) {
+                result.put("message", "Mã voucher đã ngừng hoạt động");
+                return result;
+            }
+
+            // Check date
+            LocalDateTime now = LocalDateTime.now();
+            if (promo.getStartDate() != null && now.isBefore(promo.getStartDate())) {
+                result.put("message", "Mã voucher chưa có hiệu lực");
+                return result;
+            }
+            if (promo.getEndDate() != null && now.isAfter(promo.getEndDate())) {
+                result.put("message", "Mã voucher đã hết hạn");
+                return result;
+            }
+
+            // Check usage limit
+            if (promo.getUsageLimit() != null && promo.getUsedCount() != null
+                    && promo.getUsedCount() >= promo.getUsageLimit()) {
+                result.put("message", "Mã voucher đã hết lượt sử dụng");
+                return result;
+            }
+
+            // Check minimum booking amount
+            if (promo.getMinBookingAmount() != null && orderAmount != null
+                    && orderAmount.compareTo(promo.getMinBookingAmount()) < 0) {
+                result.put("message", "Đơn hàng tối thiểu " + promo.getMinBookingAmount().toBigInteger() + " VND");
+                return result;
+            }
+
+            // Calculate discount
+            BigDecimal discountAmount = BigDecimal.ZERO;
+            if (promo.getDiscountType() == Promotion.DiscountType.percent) {
+                discountAmount = orderAmount.multiply(promo.getDiscountValue())
+                        .divide(BigDecimal.valueOf(100));
+            } else if (promo.getDiscountType() == Promotion.DiscountType.amount) {
+                discountAmount = promo.getDiscountValue();
+            }
+
+            // Ensure discount doesn't exceed order amount
+            if (discountAmount.compareTo(orderAmount) > 0) {
+                discountAmount = orderAmount;
+            }
+
+            result.put("valid", true);
+            result.put("message", "Áp dụng thành công!");
+            result.put("discountAmount", discountAmount.intValue());
+            result.put("promotionId", promo.getPromotionId());
+
+        } catch (Exception e) {
+            result.put("message", "Lỗi xác thực voucher: " + e.getMessage());
+        }
+
+        return result;
+    }
+}

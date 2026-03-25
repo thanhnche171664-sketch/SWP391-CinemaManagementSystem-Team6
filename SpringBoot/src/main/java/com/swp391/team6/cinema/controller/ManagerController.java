@@ -2,9 +2,9 @@ package com.swp391.team6.cinema.controller;
 
 import com.swp391.team6.cinema.dto.MovieDTO;
 import com.swp391.team6.cinema.dto.RevenueReportDTO;
-import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.Movie;
 import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.service.BookingService;
 import com.swp391.team6.cinema.service.MovieService;
 import com.swp391.team6.cinema.service.ReportService;
@@ -28,6 +28,7 @@ public class ManagerController {
     private final MovieService movieService;
     private final ReportService reportService;
     private final BookingService bookingService;
+    private final CinemaBranchRepository cinemaBranchRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
@@ -117,10 +118,12 @@ public class ManagerController {
     }
 
     private String resolveBranchName(User user) {
-        CinemaBranch branch = user.getBranch();
-        if (branch != null && branch.getBranchName() != null) {
-            return branch.getBranchName();
+        Long branchId = user.getBranchId();
+        if (branchId == null) {
+            return "Toàn hệ thống";
         }
-        return user.getBranchId() == null ? "Toàn hệ thống" : "Chi nhánh #" + user.getBranchId();
+        return cinemaBranchRepository.findById(branchId)
+                .map(b -> b.getBranchName() != null ? b.getBranchName() : "Chi nhánh #" + branchId)
+                .orElse("Chi nhánh #" + branchId);
     }
 }

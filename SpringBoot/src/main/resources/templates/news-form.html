@@ -19,10 +19,10 @@
                     <h1 th:text="${isEdit} ? 'Cập nhật tin tức' : 'Tạo tin tức mới'">Tạo tin tức mới</h1>
                     <p>Quản lý nội dung hiển thị trên trang Home và News</p>
                 </div>
-                <a class="btn-secondary" th:href="@{/admin/news}">Quay lại</a>
+                <a class="btn-secondary" th:href="@{|${newsBasePath}|}">Quay lại</a>
             </div>
 
-            <form th:action="@{/admin/news/save}" method="post" th:object="${news}" class="news-form" id="newsForm">
+            <form th:action="@{|${newsBasePath}/save|}" method="post" th:object="${news}" class="news-form" id="newsForm">
                 <input type="hidden" th:field="*{newsId}">
 
                 <div class="form-row">
@@ -81,7 +81,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <a class="btn-secondary" th:href="@{/admin/news}">Hủy</a>
+                    <a class="btn-secondary" th:href="@{|${newsBasePath}|}">Hủy</a>
                     <button class="btn-primary" type="submit" th:text="${isEdit} ? 'Lưu thay đổi' : 'Tạo tin'">Tạo tin</button>
                 </div>
             </form>

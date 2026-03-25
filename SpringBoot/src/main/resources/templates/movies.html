@@ -38,7 +38,15 @@
                         <select name="genre" onchange="this.form.submit()">
                             <option value="">Tất cả thể loại</option>
                             <option th:each="g : ${genreList}" th:value="${g.genreName}" th:text="${g.genreName}"
-                                    th:selected="${genreFilter != null && !genreFilter.isEmpty() && genreFilter == g.genreName}"></option>
+                                    th:selected="${genreFilter == g.genreName}"></option>
+                        </select>
+                    </label>
+                    <label class="genre-filter">
+                        <span>Rạp chiếu</span>
+                        <select name="branchId" onchange="this.form.submit()">
+                            <option value="">Tất cả rạp</option>
+                            <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"
+                                    th:selected="${branchFilter == b.branchId}"></option>
                         </select>
                     </label>
                 </div>

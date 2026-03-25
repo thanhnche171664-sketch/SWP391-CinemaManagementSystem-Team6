@@ -12,7 +12,7 @@
 
 <div class="layout">
 
-    <div th:replace="fragments/sidebar :: sidebar('rooms')"></div>
+    <div th:replace="fragments/sidebar :: sidebar('branches')"></div>
 
     <main class="content">
 
@@ -30,7 +30,7 @@
             </ul>
         </div>
 
-        <form th:action="@{/rooms/create}" method="post" th:object="${room}" class="room-form">
+        <form th:action="@{|${roomBasePath}/create|}" method="post" th:object="${room}" class="room-form">
 
             <div class="form-group">
                 <label>Tên phòng</label>
@@ -58,15 +58,16 @@
 
             <div class="form-group full">
                 <label>Chi nhánh</label>
-
-                <select th:field="*{branch}" required>
+                <select th:field="*{branch}" required th:if="${!isManager}">
                     <option value="">-- Chọn chi nhánh --</option>
-
                     <option th:each="branch : ${branches}"
                             th:value="${branch.branchId}"
                             th:text="${branch.branchName}">
                     </option>
                 </select>
+                <input type="hidden" name="branchId" th:if="${isManager}" th:value="${selectedBranchId}">
+                <div th:if="${isManager}" class="hint"
+                     th:text="${branches != null && !#lists.isEmpty(branches) ? branches.get(0).branchName : 'Chi nhánh quản lý'}"></div>
             </div>
 
             <div class="form-group full">

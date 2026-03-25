@@ -22,29 +22,31 @@
                 <p>Thêm, sửa, xóa lịch chiếu phim</p>
             </div>
 
-            <a href="/admin/showtimes/create" class="btn-add">
+            <a th:href="@{|${showtimeBasePath}/create|}" class="btn-add">
                 + Thêm suất chiếu
             </a>
         </div>
 
-        <form method="get" action="/admin/showtimes">
+        <form method="get" th:action="@{|${showtimeBasePath}|}" class="filters">
 
-            <select name="branchId">
+            <select name="branchId" class="filter-select" th:if="${!isManager}">
                 <option value="">-- Chọn rạp --</option>
                 <option th:each="b : ${branches}"
                         th:value="${b.branchId}"
+                        th:selected="${branchId != null and b.branchId == branchId}"
                         th:text="${b.branchName}">
                 </option>
             </select>
+            <input type="hidden" name="branchId" th:if="${isManager}" th:value="${selectedBranchId}">
 
-            <input type="date" name="date">
+            <input type="date" name="date" class="form-input">
 
-            <button type="submit">Lọc</button>
+            <button type="submit" class="btn-primary">Lọc</button>
 
         </form>
 
-        <div class="table-container">
-            <table>
+        <div class="table-card">
+            <table class="data-table">
                 <thead>
                 <tr>
                     <th>Phim</th>
@@ -100,7 +102,8 @@
 <!--                    </td>-->
 
                     <td>
-                        <span th:text="${s.status}"
+                        <span class="status-badge"
+                              th:text="${s.status}"
                               th:classappend="
                                 ${s.status.name() == 'open'} ? 'status-open' :
                                 (${s.status.name() == 'closed'} ? 'status-closed' :
@@ -120,6 +123,13 @@
                     </td>
 
                 </tr>
+
+                <tr th:if="${#lists.isEmpty(showtimes)}">
+                    <td colspan="8" style="text-align:center">
+                        Không có suất chiếu
+                    </td>
+                </tr>
+
                 </tbody>
             </table>
         </div>

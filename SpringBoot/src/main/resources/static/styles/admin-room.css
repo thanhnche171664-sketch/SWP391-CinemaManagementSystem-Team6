@@ -239,11 +239,13 @@ body {
 /*create room*/
 
 .room-form{
-    background:#0f0f10;
-    padding:28px;
-    border-radius:12px;
-    width:720px;
-    color:#fff;
+    background: var(--surface-color);
+    padding: 28px;
+    border-radius: 16px;
+    width: 720px;
+    color: var(--text-color);
+    border: 1px solid var(--border-soft);
+    box-shadow: 0 12px 30px rgba(31, 90, 166, 0.08);
 }
 
 .room-form{
@@ -265,63 +267,57 @@ body {
 .room-form input,
 .room-form select{
     width:100%;
-    padding:10px 12px;
-    border-radius:8px;
-    border:1px solid #2a2a2a;
-    background:#1a1a1b;
-    color:#fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    background: #fff;
+    color: var(--text-color);
     font-size:14px;
     transition:all .2s ease;
 }
 
 .room-form input::placeholder{
-    color:#888;
+    color: var(--text-muted);
 }
 
 .room-form input:focus,
 .room-form select:focus{
     outline:none;
-    border-color:#3b82f6;
-    box-shadow:0 0 0 2px rgba(59,130,246,0.25);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(31, 90, 166, 0.15);
 }
 
 .hint{
     font-size:12px;
-    color:#888;
+    color: var(--text-muted);
     margin-top:4px;
 }
 
 .btn-submit{
     grid-column:1 / span 2;
-
-    background:white;
-    border:none;
-    color:black;;
-
-    padding:12px;
-    border-radius:8px;
-
-    font-size:15px;
-    font-weight:600;
-
-    cursor:pointer;
-    transition:0.2s;
+    background: var(--primary-color);
+    border: none;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
 .btn-submit:hover{
-    background:#2563eb;
+    background: #184a8a;
 }
 
 .error-box{
     grid-column:1 / span 2;
-
-    background:#2b1212;
-    border:1px solid #7f1d1d;
-    color:#fca5a5;
-
-    padding:14px;
-    border-radius:8px;
-    margin-bottom:10px;
+    background: var(--danger-bg);
+    border: 1px solid #f3b7c1;
+    color: var(--danger-color);
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 10px;
 }
 
 .error-box ul{

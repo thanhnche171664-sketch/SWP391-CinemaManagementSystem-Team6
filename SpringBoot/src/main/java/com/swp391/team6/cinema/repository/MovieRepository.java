@@ -39,10 +39,12 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
            "WHERE m.isHidden = false " +
            "AND (:keyword IS NULL OR :keyword = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:status IS NULL OR m.status = :status) " +
-           "AND (:genreName IS NULL OR :genreName = '' OR m IN (SELECT m2 FROM Movie m2 JOIN m2.genres g2 WHERE g2.genreName = :genreName))")
+           "AND (:genreName IS NULL OR :genreName = '' OR m IN (SELECT m2 FROM Movie m2 JOIN m2.genres g2 WHERE g2.genreName = :genreName)) " +
+           "AND (:branchId IS NULL OR m IN (SELECT bm.movie FROM BranchMovie bm WHERE bm.branch.branchId = :branchId))")
     List<Movie> findVisibleMoviesWithFilters(@Param("keyword") String keyword,
                                              @Param("status") Movie.MovieStatus status,
-                                             @Param("genreName") String genreName);
+                                             @Param("genreName") String genreName,
+                                             @Param("branchId") Long branchId);
 
     @Query("SELECT DISTINCT m FROM Movie m JOIN BranchMovie bm ON m.movieId = bm.movie.movieId WHERE bm.branch.branchId = :branchId AND m.status = 'now_showing'")
     List<Movie> findMoviesByBranchId(@Param("branchId") Long branchId);

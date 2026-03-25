@@ -5,25 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chọn ghế - Cinema</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .booking-info-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .booking-info-header .movie-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .booking-info-header .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .booking-info-header .info-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .booking-info-header .info-item .label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .booking-info-header .info-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .screen { text-align: center; margin: 20px 0 30px; font-weight: bold; color: #666; }
+        .seat-map { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .seat-row { display: flex; gap: 6px; align-items: center; }
+        .seat-row .row-label { width: 24px; font-weight: bold; }
+        .seat-option { width: 36px; height: 36px; border-radius: 6px; cursor: pointer; border: 2px solid #dee2e6;
+            display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .seat-option.available { background: #e9ecef; }
+        .seat-option.available:hover { background: #ced4da; }
+        .seat-option.selected { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+        .seat-option.occupied { background: #ccc; cursor: not-allowed; color: #999; }
+        .seat-option input { display: none; }
+        .seat-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .seat-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .seat-legend .legend-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+        .seat-legend .legend-box.available { background: #e9ecef; border: 2px solid #dee2e6; }
+        .seat-legend .legend-box.selected { background: #0d6efd; border: 2px solid #0d6efd; }
+        .seat-legend .legend-box.occupied { background: #ccc; border: 2px solid #bbb; }
+        .selected-seats-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body class="booking-seat-page">
+<!-- Toast container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
 <div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
 <div class="container py-4">
-    <div class="booking-seat-shell">
-    <p class="mb-3">
-        <a th:href="@{/movies/{id}(id=${showtime.movie.movieId})}" class="btn booking-seat-back-btn btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
-            Quay lại
-        </a>
-    </p>
-    <h2 class="booking-seat-title" th:text="${showtime.movie.title}">Movie</h2>
-    <p class="booking-seat-subtitle">
-        <span th:text="${showtime.room.roomName}">Room</span> –
-        <span th:text="${showtime.room.branch.branchName}">Branch</span> –
-        <span th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')}">Time</span>
-    </p>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3ed6235 (set payment expiry times)
+    <!-- Booking Info Header -->
+    <div class="booking-info-header">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <a th:href="@{/movies/{id}(id=${showtime.movie.movieId})}"
+               class="btn btn-outline-light btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
+                Quay lại
+            </a>
+        </div>
+        <h2 class="movie-title" th:text="${showtime.movie.title}">Movie Title</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="label">Ngày giờ chiếu</div>
+                <div class="value" th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')}">19/03/2026 14:30</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Rạp chiếu</div>
+                <div class="value" th:text="${showtime.room.branch.branchName}">CGV Vincom Center</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Phòng chiếu</div>
+                <div class="value" th:text="${showtime.room.roomName}">Phòng 1</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Suất chiếu</div>
+                <div class="value" th:text="${showtime.status}">OPEN</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seat Legend -->
+    <div class="seat-legend">
+        <div class="legend-item">
+            <div class="legend-box available"></div>
+            <span>Ghế trống</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box selected"></div>
+            <span>Ghế chọn</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box occupied"></div>
+            <span>Ghế đã đặt</span>
+        </div>
+    </div>
 
     <div class="screen">——— MÀN HÌNH ———</div>
 
@@ -37,16 +146,52 @@
                            th:attr="data-price=${seatPrices != null and seatPrices[seat.seatId] != null ? seatPrices[seat.seatId].intValue() : 0}">
                         <input type="checkbox" name="seatIds" th:value="${seat.seatId}"
                                th:disabled="${occupiedIds.contains(seat.seatId)}">
-                        <span th:text="${seat.seatNumber}">1</span>
+                        <span class="seat-label" th:text="${seat.seatNumber}">1</span>
                     </label>
                 </th:block>
             </div>
         </div>
 
-        <div class="booking-seat-action">
-            <p class="total-line">Tổng: <span id="totalAmount">0</span> VND</p>
-            <button type="submit" class="btn booking-seat-pay-btn btn-lg" id="submitBtn" disabled>Thanh toán PayOS</button>
-            <a th:href="@{/movies}" class="btn booking-seat-back-solid-btn btn-lg">Quay lại</a>
+        <!-- Selected Seats Info -->
+        <div class="selected-seats-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="bi bi-cursor-fill"></i> Ghế đã chọn:</h6>
+                    <p id="selectedSeatsDisplay" class="text-muted mb-0">Chưa chọn ghế</p>
+                    <input type="hidden" name="selectedSeats" id="selectedSeatsInput" value="">
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h6><i class="bi bi-cash"></i> Tổng tiền:</h6>
+                    <p class="total-amount display-6 fw-bold text-primary mb-0" id="totalAmount">0 VND</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher Input -->
+        <div class="voucher-section mt-3">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-tag"></i> Mã giảm giá</span>
+                        <input type="text" class="form-control" id="voucherCode" placeholder="Nhập mã voucher...">
+                        <button class="btn btn-outline-primary" type="button" id="applyVoucherBtn">Áp dụng</button>
+                    </div>
+                    <div id="voucherMessage" class="mt-2 small"></div>
+                    <input type="hidden" name="promotionId" id="promotionId" value="">
+                </div>
+            </div>
+            <div class="row justify-content-center mt-2" id="discountRow" style="display: none;">
+                <div class="col-md-6 text-end">
+                    <span class="text-success fw-bold">Giảm: <span id="discountAmount">0</span> VND</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5" id="submitBtn" disabled>
+                <i class="bi bi-credit-card"></i> Thanh toán qua PayOS
+            </button>
+            <a th:href="@{/movies}" class="btn btn-outline-secondary btn-lg ms-2">Quay lại</a>
         </div>
     </form>
 
@@ -65,47 +210,102 @@
         </button>
     </div>
 </div>
-</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
-    (function() {
-        const form = document.getElementById('bookingForm');
-        const totalEl = document.getElementById('totalAmount');
-        const submitBtn = document.getElementById('submitBtn');
-        const checkboxes = form.querySelectorAll('input[name="seatIds"]:not([disabled])');
+(function() {
+    // Config
+    const REFRESH_INTERVAL = 30000; // 30 seconds
+    const showtimeId = /*[[${showtime.showtimeId}]]*/ 0;
 
-        function updateTotal() {
-            let total = 0;
-            checkboxes.forEach(cb => {
-                if (cb.checked) {
-                    const label = cb.closest('label');
-                    const price = parseInt(label.getAttribute('data-price') || '0', 10);
-                    total += price;
-                }
-            });
-            totalEl.textContent = total.toLocaleString();
-            submitBtn.disabled = total === 0;
+    let refreshInterval;
+    const occupiedSeatIds = /*[[${occupiedIds}]]*/ [];
+
+    // Elements
+    const form = document.getElementById('bookingForm');
+    const totalEl = document.getElementById('totalAmount');
+    const selectedSeatsDisplay = document.getElementById('selectedSeatsDisplay');
+    const selectedSeatsInput = document.getElementById('selectedSeatsInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const checkboxes = form.querySelectorAll('input[name="seatIds"]');
+
+    // Seat data for display
+    const seatsData = /*[[${seats}]]*/ [];
+
+    // Toast summary
+    function showToast(message, type = 'warning') {
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>`;
+        const container = document.querySelector('.toast-container');
+        if (container) {
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = container.lastElementChild;
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+    }
+
+    // Label lookup mapper
+    function getSeatLabel(seatId) {
+        const seat = seatsData.find(s => String(s.seatId) === String(seatId));
+        return seat ? (seat.seatRow + seat.seatNumber) : ("Ghế " + seatId);
+    }
+
+    // Global update UI
+    function updateSelectedUI() {
+        let total = 0;
+        let selectedNames = [];
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                const label = cb.closest('.seat-option');
+                const price = parseInt(label.getAttribute('data-price') || 0);
+                total += price;
+                selectedNames.push(getSeatLabel(cb.value));
+            }
+        });
+
+        totalEl.textContent = total.toLocaleString() + ' VND';
+        selectedSeatsDisplay.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Chưa chọn ghế';
+        selectedSeatsInput.value = selectedNames.join(',');
+        submitBtn.disabled = (selectedNames.length === 0);
+    }
+
+    // MAIN: Handle seat change
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const label = this.closest('.seat-option');
+            if (label) {
+                // IMPORTANT: Only toggle class based on native checked state
+                if (this.checked) label.classList.add('selected');
+                else label.classList.remove('selected');
+            }
+            updateSelectedUI();
+        });
+    });
+
+    // Handle form submit
+    form.addEventListener('submit', async function(e) {
+        const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+        if (selected.length === 0) {
+            e.preventDefault();
+            showToast('Vui lòng chọn ghế!', 'warning');
+            return;
         }
 
-        form.querySelectorAll('.seat-option:not(.occupied)').forEach(label => {
-            label.addEventListener('click', function(e) {
-                if (this.classList.contains('occupied')) return;
-                const cb = this.querySelector('input');
-                if (cb) {
-                    cb.checked = !cb.checked;
-                    this.classList.toggle('selected', cb.checked);
-                    updateTotal();
-                }
-            });
-        });
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
-                const label = this.closest('label');
-                if (label) label.classList.toggle('selected', this.checked);
-                updateTotal();
-            });
-        });
-    })();
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+    });
+
+    console.log("Booking flow initialized.");
+})();
 </script>
 </body>
 </html>

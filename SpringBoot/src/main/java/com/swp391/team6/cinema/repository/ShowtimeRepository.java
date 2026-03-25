@@ -71,4 +71,7 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     List<Showtime> findByBranchId(@Param("branchId") Long branchId);
 
     List<Showtime> findByRoom_RoomId(Long roomId);
+    @Query("SELECT s FROM Showtime s JOIN FETCH s.movie JOIN FETCH s.room r JOIN FETCH r.branch WHERE s.status = 'open' AND s.startTime >= :now ORDER BY s.startTime")
+    List<Showtime> findAllOpenFromNow(@Param("now") LocalDateTime now);
+
 }

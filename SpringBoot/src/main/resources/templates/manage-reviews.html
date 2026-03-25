@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Đánh Giá</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-promotion.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .pagination {
+            list-style: none;
+            padding-left: 0;
+        }
+        .page-link{ color: #1f5aa6; }
+        .page-item.active .page-link { background: #1f5aa6; border-color: #1f5aa6; color: white }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('reviews')"></div>
+
+    <main class="content">
+        <div class="flex-between mb-8">
+            <div>
+                <h1>Quản Lý Đánh Giá</h1>
+                <p class="text-gray-400">Quản lý đánh giá phim</p>
+            </div>
+        </div>
+
+        <div class="filter-action-bar mb-8" style="display: flex; gap: 1rem; align-items: center;">
+
+            <form th:action="@{/admin/reviews}" method="get" class="filter-action-bar mb-8">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm...">
+                </div>
+
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-filter"></i>
+                    <select name="movieId">
+                        <option value="">-- Tất cả phim --</option>
+                        <option th:each="m : ${listMovies}"
+                                th:value="${m.movieId}"
+                                th:text="${m.title}"
+                                th:selected="${movieId == m.movieId}">
+                        </option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-dark">Tìm kiếm</button>
+            </form>
+
+        </div>
+
+        <div class="card-dark">
+            <table>
+                <thead>
+                <tr class="table-header">
+                    <th class="ps-4">ID</th>
+                    <th>Phim</th>
+                    <th>Người dùng</th>
+                    <th>Xếp hạng</th>
+                    <th>Ngày</th>
+                    <th>Nội dung bình luận</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${listReviews}">
+                    <td class="ps-4 fw-bold text-muted" th:text="${r.reviewId}">#</td>
+                    <td class="fw-bold" th:text="${r.movie.title}">Tên phim</td>
+                    <td>
+                        <i class="fas fa-user-circle text-secondary me-1"></i>
+                        <span th:text="${r.user.fullName}">Tên khách</span>
+                    </td>
+                    <td>
+                        <span class="star-rating">
+                            <i th:each="i : ${#numbers.sequence(1, 5)}"
+                               th:class="${i <= r.rating} ? 'fas fa-star' : 'far fa-star text-muted opacity-50'"></i>
+                        </span>
+                    </td>
+                    <td class="ps-4 fw-bold text-muted" th:text="${#temporals.format(r.createdAt,'dd/MM/yyyy HH:mm')}">Ngày</td>
+                    <td>
+                        <div class="comment-text" th:text="${r.comment}" th:title="${r.comment}"></div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(listReviews)}">
+                    <td colspan="7" class="text-center py-5 text-muted italic">
+                        <i class="fas fa-folder-open fs-2 d-block mb-2"></i>
+                        Hiện chưa có đánh giá nào trong hệ thống.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <nav class="mt-4" th:if="${reviewPage.totalPages > 0}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item"
+                    th:classappend="${reviewPage.first} ? ' disabled'">
+
+                    <a class="page-link"
+                       th:if="${!reviewPage.first}"
+                       th:href="@{/admin/reviews(page=${reviewPage.number-1}, movieId=${movieId}, keyword=${keyword})}">
+                        Trước
+                    </a>
+
+                    <span class="page-link" th:if="${reviewPage.first}">Trước</span>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, reviewPage.totalPages - 1)}" th:classappend="${i == reviewPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/admin/reviews(page=${i}, movieId=${movieId}, keyword=${keyword})}" th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item"
+                    th:classappend="${reviewPage.last} ? ' disabled'">
+
+                    <a class="page-link"
+                       th:if="${!reviewPage.last}"
+                       th:href="@{/admin/reviews(page=${reviewPage.number+1}, movieId=${movieId}, keyword=${keyword})}">
+                        Sau
+                    </a>
+
+                    <span class="page-link" th:if="${reviewPage.last}">Sau</span>
+                </li>
+            </ul>
+        </nav>
+
+    </main>
+</div>
+</body>
+</html>

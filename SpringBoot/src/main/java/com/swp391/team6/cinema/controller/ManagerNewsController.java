@@ -9,13 +9,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/admin/news")
+@RequestMapping("/manager/news")
 @RequiredArgsConstructor
-public class NewsManagementController {
+public class ManagerNewsController {
 
     private final NewsService newsService;
     private final CinemaBranchRepository cinemaBranchRepository;
@@ -30,7 +35,7 @@ public class NewsManagementController {
                            @RequestParam(required = false) News.NewsType type,
                            @RequestParam(required = false) News.NewsStatus status,
                            @RequestParam(defaultValue = "latest") String sort) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) return "redirect:/auth/login";
 
         Page<News> newsPage = newsService.getNewsForManagement(user, keyword, type, status, sort, page, size);
@@ -45,25 +50,26 @@ public class NewsManagementController {
         model.addAttribute("sortFilter", sort);
         model.addAttribute("newsTypes", News.NewsType.values());
         model.addAttribute("newsStatuses", News.NewsStatus.values());
-        model.addAttribute("newsBasePath", "/admin/news");
+        model.addAttribute("newsBasePath", "/manager/news");
         model.addAttribute("user", user);
         return "news-management";
     }
 
     @GetMapping("/create")
     public String showCreateForm(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) return "redirect:/auth/login";
 
         News news = new News();
+        news.setBranchId(user.getBranchId());
 
         model.addAttribute("news", news);
         model.addAttribute("isEdit", false);
         model.addAttribute("newsTypes", News.NewsType.values());
         model.addAttribute("newsStatuses", News.NewsStatus.values());
-        model.addAttribute("isAdmin", user.getRole() == User.UserRole.ADMIN);
+        model.addAttribute("isAdmin", false);
         model.addAttribute("branches", cinemaBranchRepository.findAll());
-        model.addAttribute("newsBasePath", "/admin/news");
+        model.addAttribute("newsBasePath", "/manager/news");
         model.addAttribute("user", user);
         return "news-form";
     }
@@ -73,7 +79,7 @@ public class NewsManagementController {
                                HttpSession session,
                                Model model,
                                RedirectAttributes redirectAttributes) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) return "redirect:/auth/login";
 
         try {
@@ -82,14 +88,14 @@ public class NewsManagementController {
             model.addAttribute("isEdit", true);
             model.addAttribute("newsTypes", News.NewsType.values());
             model.addAttribute("newsStatuses", News.NewsStatus.values());
-            model.addAttribute("isAdmin", user.getRole() == User.UserRole.ADMIN);
+            model.addAttribute("isAdmin", false);
             model.addAttribute("branches", cinemaBranchRepository.findAll());
-            model.addAttribute("newsBasePath", "/admin/news");
+            model.addAttribute("newsBasePath", "/manager/news");
             model.addAttribute("user", user);
             return "news-form";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/admin/news";
+            return "redirect:/manager/news";
         }
     }
 
@@ -97,7 +103,7 @@ public class NewsManagementController {
     public String saveNews(@ModelAttribute News news,
                            HttpSession session,
                            RedirectAttributes redirectAttributes) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) return "redirect:/auth/login";
 
         try {
@@ -108,13 +114,13 @@ public class NewsManagementController {
                 newsService.updateNews(news.getNewsId(), news, user);
                 redirectAttributes.addFlashAttribute("success", "Cập nhật tin tức thành công.");
             }
-            return "redirect:/admin/news";
+            return "redirect:/manager/news";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             if (news.getNewsId() == null) {
-                return "redirect:/admin/news/create";
+                return "redirect:/manager/news/create";
             }
-            return "redirect:/admin/news/edit/" + news.getNewsId();
+            return "redirect:/manager/news/edit/" + news.getNewsId();
         }
     }
 
@@ -122,7 +128,7 @@ public class NewsManagementController {
     public String hideNews(@PathVariable Long id,
                            HttpSession session,
                            RedirectAttributes redirectAttributes) {
-        User user = requireAdmin(session, redirectAttributes);
+        User user = requireManager(session, redirectAttributes);
         if (user == null) return "redirect:/auth/login";
 
         try {
@@ -131,13 +137,17 @@ public class NewsManagementController {
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/news";
+        return "redirect:/manager/news";
     }
 
-    private User requireAdmin(HttpSession session, RedirectAttributes redirectAttributes) {
+    private User requireManager(HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
-        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+        if (user == null || user.getRole() != User.UserRole.MANAGER) {
             redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập.");
+            return null;
+        }
+        if (user.getBranchId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Tài khoản quản lý chưa có chi nhánh.");
             return null;
         }
         return user;

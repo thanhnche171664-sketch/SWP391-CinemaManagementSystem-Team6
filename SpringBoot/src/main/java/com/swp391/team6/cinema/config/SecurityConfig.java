@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.config;
 
+import com.swp391.team6.cinema.security.OAuth2LoginFailureHandler;
 import com.swp391.team6.cinema.security.OAuth2LoginSuccessHandler;
 import com.swp391.team6.cinema.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,16 +17,17 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oauth2LoginFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error", 
-                                "/home/**", "/movies/**", "/news/**", "/static/**",
+                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error",
+                                "/home/**", "/movies/**", "/news/**", "/showtimes/**", "/static/**",
                                 "/api/payment/payos/webhook").permitAll()
-                .requestMatchers("/booking/**", "/showtimes/**").authenticated()
+                .requestMatchers("/booking/**").authenticated()
                 .requestMatchers("/admin/news/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/bookings/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/reports/**").hasAnyRole("ADMIN", "MANAGER")
@@ -41,6 +43,7 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService)
                 )
                 .successHandler(oauth2LoginSuccessHandler)
+                .failureHandler(oauth2LoginFailureHandler)
             )
             .logout(logout -> logout
                 .logoutUrl("/auth/logout")

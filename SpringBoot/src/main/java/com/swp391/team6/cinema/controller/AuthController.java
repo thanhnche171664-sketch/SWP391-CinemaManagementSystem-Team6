@@ -33,10 +33,16 @@ public class AuthController {
      * Hiển thị trang login
      */
     @GetMapping("/login")
-    public String showLoginPage(@RequestParam(required = false) String redirect, Model model) {
+    public String showLoginPage(@RequestParam(required = false) String redirect,
+                               @RequestParam(required = false) String error,
+                               @RequestParam(required = false) String logout,
+                               Model model) {
         model.addAttribute("loginRequest", new LoginRequest());
         if (redirect != null && !redirect.isBlank() && redirect.startsWith("/")) {
             model.addAttribute("redirect", redirect);
+        }
+        if ("oauth_failed".equals(error)) {
+            model.addAttribute("error", "Đăng nhập Google thất bại. Vui lòng thử lại.");
         }
         return "auth/login";
     }

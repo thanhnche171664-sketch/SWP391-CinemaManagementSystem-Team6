@@ -1152,6 +1152,341 @@ body.booking-seat-page {
     object-fit: cover;
 }
 
+/* ===== SHOWTIMES PAGE ===== */
+body.showtimes-page {
+    background: #f5f0f6;
+    color: var(--text-color);
+}
+
+.showtimes-page .navbar {
+    background: var(--surface-color) !important;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.showtimes-page .navbar .navbar-brand,
+.showtimes-page .navbar .nav-link {
+    color: var(--text-color) !important;
+}
+
+.showtimes-page .navbar .nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Hero */
+.showtimes-hero {
+    padding: 80px 0 40px;
+    background: linear-gradient(135deg, #fdf2f5 0%, #f0e6f7 50%, #e8f0fe 100%);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.showtimes-title {
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.showtimes-subtitle {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 0;
+}
+
+/* Filters */
+.showtimes-filters {
+    margin-top: 24px;
+}
+
+.filter-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 14px;
+    color: var(--primary-color);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.showtimes-select {
+    border: 1px solid var(--border-soft) !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: var(--text-color) !important;
+    padding: 10px 16px 10px 36px !important;
+    min-width: 180px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+.showtimes-select:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(31, 90, 166, 0.12) !important;
+    outline: none;
+}
+
+.showtimes-clear-btn {
+    border-color: rgba(31, 90, 166, 0.4) !important;
+    color: var(--primary-color) !important;
+    border-radius: 999px !important;
+    font-size: 13px;
+    padding: 9px 16px;
+}
+
+.showtimes-clear-btn:hover {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Body */
+.showtimes-body {
+    padding: 36px 0 70px;
+}
+
+/* Empty state */
+.showtimes-empty {
+    text-align: center;
+    padding: 64px 20px;
+}
+
+.showtimes-empty i {
+    font-size: 56px;
+    color: #d4b8c8;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.showtimes-empty h4 {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.showtimes-empty p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+}
+
+.showtimes-empty-btn {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    border-radius: 999px !important;
+    padding: 10px 28px;
+    font-weight: 600;
+}
+
+.showtimes-empty-btn:hover {
+    background: #184a8a !important;
+    border-color: #184a8a !important;
+}
+
+/* Date label */
+.showtimes-date-label {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 16px;
+    margin-top: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e8d0da;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.showtimes-date-label::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+/* Showtime grid */
+.showtimes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+}
+
+/* Showtime card */
+.showtime-card {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 12px rgba(31, 90, 166, 0.06);
+}
+
+.showtime-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(160, 88, 112, 0.18);
+}
+
+/* Poster column */
+.showtime-poster-col {
+    width: 100px;
+    flex-shrink: 0;
+    background: #fce8ee;
+}
+
+.showtime-poster-col a {
+    display: block;
+    height: 100%;
+}
+
+.showtime-poster-img {
+    width: 100px;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.showtime-poster-placeholder {
+    height: 100%;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d4a0ae;
+    font-size: 28px;
+}
+
+/* Info column */
+.showtime-info-col {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.showtime-movie-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-decoration: none;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.showtime-movie-title:hover {
+    color: var(--primary-color);
+}
+
+.showtime-location,
+.showtime-room-name {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.showtime-location i,
+.showtime-room-name i {
+    color: #c49aac;
+    font-size: 11px;
+}
+
+/* Time row */
+.showtime-time-row {
+    margin-top: 4px;
+}
+
+.time-pill-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #eaf0ff, #f0e8ff);
+    border: 1px solid #d6e0ff;
+    border-radius: 8px;
+    padding: 4px 10px;
+}
+
+.time-start {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: 0.5px;
+}
+
+.time-sep {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.time-end {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Book button */
+.btn-book-ticket {
+    margin-top: auto;
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #fff !important;
+    border-radius: 999px !important;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    width: 100%;
+    text-align: center;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.btn-book-ticket:hover {
+    background: #184a8a !important;
+    border-color: #184a8a !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+.btn-book-ticket:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .showtimes-title {
+        font-size: 32px;
+    }
+
+    .showtimes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .showtime-card {
+        flex-direction: column;
+    }
+
+    .showtime-poster-col,
+    .showtime-poster-img {
+        width: 100%;
+        height: 140px;
+    }
+}
+
+/* ===== BUTTON BASE ===== */
 .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);

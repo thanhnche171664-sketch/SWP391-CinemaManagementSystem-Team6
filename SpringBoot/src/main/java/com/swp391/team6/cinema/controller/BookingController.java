@@ -19,6 +19,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -27,7 +29,11 @@ import javax.naming.Context;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.net.http.HttpHeaders;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +54,16 @@ public class BookingController {
     @GetMapping("/{showtimeId}")
     public String seatSelection(@org.springframework.web.bind.annotation.PathVariable Long showtimeId,
                                 HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        return processSeatSelection(showtimeId, session, model, redirectAttributes);
+    }
+
+    @GetMapping("/seats")
+    public String seatSelectionByParam(@RequestParam Long showtimeId,
+                                       HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        return processSeatSelection(showtimeId, session, model, redirectAttributes);
+    }
+
+    private String processSeatSelection(Long showtimeId, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null) {
             redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để đặt vé.");
@@ -70,12 +86,36 @@ public class BookingController {
         for (Seat s : seats) {
             seatPrices.put(s.getSeatId(), pricingService.getPrice(branchId, s.getSeatType(), showtime.getStartTime()));
         }
-        List<String> rows = seats.stream().map(Seat::getSeatRow).distinct().sorted().toList();
-        Map<String, List<Seat>> seatsByRow = seats.stream().collect(Collectors.groupingBy(Seat::getSeatRow));
+        Map<String, List<Seat>> seatsByRow = new LinkedHashMap<>();
+        Set<String> seen = new HashSet<>();
+        List<Seat> uniqueSeatsList = new ArrayList<>();
+        
+        for (Seat s : seats) {
+            String key = s.getSeatRow() + ":" + s.getSeatNumber();
+            if (!seen.contains(key)) {
+                seen.add(key);
+                uniqueSeatsList.add(s);
+                seatsByRow.computeIfAbsent(s.getSeatRow(), k -> new ArrayList<>()).add(s);
+            }
+        }
+        
+        List<String> rows = new ArrayList<>(seatsByRow.keySet());
+        rows.sort(Comparator.naturalOrder());
+
+        // Create simplified data for JS to avoid infinite recursion
+        List<Map<String, Object>> simplifiedSeats = uniqueSeatsList.stream().map(s -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("seatId", s.getSeatId());
+            map.put("seatRow", s.getSeatRow());
+            map.put("seatNumber", s.getSeatNumber());
+            map.put("seatType", s.getSeatType().toString());
+            return map;
+        }).toList();
+
         model.addAttribute("showtime", showtime);
-        model.addAttribute("seats", seats);
+        model.addAttribute("seats", simplifiedSeats); // For JS
         model.addAttribute("rows", rows);
-        model.addAttribute("seatsByRow", seatsByRow);
+        model.addAttribute("seatsByRow", seatsByRow); // For Thymeleaf
         model.addAttribute("occupiedIds", occupied);
         model.addAttribute("seatPrices", seatPrices);
         model.addAttribute("user", user);
@@ -99,12 +139,15 @@ public class BookingController {
             String returnPath = "/booking/success?bookingId=" + booking.getBookingId();
             String cancelPath = "/booking/failed?bookingId=" + booking.getBookingId();
             String checkoutUrl = payOSService.createPaymentLink(booking.getBookingId(), amountVnd, desc, returnPath, cancelPath);
-            if (checkoutUrl != null) {
+            if (checkoutUrl != null && !checkoutUrl.isBlank()) {
                 return "redirect:" + checkoutUrl;
             }
-            redirectAttributes.addFlashAttribute("error", "Không thể tạo link thanh toán. Vui lòng thử lại.");
+            redirectAttributes.addFlashAttribute("error",
+                    "Không thể tạo link thanh toán PayOS. Kiểm tra lại cấu hình hoặc liên hệ hỗ trợ.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi tạo thanh toán: " + e.getMessage());
         }
         return "redirect:/booking/" + showtimeId;
     }
@@ -177,5 +220,40 @@ public class BookingController {
         model.addAttribute("booking", detail.get());
         model.addAttribute("user", user);
         return "booking-detail-customer";
+    }
+
+    // API endpoints for seat validation
+    @GetMapping("/api/occupied-seats")
+    @ResponseBody
+    public Set<Long> getOccupiedSeats(@RequestParam Long showtimeId) {
+        return bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
+    }
+
+    @PostMapping("/api/validate-seats")
+    @ResponseBody
+    public Map<String, Object> validateSeats(@RequestBody Map<String, Object> request) {
+        Long showtimeId = Long.valueOf(request.get("showtimeId").toString());
+        @SuppressWarnings("unchecked")
+        List<Long> seatIds = (List<Long>) request.get("seatIds");
+        Set<Long> occupied = bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
+
+        List<Long> occupiedInRequest = seatIds.stream()
+                .filter(occupied::contains)
+                .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", occupiedInRequest.isEmpty());
+        result.put("occupiedSeats", occupiedInRequest);
+        return result;
+    }
+
+    /** Debug endpoint — test PayOS credentials and connectivity */
+    @GetMapping("/api/payos-test")
+    @ResponseBody
+    public Map<String, Object> payosTest() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("clientIdConfigured", payOSService.isConfigured());
+        result.put("canReachApi", payOSService.canReachApi());
+        return result;
     }
 }
