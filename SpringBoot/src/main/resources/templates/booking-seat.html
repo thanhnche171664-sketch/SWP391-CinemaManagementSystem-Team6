@@ -102,15 +102,37 @@
             </div>
 
             <div class="booking-seat-voucher">
+                <div id="voucherMessage" class="booking-seat-voucher-message" style="color: red"></div>
                 <div class="booking-seat-voucher-row">
-                    <span class="booking-seat-voucher-label"><i class="bi bi-tag"></i> Mã giảm giá</span>
-                    <input type="text" class="form-control" id="voucherCode" placeholder="Nhập mã voucher...">
-                    <button class="btn booking-seat-voucher-btn" type="button" id="applyVoucherBtn">Áp dụng</button>
+
+        <span class="booking-seat-voucher-label">
+            <i class="bi bi-tag"></i> Mã giảm giá
+        </span>
+
+                    <select class="form-select" id="promotionSelect" onchange="changePromotion()">
+                        <option value="">-- Chọn mã giảm giá --</option>
+
+                        <option th:each="p : ${promotions}"
+                                th:value="${p.promotionId}"
+                                th:data-type="${p.discountType}"
+                                th:data-value="${p.discountValue}"
+                                th:data-min="${p.minBookingAmount}"
+                                th:text="${p.promoCode
+                + ' - '
+                + (p.discountType.name() == 'percent'
+                    ? 'Giảm ' + p.discountValue + '%'
+                    : 'Giảm ' + #numbers.formatDecimal(p.discountValue,0,'COMMA',0,'POINT') + ' VND')}">
+                        </option>
+                    </select>
+
+
                 </div>
-                <div id="voucherMessage" class="booking-seat-voucher-message"></div>
-                <input type="hidden" name="promotionId" id="promotionId" value="">
-                <div class="booking-seat-discount" id="discountRow" style="display: none;">
-                    <span>Giảm: <span id="discountAmount">0</span> VND</span>
+
+                <input type="hidden" name="promotionId" id="promotionId">
+
+                <div class="booking-seat-discount" id="discountRow" style="display:none;">
+                    <span>Giảm: <span id="discountAmount">0</span> VND</span><br>
+                    <span style="color: red">Thanh toán: <span style="color: red" id="finalAmount">0</span> VND</span>
                 </div>
             </div>
 
@@ -204,6 +226,7 @@
         selectedSeatsDisplay.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Chưa chọn ghế';
         selectedSeatsInput.value = selectedNames.join(',');
         submitBtn.disabled = (selectedNames.length === 0);
+        const select = document.getElementById("promotionSelect");
     }
 
     // MAIN: Handle seat change
@@ -216,6 +239,7 @@
                 else label.classList.remove('selected');
             }
             updateSelectedUI();
+            changePromotion();
         });
     });
 
@@ -234,6 +258,70 @@
 
     console.log("Booking flow initialized.");
 })();
+
+function changePromotion(){
+    applyPromotion();
+    console.log("proId: " + document.getElementById("promotionId").value);
+}
+
+function applyPromotion() {
+
+    const select = document.getElementById("promotionSelect");
+    const option = select.options[select.selectedIndex];
+
+    if (select.value === "") {
+        document.getElementById("promotionId").value = select.value;
+        document.getElementById("discountRow").style.display = "none";
+        return;
+    }
+
+    const type = option.getAttribute("data-type");
+    const value = parseFloat(option.getAttribute("data-value"));
+    const min = parseFloat(option.getAttribute("data-min")) || 0;
+
+    // Tổng tiền vé hiện tại
+    let totalText = document.getElementById("totalAmount").textContent;
+
+    let total = parseFloat(
+        totalText.replace("VND", "")
+                 .replace(/,/g, "")
+                 .trim()
+    );
+
+        // ===== Kiểm tra đủ điều kiện áp dụng =====
+    if (total < min) {
+        document.getElementById("voucherMessage").innerText =
+            "Đơn tối thiểu phải từ " + min.toLocaleString("vi-VN") + " VND";
+            document.getElementById("discountRow").style.display = "none";
+            document.getElementById("promotionId").value = "";
+        return;
+    }else{
+    }
+
+    let discount = 0;
+
+    if (type === "percent") {
+        discount = total * value / 100;
+    } else {
+        discount = value;
+    }
+
+    // Không cho giảm quá tổng tiền
+    if (discount > total) discount = total;
+
+    let finalPrice = total - discount;
+
+    // Hiển thị đúng tiền Việt
+    document.getElementById("discountAmount").textContent =
+        discount.toLocaleString("vi-VN");
+
+    document.getElementById("finalAmount").textContent =
+        finalPrice.toLocaleString("vi-VN");
+
+    document.getElementById("discountRow").style.display = "block";
+    document.getElementById("promotionId").value = select.value;
+    document.getElementById("voucherMessage").innerText = "";
+}
 </script>
 </body>
 </html>
