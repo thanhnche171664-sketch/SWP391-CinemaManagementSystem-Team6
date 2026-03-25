@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/styles/admin-showtime.css}">
 </head>
 
+
 <body>
 
 <div class="layout">
@@ -114,7 +115,8 @@
 
                     <td>
                         <button type="button"
-                                th:attr="onclick='openEditModal(' + ${s.showtimeId} + ')'"class="edit-link"
+                                th:onclick="'openEditModal(' + ${s.showtimeId} + ')'"
+                                class="edit-link"
                                 title="Chỉnh sửa">
                             <img th:src="@{/images/edit.png}"
                                  alt="edit"
@@ -132,6 +134,31 @@
 
                 </tbody>
             </table>
+            <div class="pagination">
+
+                <!-- Previous -->
+                <a th:if="${currentPage > 0}"
+                   th:href="@{${showtimeBasePath}(page=${currentPage - 1}, size=5, date=${date}, branchId=${branchId})}">
+                    ← Previous
+                </a>
+
+                <!-- Page numbers -->
+                <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+
+                    <a th:href="@{${showtimeBasePath}(page=${i}, size=5, date=${date}, branchId=${branchId})}"
+                       th:text="${i + 1}"
+                       th:classappend="${i == currentPage} ? 'active'">
+                    </a>
+
+                </span>
+
+                <!-- Next -->
+                <a th:if="${currentPage < totalPages - 1}"
+                   th:href="@{${showtimeBasePath}(page=${currentPage + 1}, size=5, date=${date}, branchId=${branchId})}">
+                    Next →
+                </a>
+
+            </div>
         </div>
 
     </main>
@@ -156,22 +183,17 @@
 
 <script>
     function openEditModal(id) {
+        console.log("CLICK ID:", id); // debug
+
         fetch(`/admin/showtimes/${id}`)
-            .then(res => {
-                if (!res.ok) {
-                    return res.text().then(text => {
-                        console.error("Response lỗi:", text);
-                        throw new Error("API lỗi");
-                    });
-                }
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 console.log("DATA:", data);
 
                 document.getElementById("editId").value = data.showtimeId;
                 document.getElementById("editStatus").value = data.status;
 
+                document.getElementById("overlay").style.display = "block";
                 document.getElementById("editModal").style.display = "block";
             })
             .catch(err => {

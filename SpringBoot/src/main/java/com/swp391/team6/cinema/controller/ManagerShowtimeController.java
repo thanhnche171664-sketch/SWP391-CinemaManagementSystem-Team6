@@ -10,6 +10,9 @@ import com.swp391.team6.cinema.service.RoomService;
 import com.swp391.team6.cinema.service.ShowtimeService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,24 +39,41 @@ public class ManagerShowtimeController {
     private final CinemaBranchRepository branchRepository;
 
     @GetMapping
-    public String showtimePage(@RequestParam(required = false) String date,
-                               HttpSession session,
-                               RedirectAttributes redirectAttributes,
-                               Model model) {
+    public String showtimePage(
+            @RequestParam(required = false) String date,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            HttpSession session,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
         User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
 
-        List<Showtime> showtimes;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Showtime> showtimePage;
+
         if (date != null && !date.isEmpty()) {
-            showtimes = showtimeService.getByDateAndBranch(LocalDate.parse(date), user.getBranchId());
+            showtimePage = showtimeService.getByDateAndBranch(
+                    LocalDate.parse(date),
+                    user.getBranchId(),
+                    pageable
+            );
         } else {
-            showtimes = showtimeService.getByBranch(user.getBranchId());
+            showtimePage = showtimeService.getByBranch(
+                    user.getBranchId(),
+                    pageable
+            );
         }
 
         model.addAttribute("branches", resolveManagerBranches(user.getBranchId()));
-        model.addAttribute("showtimes", showtimes);
+        model.addAttribute("showtimes", showtimePage.getContent());
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", showtimePage.getTotalPages());
+
         model.addAttribute("date", date);
         model.addAttribute("branchId", user.getBranchId());
         model.addAttribute("selectedBranchId", user.getBranchId());

@@ -128,3 +128,44 @@
     color: gray;
     font-weight: bold;
 }
+
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+#editModal {
+    display: none;
+    position: fixed;
+    top: 30%;
+    left: 40%;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    z-index: 1000;
+}
+
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination a {
+    margin: 0 5px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination a.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
