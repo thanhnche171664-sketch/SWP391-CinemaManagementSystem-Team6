@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hồ sơ cá nhân</title>
+    <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
+    <link rel="stylesheet" th:href="@{/styles/admin-dashboard.css}">
+</head>
+<body>
+<div class="layout">
+    <div th:replace="fragments/sidebar :: sidebar('profile')"></div>
+
+    <main class="content">
+        <header class="header">
+            <div>
+                <h1>Hồ sơ cá nhân</h1>
+                <p>Quản lý thông tin và bảo mật tài khoản của bạn.</p>
+            </div>
+        </header>
+
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <section class="admin-profile-shell">
+            <aside class="admin-profile-card admin-profile-sidebar">
+                <div class="admin-profile-avatar"
+                     th:text="${user.fullName != null and !user.fullName.isEmpty() ? #strings.substring(user.fullName, 0, 1) : 'U'}">
+                    U
+                </div>
+                <div class="admin-profile-name" th:text="${user.fullName}">User</div>
+                <div class="admin-profile-email" th:text="${user.email}">email@cinema.com</div>
+
+                <div class="admin-profile-meta">
+                    <div class="admin-profile-meta-item">
+                        <div class="admin-profile-meta-label">Trạng thái</div>
+                        <div class="admin-profile-meta-value" th:text="${user.status}">active</div>
+                    </div>
+                    <div class="admin-profile-meta-item">
+                        <div class="admin-profile-meta-label">Chi nhánh</div>
+                        <div class="admin-profile-meta-value" th:text="${branchName}">Toàn hệ thống</div>
+                    </div>
+                    <div class="admin-profile-meta-item">
+                        <div class="admin-profile-meta-label">Ngày tạo</div>
+                        <div class="admin-profile-meta-value" th:text="${user.createdAt}">--</div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="admin-profile-main">
+                <article class="admin-profile-card">
+                    <h3 class="admin-profile-section-title">Cập nhật thông tin</h3>
+                    <p class="admin-profile-section-desc">Chỉnh sửa họ tên và số điện thoại liên hệ.</p>
+                    <form th:action="@{${profileBasePath}/update-info}" method="post">
+                        <div class="admin-profile-form">
+                            <div class="form-group">
+                                <label class="form-label">Họ và tên</label>
+                                <input class="form-input" type="text" name="fullName" th:value="${user.fullName}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input class="form-input" type="email" th:value="${user.email}" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Số điện thoại</label>
+                                <input class="form-input" type="text" name="phone" th:value="${user.phone}" required>
+                            </div>
+                        </div>
+                        <div class="admin-profile-actions">
+                            <button class="admin-profile-btn-primary" type="submit">Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </article>
+
+                <article class="admin-profile-card">
+                    <h3 class="admin-profile-section-title">Đổi mật khẩu</h3>
+                    <p class="admin-profile-section-desc">Tạo mật khẩu mới để bảo vệ tài khoản.</p>
+                    <form th:action="@{${profileBasePath}/change-password}" method="post">
+                        <div class="admin-profile-form">
+                            <div class="form-group">
+                                <label class="form-label">Mật khẩu hiện tại</label>
+                                <input class="form-input" type="password" name="oldPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mật khẩu mới</label>
+                                <input class="form-input" type="password" name="newPassword" minlength="6" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Xác nhận mật khẩu</label>
+                                <input class="form-input" type="password" name="confirmPassword" minlength="6" required>
+                            </div>
+                        </div>
+                        <div class="admin-profile-actions">
+                            <button class="admin-profile-btn-primary" type="submit">Cập nhật mật khẩu</button>
+                        </div>
+                    </form>
+                </article>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
