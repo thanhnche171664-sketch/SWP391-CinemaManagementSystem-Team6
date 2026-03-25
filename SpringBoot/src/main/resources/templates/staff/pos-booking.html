@@ -417,10 +417,11 @@
       fetch('/staff/booking/api/showtimes?movieId=' + id)
       .then(r => r.json())
       .then(data => {
-          const now = new Date();
+          const now = new Date().getTime();
 
           const filteredData = data.filter(s => {
-            const cutoffTime = new Date(s.startTime) + (20 * 60 * 1000);
+            const startTime = new Date(s.startTime).getTime();
+            const cutoffTime = startTime + (20 * 60 * 1000);
             return cutoffTime >= now;
         });
 
@@ -568,7 +569,7 @@ window.addEventListener('beforeunload', function (e) {
       }
   }
 
-  async function findUser() {
+async function findUser() {
       const val = document.getElementById('contactKey').value;
       if(!val) return;
       const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
