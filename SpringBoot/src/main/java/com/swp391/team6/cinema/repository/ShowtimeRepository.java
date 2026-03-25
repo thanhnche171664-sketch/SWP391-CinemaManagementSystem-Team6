@@ -4,6 +4,8 @@ import com.swp391.team6.cinema.entity.Showtime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.data.repository.query.Param;
 
@@ -74,4 +76,17 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     @Query("SELECT s FROM Showtime s JOIN FETCH s.movie JOIN FETCH s.room r JOIN FETCH r.branch WHERE s.status = 'open' AND s.startTime >= :now ORDER BY s.startTime")
     List<Showtime> findAllOpenFromNow(@Param("now") LocalDateTime now);
 
+
+    Page<Showtime> findAll(Pageable pageable);
+
+    Page<Showtime> findByRoom_Branch_BranchId(Long branchId, Pageable pageable);
+
+    Page<Showtime> findByStartTimeBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
+
+    Page<Showtime> findByRoom_Branch_BranchIdAndStartTimeBetween(
+            Long branchId,
+            LocalDateTime start,
+            LocalDateTime end,
+            Pageable pageable
+    );
 }

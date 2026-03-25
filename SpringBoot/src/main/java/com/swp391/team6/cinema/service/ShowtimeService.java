@@ -5,6 +5,8 @@ import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +22,21 @@ public class ShowtimeService {
     private final MovieService movieService;
     private final RoomService roomService;
 
-    public List<Showtime> getAll() {
+    public Page<Showtime> getAll(Pageable pageable) {
 
-        List<Showtime> list = showtimeRepository.findAll();
+        Page<Showtime> page = showtimeRepository.findAll(pageable);
 
         LocalDateTime now = LocalDateTime.now();
 
-        list.forEach(s -> {
-            if (s.getEndTime() != null && s.getEndTime().isBefore(now)) {
+        page.getContent().forEach(s -> {
+            if (s.getEndTime() != null && s.getEndTime().isBefore(now)
+                    && s.getStatus() != Showtime.ShowtimeStatus.closed) {
+
                 s.setStatus(Showtime.ShowtimeStatus.closed);
             }
         });
 
-        return list;
+        return page;
     }
 
     @Scheduled(fixedRate = 60000) // mỗi 1 phút
@@ -50,83 +54,32 @@ public class ShowtimeService {
         showtimeRepository.saveAll(list);
     }
 
-    public List<Showtime> getByDate(LocalDate date) {
-
-        LocalDateTime start = date.atStartOfDay();
-        LocalDateTime end = date.atTime(23, 59, 59);
-
-        return showtimeRepository.findByDateRange(start, end);
+    public Page<Showtime> getByDate(LocalDate date, Pageable pageable) {
+        return showtimeRepository.findByStartTimeBetween(
+                date.atStartOfDay(),
+                date.atTime(23,59,59),
+                pageable
+        );
     }
 
-//    public void createShowtime(Long movieId, Long roomId, LocalDateTime startTime) {
-//
-//        Movie movie = movieService.getMovieById(movieId);
-//        Room room = roomService.getRoomById(roomId);
-//
-//        LocalDateTime endTime = startTime.plusMinutes(movie.getDuration());
-//
-//        List<Showtime> overlaps = showtimeRepository.checkOverlap(
-//                roomId,
-//                startTime,
-//                endTime
-//        );
-//
-//        if (!overlaps.isEmpty()) {
-//            throw new RuntimeException("Phòng đã có suất chiếu trong thời gian này!");
-//        }
-//
-//        Showtime s = new Showtime();
-//        s.setMovie(movie);
-//        s.setRoom(room);
-//        s.setStartTime(startTime);
-//        s.setEndTime(endTime);
-//        s.setStatus(Showtime.ShowtimeStatus.open);
-//
-//        showtimeRepository.save(s);
-//    }
+    public Page<Showtime> getByDateAndBranch(LocalDate date, Long branchId, Pageable pageable) {
+        return showtimeRepository.findByRoom_Branch_BranchIdAndStartTimeBetween(
+                branchId,
+                date.atStartOfDay(),
+                date.atTime(23,59,59),
+                pageable
+        );
+    }
+
     public Showtime getByIdWithDetails(Long id) {
         return showtimeRepository.findByIdWithMovieRoomBranch(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy suất chiếu"));
     }
 
-//    public void createShowtime(Long movieId, Long roomId, LocalDateTime startTime) {
-//
-//        Movie movie = movieService.getMovieById(movieId);
-//        Room room = roomService.getRoomById(roomId);
-//
-//        LocalDateTime endTime = startTime.plusMinutes(movie.getDuration());
-//
-//        List<Showtime> overlaps = showtimeRepository.checkOverlap(
-//                roomId,
-//                startTime,
-//                endTime
-//        );
-//
-//        if (!overlaps.isEmpty()) {
-//            throw new RuntimeException("Phòng đã có suất chiếu trong thời gian này!");
-//        }
-//
-//        Showtime s = new Showtime();
-//        s.setMovie(movie);
-//        s.setRoom(room);
-//        s.setStartTime(startTime);
-//        s.setEndTime(endTime);
-//        s.setStatus(Showtime.ShowtimeStatus.open);
-//
-//        showtimeRepository.save(s);
-//    }
-
-    public List<Showtime> getByDateAndBranch(LocalDate date, Long branchId) {
-
-        LocalDateTime start = date.atStartOfDay();// 00:00
-        LocalDateTime end = date.atTime(23, 59, 59);// 23:59:59
-
-        return showtimeRepository.findByDateAndBranch(start, end, branchId);
+    public Page<Showtime> getByBranch(Long branchId, Pageable pageable) {
+        return showtimeRepository.findByRoom_Branch_BranchId(branchId, pageable);
     }
 
-    public List<Showtime> getByBranch(Long branchId) {
-        return showtimeRepository.findByBranchId(branchId);
-    }
 
     public Showtime getById(Long id) {
         return showtimeRepository.findById(id)
