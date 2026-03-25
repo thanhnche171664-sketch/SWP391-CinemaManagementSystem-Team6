@@ -62,9 +62,9 @@ booking:
   payment-expiry-minutes: 5
 
 payos:
-  client-id: 750e5d48-22df-4e3e-b3a3-b5a885b5a483
-  api-key: 5756025e-f902-497a-9f52-36bde548e391
-  checksum-key: e79089d806d8cb4236c7a00daf2948282629e2fc6b7776db4326d3bab50bed07
+  client-id: e5acc5f5-9a5d-4760-ae2c-dddeaaa84de2
+  api-key: 871e6d60-2c45-48a8-997e-02e5a7058875
+  checksum-key: 9da3fe56a6f65d8301e51a9b980a27addcc328651488916b9bb82cea28a4df04
   base-url: https://api-merchant.payos.vn
 
 # Application URL

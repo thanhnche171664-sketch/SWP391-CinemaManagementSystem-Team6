@@ -341,4 +341,15 @@ public class MovieService {
         dto.setStatus(genre.getStatus());
         return dto;
     }
+
+    /** Get visible movies for a specific branch (via branch_movies table) */
+    @Transactional(readOnly = true)
+    public List<MovieDTO> getMoviesByBranchId(Long branchId) {
+        List<Movie> movies = movieRepository.findMoviesByBranchId(branchId);
+        movies.forEach(movie -> movie.getGenres().size());
+        return movies.stream()
+                .filter(m -> !Boolean.TRUE.equals(m.getIsHidden()))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 }
