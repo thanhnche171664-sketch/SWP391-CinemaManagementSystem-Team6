@@ -152,3 +152,36 @@ tbody tr:hover {
 .edit-btn:hover {
     color: #2563eb;
 }
+
+.edit-link .edit-icon {
+    width: 25px;
+    height: 25px;
+    opacity: 1;
+    filter: brightness(0) saturate(100%) invert(31%) sepia(21%) saturate(2959%) hue-rotate(195deg) brightness(88%) contrast(87%);
+    transition: 0.2s;
+}
+
+.edit-link:hover .edit-icon {
+    filter: brightness(0) saturate(100%) invert(100%);
+    transform: scale(1.1);
+}
+
+.edit-link {
+    cursor: pointer;
+    padding: 0;
+}
+
+.status-open {
+    color: green;
+    font-weight: bold;
+}
+
+.status-closed {
+    color: red;
+    font-weight: bold;
+}
+
+.status-cancel {
+    color: gray;
+    font-weight: bold;
+}

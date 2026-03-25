@@ -37,6 +37,11 @@ public class MovieService {
         return movieRepository.findAll();
     }
 
+    public Movie getById(Long id) {
+        return movieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phim"));
+    }
+
     @Transactional(readOnly = true)
     public List<Movie> getVisibleMovies() {
         List<Movie> movies = movieRepository.findByIsHiddenFalse();

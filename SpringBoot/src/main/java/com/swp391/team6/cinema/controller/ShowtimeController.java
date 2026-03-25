@@ -16,7 +16,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -87,7 +89,33 @@ public class ShowtimeController {
 
         try {
 
-            LocalDateTime time = LocalDateTime.parse(startTime);
+            if (movieId == null) {
+                throw new RuntimeException("Vui lòng chọn phim");
+            }
+
+            if (roomId == null) {
+                throw new RuntimeException("Vui lòng chọn phòng");
+            }
+
+            if (startTime == null || startTime.isBlank()) {
+                throw new RuntimeException("Vui lòng chọn thời gian");
+            }
+
+            LocalDateTime time;
+            try {
+                time = LocalDateTime.parse(startTime);
+            } catch (Exception e) {
+                throw new RuntimeException("Thời gian không hợp lệ");
+            }
+
+            if (time.isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Không thể tạo suất chiếu trong quá khứ");
+            }
+
+            Room room = roomService.getById(roomId);
+            if (room.getStatus() == Room.RoomStatus.inactive) {
+                throw new RuntimeException("Phòng đang bị khóa");
+            }
 
             showtimeService.createShowtime(movieId, roomId, time);
 
@@ -102,16 +130,26 @@ public class ShowtimeController {
         return "redirect:/admin/showtimes";
     }
 
-    @GetMapping("/admin/showtimes/edit/{id}")
-    public String showEditPage(@PathVariable Long id, Model model) {
+    @GetMapping("/admin/showtimes/{id}")
+    @ResponseBody
+    public Map<String, Object> getShowtimeById(@PathVariable Long id) {
 
-//        Showtime showtime = showtimeService.getById(id);
+        Showtime s = showtimeService.getById(id);
 
-//        model.addAttribute("showtime", showtime);
-        model.addAttribute("movies", movieService.getAllMovies());
-        model.addAttribute("branches", branchRepository.findAll());
+        Map<String, Object> data = new HashMap<>();
+        data.put("showtimeId", s.getShowtimeId());
+        data.put("status", s.getStatus().name());
 
-        return "showtime-edit";
+        return data;
+    }
+
+    @PostMapping("/admin/showtimes/update-status")
+    @ResponseBody
+    public String updateStatus(@RequestParam Long id,
+                               @RequestParam String status) {
+
+        showtimeService.updateStatus(id, status);
+        return "OK";
     }
 
     @PostMapping("/admin/showtimes/update")

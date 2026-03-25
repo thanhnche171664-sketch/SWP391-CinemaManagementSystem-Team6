@@ -89,5 +89,9 @@ public class RoomService {
         return roomRepository.findAll(pageable);
     }
 
+    public Room getById(Long id) {
+        return roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+    }
 
 }
