@@ -569,7 +569,7 @@ window.addEventListener('beforeunload', function (e) {
       }
   }
 
-  async function findUser() {
+async function findUser() {
       const val = document.getElementById('contactKey').value;
       if(!val) return;
       const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
