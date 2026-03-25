@@ -2,16 +2,19 @@ package com.swp391.team6.cinema.controller;
 
 import com.lowagie.text.pdf.BaseFont;
 import com.swp391.team6.cinema.dto.CustomerDTO;
+import com.swp391.team6.cinema.dto.ShowtimeDTO;
 import com.swp391.team6.cinema.entity.*;
-import com.swp391.team6.cinema.repository.BookingRepository;
-import com.swp391.team6.cinema.repository.MovieRepository;
-import com.swp391.team6.cinema.repository.UserRepository;
+import com.swp391.team6.cinema.repository.*;
 import com.swp391.team6.cinema.service.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +32,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CounterBookingController {
 
-    private final CounterBookingService counterBookingService;
-    private final MovieRepository movieRepository;
-    private final BookingRepository bookingRepository;
+    private final ShowtimeRepository showtimeRepository;
     private final UserRepository userRepository;
-    private final MovieService movieService;
+    private final BookingRepository bookingRepository;
+    private final CounterBookingService counterBookingService;
     private final BookingService bookingService;
     private final SeatLockService seatLockService;
+    private final MovieService movieService;
     private final PayOSService payOSService;
     private final TemplateEngine templateEngine;
 
@@ -48,140 +51,124 @@ public class CounterBookingController {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null || user.getRole() != User.UserRole.STAFF) return "redirect:/auth/login";
 
-        model.addAttribute("moviePage", (user.getBranchId() != null)
-                ? movieRepository.findMoviesForPOS(user.getBranchId(), keyword, status, genre, PageRequest.of(page, 12))
-                : movieRepository.findMoviesForPOSAllBranches(keyword, status, genre, PageRequest.of(page, 12)));
+        Page<Movie> moviePage = counterBookingService.getMoviesForPOS(user, keyword, status, genre, PageRequest.of(page, 12));
 
-        model.addAttribute("genreList", movieService.getAllGenres());
+        model.addAttribute("moviePage", moviePage);
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
         model.addAttribute("genre", genre);
+        model.addAttribute("genreList", movieService.getAllGenres());
+        model.addAttribute("movieStatuses", Movie.MovieStatus.values());
         return "staff/pos-booking";
+    }
+
+    @GetMapping("/api/calculate-price")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> calculatePrice(@RequestParam Long showtimeId, @RequestParam List<Long> seatIds) {
+        BigDecimal total = counterBookingService.calculateTotalPrice(showtimeId, seatIds);
+        return ResponseEntity.ok(Map.of("totalAmount", total));
     }
 
     @GetMapping("/api/showtimes")
     @ResponseBody
-    public List<?> getShowtimes(@RequestParam Long movieId, HttpSession session) {
+    public List<ShowtimeDTO> getShowtimes(@RequestParam Long movieId, HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
-        return counterBookingService.getShowtimesForMovie(movieId, user.getBranchId());
+        return showtimeRepository.findByMovieAndBranch(movieId, user.getBranchId()).stream().map(s -> {
+            ShowtimeDTO dto = new ShowtimeDTO();
+            dto.setShowtimeId(s.getShowtimeId());
+            dto.setStartTime(s.getStartTime());
+            dto.setRoomName(s.getRoom().getRoomName());
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     @GetMapping("/api/seats")
     @ResponseBody
     public List<Map<String, Object>> getSeats(@RequestParam Long showtimeId) {
-        return counterBookingService.getSeatsWithStatus(showtimeId);
+        return counterBookingService.getSeatStatuses(showtimeId);
     }
 
     @PostMapping("/api/lock-seats")
     @ResponseBody
     public ResponseEntity<?> lockSeats(@RequestParam Long showtimeId, @RequestBody List<Long> seatIds) {
-        try {
-            for (Long id : seatIds) {
-                if (!seatLockService.lockSeat(showtimeId, id)) {
-                    return ResponseEntity.badRequest().body(Map.of("message", "Ghế đã có người khác đang chọn!"));
-                }
-            }
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("message", "Lỗi: " + e.getMessage()));
+        for (Long seatId : seatIds) {
+            if (!seatLockService.lockSeat(showtimeId, seatId)) return ResponseEntity.badRequest().body(Map.of("message", "Ghế đã có người giữ!"));
         }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/unlock-seats")
     @ResponseBody
     public ResponseEntity<?> unlockSeats(@RequestParam Long showtimeId, @RequestBody List<Long> seatIds) {
-        try {
-            if (seatIds != null) {
-                seatIds.forEach(id -> seatLockService.releaseSeat(showtimeId, id));
-            }
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("message", "Lỗi: " + e.getMessage()));
-        }
+        if (seatIds != null) seatIds.forEach(id -> seatLockService.releaseSeat(showtimeId, id));
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/api/calculate-price")
+    @GetMapping("/api/find-user")
     @ResponseBody
-    public Map<String, Object> calculatePrice(@RequestParam Long showtimeId, @RequestParam List<Long> seatIds) {
-        return Map.of("totalAmount", counterBookingService.calculateOriginalPrice(showtimeId, seatIds));
+    public ResponseEntity<CustomerDTO> findUser(@RequestParam String phone) {
+        return userRepository.findByPhone(phone).map(u -> ResponseEntity.ok(toCustomerDTO(u))).orElse(ResponseEntity.status(404).build());
+    }
+
+    @GetMapping("/api/find-user-by-email")
+    @ResponseBody
+    public ResponseEntity<CustomerDTO> findUserByEmail(@RequestParam String email) {
+        return userRepository.findByEmail(email).map(u -> ResponseEntity.ok(toCustomerDTO(u))).orElse(ResponseEntity.status(404).build());
+    }
+
+    @GetMapping("/api/search-users")
+    @ResponseBody
+    public List<Map<String, Object>> searchUsers(@RequestParam(required = false, defaultValue = "") String name) {
+        return userRepository.findByFullNameContainingIgnoreCaseAndRole(name, User.UserRole.CUSTOMER).stream().limit(10).map(u -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("fullName", u.getFullName());
+            m.put("phone", u.getPhone());
+            m.put("email", u.getEmail());
+            return m;
+        }).collect(Collectors.toList());
     }
 
     @GetMapping("/api/validate-promo")
     @ResponseBody
-    public ResponseEntity<?> validatePromo(@RequestParam String promoCode, @RequestParam BigDecimal currentTotal, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> validatePromo(@RequestParam String promoCode, @RequestParam BigDecimal currentTotal, HttpSession session) {
+        User staff = (User) session.getAttribute("loggedInUser");
         try {
-            User staff = (User) session.getAttribute("loggedInUser");
             return ResponseEntity.ok(counterBookingService.validatePromotion(promoCode, currentTotal, staff.getBranchId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
-    @GetMapping("/api/find-user")
-    @ResponseBody
-    public ResponseEntity<CustomerDTO> findUser(@RequestParam String contact) {
-        return counterBookingService.findCustomer(contact).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/api/search-users")
-    @ResponseBody
-    public List<Map<String, Object>> searchUsers(@RequestParam(required = false, defaultValue = "") String name) {
-        return userRepository.findByFullNameContainingIgnoreCaseAndRole(name, User.UserRole.CUSTOMER)
-                .stream()
-                .limit(10)
-                .map(u -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("fullName", u.getFullName());
-                    map.put("phone", u.getPhone() != null ? u.getPhone() : "");
-                    map.put("email", u.getEmail() != null ? u.getEmail() : "");
-                    return map;
-                })
-                .collect(Collectors.toList());
-    }
-
     @PostMapping("/api/confirm-booking")
     @ResponseBody
-    public ResponseEntity<?> confirmBooking(@RequestBody BookingRequestDTO request, HttpSession session) {
+    public ResponseEntity<?> confirmBooking(@RequestBody BookingRequest request, HttpSession session) {
         User staff = (User) session.getAttribute("loggedInUser");
-        if (staff == null) return ResponseEntity.status(401).build();
+        if (staff == null) return ResponseEntity.status(401).body(Map.of("message", "Chưa đăng nhập"));
 
         try {
-            Booking booking = counterBookingService.processCounterBooking(staff, request.getShowtimeId(), request.getSeatIds(),
-                    request.getPhone(), request.getEmail(), request.getPaymentMethod(), request.getPromoCode());
+            Booking booking = counterBookingService.processCounterBooking(staff, request.getShowtimeId(), request.getSeatIds(), request.getPhone(), request.getEmail(), request.getPaymentMethod().toLowerCase(), request.getPromoCode());
 
             if ("payos".equalsIgnoreCase(request.getPaymentMethod())) {
-                String checkoutUrl = payOSService.createPaymentLink(booking.getBookingId(), booking.getTotalAmount().intValue(),
-                        "Quầy-#" + booking.getBookingId(), "/staff/booking/success?bookingId=" + booking.getBookingId(),
-                        "/staff/booking/payment-cancel?bookingId=" + booking.getBookingId());
-                return ResponseEntity.ok(Map.of("status", "PAYMENT_REQUIRED", "checkoutUrl", checkoutUrl, "bookingId", booking.getBookingId()));
+                String checkoutUrl = payOSService.createPaymentLink(booking.getBookingId(), booking.getTotalAmount().intValue(), "Quầy - Đơn #" + booking.getBookingId(), "/staff/booking/success?bookingId=" + booking.getBookingId(), "/staff/booking/payment-cancel?bookingId=" + booking.getBookingId());
+                if (checkoutUrl != null) return ResponseEntity.ok(Map.of("status", "PAYMENT_REQUIRED", "checkoutUrl", checkoutUrl, "bookingId", booking.getBookingId()));
             }
-            return ResponseEntity.ok(Map.of("status", "SUCCESS"));
+            return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Đặt vé thành công"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("status", "ERROR", "message", e.getMessage()));
         }
     }
 
-    @GetMapping("/print/{id}")
-    public ResponseEntity<byte[]> printTicket(@PathVariable Long id) throws Exception {
-        Booking b = bookingRepository.findByIdWithDetails(id).orElseThrow();
-        String seatNames = b.getBookingSeats().stream().map(bs -> bs.getSeat().getSeatRow() + bs.getSeat().getSeatNumber()).sorted().collect(Collectors.joining(", "));
+    @GetMapping("/success")
+    public String paymentSuccess(@RequestParam Long bookingId, Model model) {
+        bookingService.syncPaymentStatusFromPayOS(bookingId);
+        bookingService.getBookingDetail(bookingId).ifPresent(b -> model.addAttribute("booking", b));
+        return "staff/booking-success-pos";
+    }
 
-        Context context = new Context();
-        context.setVariable("booking", b);
-        context.setVariable("seatNames", seatNames);
-
-        String html = templateEngine.process("staff/print-ticket", context);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ITextRenderer renderer = new ITextRenderer();
-        renderer.getFontResolver().addFont("/Windows/Fonts/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-        renderer.setDocumentFromString(html);
-        renderer.layout();
-        renderer.createPDF(out);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("filename", "Ticket_" + id + ".pdf");
-        return new ResponseEntity<>(out.toByteArray(), headers, HttpStatus.OK);
+    @GetMapping("/payment-cancel")
+    public String counterPaymentCancel(@RequestParam(required = false) Long bookingId) {
+        if (bookingId != null) { try { counterBookingService.cancelBooking(bookingId); } catch (Exception e) {} }
+        return "staff/payment-cancel-pos";
     }
 
     @GetMapping("/manage")
@@ -189,29 +176,61 @@ public class CounterBookingController {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null || user.getRole() != User.UserRole.STAFF) return "redirect:/auth/login";
 
-        model.addAttribute("bookingPage", bookingRepository.findByBranchIdWithDetails(user.getBranchId(), keyword == null ? "" : keyword, PageRequest.of(page, 15)));
+        Page<Booking> bookingPage = bookingRepository.findByBranchIdWithDetails(user.getBranchId(), (keyword == null) ? "" : keyword, PageRequest.of(page, 15));
+        model.addAttribute("bookingPage", bookingPage);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", page);
         return "staff/manage-tickets";
+    }
+
+    @GetMapping("/api/booking-detail/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getBookingDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(counterBookingService.getBookingDetailSummary(id));
+    }
+
+    @GetMapping("/print/{id}")
+    public ResponseEntity<byte[]> printTicketToPdf(@PathVariable Long id) throws Exception {
+        Booking booking = bookingRepository.findByIdWithDetails(id).orElseThrow();
+        String seatNames = booking.getBookingSeats().stream().map(bs -> bs.getSeat().getSeatRow() + bs.getSeat().getSeatNumber()).sorted().collect(Collectors.joining(", "));
+
+        Context context = new Context();
+        context.setVariable("booking", booking);
+        context.setVariable("seatNames", seatNames);
+
+        String htmlContent = templateEngine.process("staff/print-ticket", context);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ITextRenderer renderer = new ITextRenderer();
+        renderer.getFontResolver().addFont("/Windows/Fonts/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        renderer.setDocumentFromString(htmlContent);
+        renderer.layout();
+        renderer.createPDF(outputStream);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("filename", "Ticket_" + id + ".pdf");
+        return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
     }
 
     @PostMapping("/api/cancel/{id}")
     @ResponseBody
-    public ResponseEntity<?> cancel(@PathVariable Long id) {
+    public ResponseEntity<?> cancelBooking(@PathVariable Long id) {
         try {
             counterBookingService.cancelBooking(id);
-            return ResponseEntity.ok(Map.of("message", "Thành công"));
+            return ResponseEntity.ok(Map.of("message", "Hủy vé thành công"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
+    private CustomerDTO toCustomerDTO(User u) {
+        return new CustomerDTO(u.getUserId(), u.getFullName(), u.getEmail(), u.getPhone(), u.getStatus().toString(), u.getCreatedAt());
+    }
+
     @Data
-    public static class BookingRequestDTO {
+    public static class BookingRequest {
         private Long showtimeId;
         private List<Long> seatIds;
-        private String phone;
-        private String email;
-        private String paymentMethod;
-        private String promoCode;
+        private String phone, email, paymentMethod, promoCode;
     }
 }

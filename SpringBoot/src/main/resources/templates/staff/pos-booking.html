@@ -570,21 +570,14 @@ window.addEventListener('beforeunload', function (e) {
   }
 
 async function findUser() {
-    const val = document.getElementById('contactKey').value;
-    if(!val) return;
-    const url = `/staff/booking/api/find-user?contact=${encodeURIComponent(val)}`;
-    try {
-        const r = await fetch(url);
-        if (r.ok) {
-            const data = await r.json();
-            document.getElementById('customerName').value = data.fullName;
-        } else {
-            document.getElementById('customerName').value = "Khách vãng lai";
-        }
-    } catch(e) {
-        document.getElementById('customerName').value = "Khách vãng lai";
-    }
-}
+      const val = document.getElementById('contactKey').value;
+      if(!val) return;
+      const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
+      try {
+          const r = await fetch(url);
+          document.getElementById('customerName').value = r.ok ? (await r.json()).full_name : "Khách vãng lai";
+      } catch(e) { document.getElementById('customerName').value = "Khách vãng lai"; }
+  }
 
   async function loadInitialCustomers() {
       const res = await fetch('/staff/booking/api/search-users?name=');

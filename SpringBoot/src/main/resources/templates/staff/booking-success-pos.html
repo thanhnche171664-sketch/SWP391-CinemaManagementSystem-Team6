@@ -17,22 +17,22 @@
 </head>
 <body class="staff-page">
 <div class="container py-5 text-center">
-<div class="success-card p-4">
-    <h2 class="text-success-main">Thanh toán thành công!</h2>
-    <p>Mã hóa đơn: <strong th:text="${booking.bookingId}"></strong></p>
+    <div class="success-card p-4">
+        <h2 class="text-success-main">Thanh toán thành công!</h2>
+        <p>Mã hóa đơn: <strong th:text="${booking.bookingId}"></strong></p>
 
-    <p>Phim: <strong th:text="${booking.movieTitle}"></strong></p>
+        <p>Phim: <strong th:text="${booking.movieTitle}"></strong></p>
 
-    <p>Suất chiếu: <span th:text="${#temporals.format(booking.showtimeStart, 'HH:mm dd/MM/yyyy')}"></span></p>
-    <p>Phòng: <span th:text="${booking.roomName}"></span></p>
-    <p>Ghế: <span th:text="${#strings.listJoin(booking.seats, ', ')}"></span></p>
-    <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(booking.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></strong></p>
+        <p>Suất chiếu: <span th:text="${#temporals.format(booking.showtimeStart, 'HH:mm dd/MM/yyyy')}"></span></p>
+        <p>Phòng: <span th:text="${booking.roomName}"></span></p>
+        <p>Ghế: <span th:text="${#strings.listJoin(booking.seats, ', ')}"></span></p>
+        <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(booking.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></strong></p>
 
-    <div class="mt-4">
-        <a href="/staff/booking/pos" class="btn staff-btn-primary">Tiếp tục đặt vé</a>
-        <a th:href="@{'/staff/booking/print/' + ${booking.bookingId}}" class="btn staff-btn-outline">In vé PDF</a>
+        <div class="mt-4">
+            <a href="/staff/booking/pos" class="btn staff-btn-primary">Tiếp tục đặt vé</a>
+            <a th:href="@{'/staff/booking/print/' + ${booking.bookingId}}" class="btn staff-btn-outline">In vé PDF</a>
+        </div>
     </div>
-</div>
 </div>
 </body>
 </html>
