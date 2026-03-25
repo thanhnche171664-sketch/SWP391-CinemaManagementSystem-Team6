@@ -226,7 +226,23 @@ public class BookingController {
     @GetMapping("/api/occupied-seats")
     @ResponseBody
     public Set<Long> getOccupiedSeats(@RequestParam Long showtimeId) {
+        bookingService.cancelExpiredPendingBookings();
         return bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
+    }
+
+    /**
+     * Returns full seat status for a showtime — used by frontend polling.
+     * {
+     *   "paid":    [seatId, ...],   // paid bookings — lock vĩnh viễn
+     *   "pending": [seatId, ...],   // pending bookings — đang chờ thanh toán
+     *   "free":    [seatId, ...]    // available seats
+     * }
+     */
+    @GetMapping("/api/seats/status")
+    @ResponseBody
+    public Map<String, Object> getSeatsStatus(@RequestParam Long showtimeId) {
+        bookingService.cancelExpiredPendingBookings();
+        return bookingService.getSeatsStatusForShowtime(showtimeId);
     }
 
     @PostMapping("/api/validate-seats")

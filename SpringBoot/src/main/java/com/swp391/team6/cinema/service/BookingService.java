@@ -13,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,37 +68,85 @@ public class BookingService {
         return mapToListDTO(bookings);
     }
 
-    /** Seat IDs that are already taken for this showtime (pending or paid bookings). */
+    /**
+     * Returns the set of seat IDs that are taken for this showtime
+     * (pending OR paid bookings both block seat selection).
+     *
+     * Uses seat_id directly — reliable across all seat data formats.
+     */
     @Transactional(readOnly = true)
     public Set<Long> getOccupiedSeatIdsForShowtime(Long showtimeId) {
-        List<Booking> bookings = bookingRepository.findByShowtimeShowtimeId(showtimeId).stream()
-                .filter(b -> b.getStatus() == Booking.BookingStatus.pending || b.getStatus() == Booking.BookingStatus.paid)
+        List<Booking> activeBookings = bookingRepository.findByShowtimeShowtimeId(showtimeId).stream()
+                .filter(b -> b.getStatus() == Booking.BookingStatus.pending
+                          || b.getStatus() == Booking.BookingStatus.paid)
                 .collect(Collectors.toList());
 
-        Set<String> occupiedRowNums = new HashSet<>();
-        for (Booking b : bookings) {
+        Set<Long> occupiedSeatIds = new HashSet<>();
+        for (Booking b : activeBookings) {
             List<BookingSeat> seats = bookingSeatRepository.findByBookingBookingId(b.getBookingId());
             for (BookingSeat bs : seats) {
-                occupiedRowNums.add(bs.getSeat().getSeatRow() + ":" + bs.getSeat().getSeatNumber());
+                occupiedSeatIds.add(bs.getSeat().getSeatId());
             }
         }
-
-        Optional<Showtime> showtimeOpt = showtimeRepository.findById(showtimeId);
-        if (showtimeOpt.isEmpty()) return new HashSet<>();
-
-        return seatRepository.findByRoomRoomId(showtimeOpt.get().getRoom().getRoomId()).stream()
-                .filter(s -> occupiedRowNums.contains(s.getSeatRow() + ":" + s.getSeatNumber()))
-                .map(Seat::getSeatId)
-                .collect(Collectors.toSet());
+        return occupiedSeatIds;
     }
 
     /**
-     * Create a pending booking with seats and a pending payment record. Returns the booking with id set.
-     * Caller should use booking.getBookingId() as orderCode for PayOS and set payment.orderCode, paymentLinkId.
+     * Returns a map with three categories of seats for a showtime:
+     *   "paid"    → seat IDs of paid bookings (lock vĩnh viễn)
+     *   "pending" → seat IDs of pending bookings (đang chờ thanh toán)
+     *   "free"    → seat IDs that are available
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getSeatsStatusForShowtime(Long showtimeId) {
+        List<Booking> allBookings = bookingRepository.findByShowtimeShowtimeId(showtimeId);
+
+        Set<Long> paidSeatIds    = new HashSet<>();
+        Set<Long> pendingSeatIds = new HashSet<>();
+
+        for (Booking b : allBookings) {
+            List<BookingSeat> seats = bookingSeatRepository.findByBookingBookingId(b.getBookingId());
+            for (BookingSeat bs : seats) {
+                if (b.getStatus() == Booking.BookingStatus.paid) {
+                    paidSeatIds.add(bs.getSeat().getSeatId());
+                } else if (b.getStatus() == Booking.BookingStatus.pending) {
+                    pendingSeatIds.add(bs.getSeat().getSeatId());
+                }
+            }
+        }
+
+        // Lấy danh sách ghế trong phòng của showtime này
+        Optional<Showtime> showtimeOpt = showtimeRepository.findById(showtimeId);
+        Set<Long> allRoomSeatIds = new HashSet<>();
+        if (showtimeOpt.isPresent()) {
+            Long roomId = showtimeOpt.get().getRoom().getRoomId();
+            List<Seat> roomSeats = seatRepository.findByRoomRoomId(roomId);
+            for (Seat s : roomSeats) {
+                allRoomSeatIds.add(s.getSeatId());
+            }
+        }
+
+        Set<Long> freeSeatIds = new HashSet<>(allRoomSeatIds);
+        freeSeatIds.removeAll(paidSeatIds);
+        freeSeatIds.removeAll(pendingSeatIds);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("paid",    paidSeatIds);
+        result.put("pending", pendingSeatIds);
+        result.put("free",    freeSeatIds);
+        return result;
+    }
+
+    /**
+     * Create a pending booking with seats and a pending payment record.
+     * Uses PESSIMISTIC_WRITE lock on the showtime row to prevent race conditions:
+     * - Thread A acquires lock → reads occupied seats → inserts booking
+     * - Thread B blocks on lock → reads occupied seats (now includes A's booking) → fails correctly
      */
     @Transactional
     public Booking createBooking(Long userId, Long showtimeId, List<Long> seatIds) {
-        Showtime showtime = showtimeRepository.findById(showtimeId)
+        // Pessimistic lock: blocks any concurrent createBooking for this showtime
+        Showtime showtime = showtimeRepository.findByIdWithLock(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("Showtime not found"));
         if (showtime.getStatus() != Showtime.ShowtimeStatus.open) {
             throw new IllegalArgumentException("Showtime is not available for booking");

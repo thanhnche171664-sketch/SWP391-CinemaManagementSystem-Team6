@@ -1291,6 +1291,40 @@ body.booking-seat-page {
     opacity: 0.6;
 }
 
+/* Ghế đang chờ thanh toán — màu vàng cam, có animation nhấp nháy */
+.booking-seat-page .seat-option.pending-seat {
+    background: #b45309;
+    color: #fff8e1;
+    border-color: #d97706;
+    cursor: not-allowed;
+    opacity: 0.75;
+    animation: pendingPulse 2s ease-in-out infinite;
+}
+
+@keyframes pendingPulse {
+    0%, 100% { opacity: 0.75; }
+    50%       { opacity: 1; }
+}
+
+/* Notification banner */
+.booking-seat-page .seat-status-notice {
+    display: flex;
+    align-items: center;
+    background: #fff3cd;
+    border: 1px solid #ffe69c;
+    border-radius: 6px;
+    padding: 8px 14px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #664d03;
+}
+
+/* Legend box for pending seats */
+.booking-seat-page .legend-box.pending-seat {
+    background: #b45309;
+    border-color: #d97706;
+}
+
 .booking-seat-page .seat-option input {
     display: none;
 }

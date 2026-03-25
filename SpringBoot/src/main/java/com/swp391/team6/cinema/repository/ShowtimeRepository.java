@@ -1,7 +1,9 @@
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Showtime;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +32,14 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
 
     @Query("SELECT s FROM Showtime s JOIN FETCH s.movie JOIN FETCH s.room r JOIN FETCH r.branch WHERE s.showtimeId = :id")
     java.util.Optional<Showtime> findByIdWithMovieRoomBranch(@Param("id") Long id);
+
+    /**
+     * Lock the showtime row for exclusive update while creating a booking.
+     * This prevents two concurrent bookings from double-reserving the same seat.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM Showtime s WHERE s.showtimeId = :id")
+    Optional<Showtime> findByIdWithLock(@Param("id") Long id);
 
     @Query("SELECT s FROM Showtime s JOIN s.room r WHERE s.movie.movieId = :movieId AND r.branch.branchId = :branchId")
     List<Showtime> findByMovieAndBranch(@Param("movieId") Long movieId, @Param("branchId") Long branchId);
