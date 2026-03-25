@@ -102,15 +102,15 @@
         <div class="pagination" th:if="${totalPages > 1}">
             <a class="page-link"
                th:classappend="${currentPage == 0} ? ' disabled' : ''"
-               th:href="@{|${newsBasePath}?page=${currentPage - 1}&keyword=${keyword}&type=${typeFilter}&status=${statusFilter}&sort=${sortFilter}|}">Trước</a>
+               th:href="@{${newsBasePath}(page=${currentPage > 0 ? currentPage - 1 : 0},size=${size},keyword=${keyword},type=${typeFilter},status=${statusFilter},sort=${sortFilter})}">Trước</a>
             <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                th:classappend="${currentPage == i} ? ' active' : ''"
-               th:href="@{|${newsBasePath}?page=${i}&keyword=${keyword}&type=${typeFilter}&status=${statusFilter}&sort=${sortFilter}|}"
+               th:href="@{${newsBasePath}(page=${i},size=${size},keyword=${keyword},type=${typeFilter},status=${statusFilter},sort=${sortFilter})}"
                th:text="${i + 1}">1</a>
             <a class="page-link"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''"
-               th:href="@{|${newsBasePath}?page=${currentPage + 1}&keyword=${keyword}&type=${typeFilter}&status=${statusFilter}&sort=${sortFilter}|}">Sau</a>
+               th:href="@{${newsBasePath}(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1},size=${size},keyword=${keyword},type=${typeFilter},status=${statusFilter},sort=${sortFilter})}">Sau</a>
         </div>
     </main>
 </div>

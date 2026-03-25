@@ -14,7 +14,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -43,6 +43,8 @@ spring:
       client:
         registration:
           google:
+            client-id: ${GOOGLE_CLIENT_ID:dummy-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:dummy-client-secret}
             scope: profile,email
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             client-name: Google

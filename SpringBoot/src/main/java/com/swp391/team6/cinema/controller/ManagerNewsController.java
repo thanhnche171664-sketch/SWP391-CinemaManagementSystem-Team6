@@ -43,6 +43,7 @@ public class ManagerNewsController {
         model.addAttribute("newsList", newsPage.getContent());
         model.addAttribute("currentPage", newsPage.getNumber());
         model.addAttribute("totalPages", newsPage.getTotalPages());
+        model.addAttribute("size", newsPage.getSize());
         model.addAttribute("keyword", keyword);
         model.addAttribute("typeFilter", type);
         model.addAttribute("statusFilter", status);
