@@ -160,6 +160,9 @@ public class ShowtimeService {
 
         LocalDateTime endTime = time.plusMinutes(movie.getDuration());
 
+        if (movie.getStatus() != Movie.MovieStatus.now_showing) {
+            throw new RuntimeException("Chỉ được tạo suất chiếu cho phim đang chiếu");
+        }
         //CHECK TRÙNG
         List<Showtime> overlap = showtimeRepository
                 .findByRoom_RoomId(roomId)

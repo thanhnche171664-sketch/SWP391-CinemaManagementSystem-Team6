@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/styles/admin-showtime.css}">
 </head>
 
+
 <body>
 
 <div class="layout">
@@ -114,7 +115,8 @@
 
                     <td>
                         <button type="button"
-                                th:attr="onclick='openEditModal(' + ${s.showtimeId} + ')'"class="edit-link"
+                                th:onclick="'openEditModal(' + ${s.showtimeId} + ')'"
+                                class="edit-link"
                                 title="Chỉnh sửa">
                             <img th:src="@{/images/edit.png}"
                                  alt="edit"
@@ -156,22 +158,17 @@
 
 <script>
     function openEditModal(id) {
+        console.log("CLICK ID:", id); // debug
+
         fetch(`/admin/showtimes/${id}`)
-            .then(res => {
-                if (!res.ok) {
-                    return res.text().then(text => {
-                        console.error("Response lỗi:", text);
-                        throw new Error("API lỗi");
-                    });
-                }
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 console.log("DATA:", data);
 
                 document.getElementById("editId").value = data.showtimeId;
                 document.getElementById("editStatus").value = data.status;
 
+                document.getElementById("overlay").style.display = "block";
                 document.getElementById("editModal").style.display = "block";
             })
             .catch(err => {
