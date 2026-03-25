@@ -86,6 +86,16 @@
                         <span class="legend-box occupied"></span>
                         <span>Đã bán</span>
                     </div>
+                    <div class="legend-item">
+                        <span class="legend-box pending-seat"></span>
+                        <span>Đang chờ thanh toán</span>
+                    </div>
+                </div>
+
+                <!-- Seat status notification -->
+                <div id="seatStatusNotice" class="seat-status-notice" style="display:none;">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <span id="seatStatusText"></span>
                 </div>
             </div>
 
@@ -145,11 +155,10 @@
 <script th:inline="javascript">
 (function() {
     // Config
-    const REFRESH_INTERVAL = 30000; // 30 seconds
+    const POLL_INTERVAL = 10000; // 10 seconds
     const showtimeId = /*[[${showtime.showtimeId}]]*/ 0;
 
     let refreshInterval;
-    const occupiedSeatIds = /*[[${occupiedIds}]]*/ [];
 
     // Elements
     const form = document.getElementById('bookingForm');
@@ -158,60 +167,153 @@
     const selectedSeatsInput = document.getElementById('selectedSeatsInput');
     const submitBtn = document.getElementById('submitBtn');
     const checkboxes = form.querySelectorAll('input[name="seatIds"]');
+    const seatStatusNotice = document.getElementById('seatStatusNotice');
+    const seatStatusText = document.getElementById('seatStatusText');
 
     // Seat data for display
     const seatsData = /*[[${seats}]]*/ [];
 
-    // Toast summary
-    function showToast(message, type = 'warning') {
-        const toastHtml = `
-            <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>`;
-        const container = document.querySelector('.toast-container');
+    // --- Helpers ---
+
+    function showToast(message, type) {
+        type = type || 'warning';
+        var toastHtml = '<div class="toast align-items-center text-white bg-' + type + ' border-0" role="alert" aria-live="assertive" aria-atomic="true">' +
+            '<div class="d-flex">' +
+            '<div class="toast-body">' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+            '</div></div>';
+        var container = document.querySelector('.toast-container');
         if (container) {
             container.insertAdjacentHTML('beforeend', toastHtml);
-            const toastEl = container.lastElementChild;
-            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            var toastEl = container.lastElementChild;
+            var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
             toast.show();
-            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+            toastEl.addEventListener('hidden.bs.toast', function() { toastEl.remove(); });
         }
     }
 
-    // Label lookup mapper
     function getSeatLabel(seatId) {
-        const seat = seatsData.find(s => String(s.seatId) === String(seatId));
-        return seat ? (seat.seatRow + seat.seatNumber) : ("Ghế " + seatId);
+        seatId = String(seatId);
+        for (var i = 0; i < seatsData.length; i++) {
+            if (String(seatsData[i].seatId) === seatId) {
+                return seatsData[i].seatRow + seatsData[i].seatNumber;
+            }
+        }
+        return 'Ghế ' + seatId;
     }
 
-    // Global update UI
+    // Show/hide the notification banner
+    function updateNotice(pendingSeatIds) {
+        if (!seatStatusNotice || !seatStatusText) return;
+        if (pendingSeatIds.length === 0) {
+            seatStatusNotice.style.display = 'none';
+            return;
+        }
+        var labels = pendingSeatIds.map(function(id) { return getSeatLabel(id); }).join(', ');
+        seatStatusText.textContent = 'Ghế ' + labels + ' đang trong trạng thái chờ thanh toán. Ghế sẽ được giải phóng nếu hết thời gian.';
+        seatStatusNotice.style.display = 'flex';
+    }
+
+    // Apply correct seat state from the 3 categories
+    function applySeatStates(paidSet, pendingSet) {
+        var changed = false;
+
+        checkboxes.forEach(function(cb) {
+            var seatId = parseInt(cb.value, 10);
+            var label = cb.closest('.seat-option');
+            if (!label) return;
+
+            if (paidSet.has(seatId)) {
+                // Ghế đã thanh toán — lock vĩnh viễn
+                label.classList.remove('available', 'selected', 'pending-seat');
+                label.classList.add('occupied');
+                cb.disabled = true;
+                cb.checked = false;
+                changed = true;
+            } else if (pendingSet.has(seatId)) {
+                // Ghế đang chờ thanh toán
+                if (!cb.checked) {
+                    label.classList.remove('available', 'selected', 'occupied');
+                    label.classList.add('pending-seat');
+                    cb.disabled = true;
+                    changed = true;
+                }
+            } else {
+                // Ghế trống — chỉ enable nếu user chưa chọn
+                if (!cb.checked) {
+                    label.classList.remove('occupied', 'pending-seat');
+                    label.classList.add('available');
+                    cb.disabled = false;
+                    changed = true;
+                }
+            }
+        });
+        if (changed) updateSelectedUI();
+    }
+
+    // Update total price and selected seats summary
     function updateSelectedUI() {
-        let total = 0;
-        let selectedNames = [];
-        checkboxes.forEach(cb => {
+        var total = 0;
+        var selectedNames = [];
+        checkboxes.forEach(function(cb) {
             if (cb.checked) {
-                const label = cb.closest('.seat-option');
-                const price = parseInt(label.getAttribute('data-price') || 0);
-                total += price;
+                var label = cb.closest('.seat-option');
+                if (label) {
+                    var price = parseInt(label.getAttribute('data-price') || '0', 10);
+                    total += price;
+                }
                 selectedNames.push(getSeatLabel(cb.value));
             }
         });
-
         totalEl.textContent = total.toLocaleString() + ' VND';
         selectedSeatsDisplay.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Chưa chọn ghế';
         selectedSeatsInput.value = selectedNames.join(',');
         submitBtn.disabled = (selectedNames.length === 0);
     }
 
-    // MAIN: Handle seat change
-    checkboxes.forEach(cb => {
+    // --- Main polling function ---
+    async function pollOccupiedSeats() {
+        try {
+            var resp = await fetch('/booking/api/seats/status?showtimeId=' + showtimeId);
+            if (!resp.ok) return;
+            var raw = await resp.json();
+            if (!raw || typeof raw !== 'object') return;
+
+            // Build Number Sets from arrays (JSON parses as Number[])
+            var paidSet    = new Set((raw.paid    || []).map(function(n) { return parseInt(n, 10); }));
+            var pendingSet = new Set((raw.pending || []).map(function(n) { return parseInt(n, 10); }));
+            var freeSet    = new Set((raw.free    || []).map(function(n) { return parseInt(n, 10); }));
+
+            // Nếu ghế user đang chọn bị người khác chiếm → bỏ chọn + cảnh báo
+            checkboxes.forEach(function(cb) {
+                if (!cb.checked) return;
+                var seatId = parseInt(cb.value, 10);
+                if (paidSet.has(seatId) || pendingSet.has(seatId)) {
+                    cb.checked = false;
+                    var label = cb.closest('.seat-option');
+                    if (label) label.classList.remove('selected');
+                    showToast('Ghế ' + getSeatLabel(seatId) + ' vừa được đặt bởi người khác và đã bị bỏ chọn.', 'danger');
+                }
+            });
+
+            // Cập nhật trạng thái tất cả ghế
+            applySeatStates(paidSet, pendingSet);
+
+            // Cập nhật notification banner
+            updateNotice(raw.pending || []);
+
+        } catch (e) {
+            // Silent fail
+        }
+    }
+
+    // --- Event handlers ---
+
+    // Seat selection change
+    checkboxes.forEach(function(cb) {
         cb.addEventListener('change', function() {
-            const label = this.closest('.seat-option');
+            var label = this.closest('.seat-option');
             if (label) {
-                // IMPORTANT: Only toggle class based on native checked state
                 if (this.checked) label.classList.add('selected');
                 else label.classList.remove('selected');
             }
@@ -219,20 +321,22 @@
         });
     });
 
-    // Handle form submit
-    form.addEventListener('submit', async function(e) {
-        const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+    // Form submit
+    form.addEventListener('submit', function(e) {
+        var selected = Array.from(checkboxes).filter(function(cb) { return cb.checked; }).map(function(cb) { return cb.value; });
         if (selected.length === 0) {
             e.preventDefault();
             showToast('Vui lòng chọn ghế!', 'warning');
             return;
         }
-
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
     });
 
-    console.log("Booking flow initialized.");
+    // Start polling
+    refreshInterval = setInterval(pollOccupiedSeats, POLL_INTERVAL);
+
+    console.log('Booking flow initialized.');
 })();
 </script>
 </body>
