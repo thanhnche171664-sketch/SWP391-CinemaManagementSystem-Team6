@@ -47,6 +47,40 @@ public class CinemaBranchViewController {
 
     @PostMapping
     public String createBranch(@ModelAttribute CinemaBranch branch,
+                               RedirectAttributes ra) {
+
+        try {
+
+            if (branch.getBranchName() == null || branch.getBranchName().isBlank()) {
+                throw new RuntimeException("Tên rạp không được để trống");
+            }
+
+            if (branch.getBranchName().length() < 3) {
+                throw new RuntimeException("Tên rạp phải >= 3 ký tự");
+            }
+
+            if (branch.getAddress() == null || branch.getAddress().isBlank()) {
+                throw new RuntimeException("Địa chỉ không được để trống");
+            }
+
+            boolean exists = cinemaBranchService.existsByName(branch.getBranchName());
+            if (exists) {
+                throw new RuntimeException("Rạp đã tồn tại");
+            }
+
+            cinemaBranchService.createBranch(branch);
+
+            ra.addFlashAttribute("success", "Thêm rạp thành công");
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/branches/new";
+        }
+
+        return "redirect:/branches";
+    }
+
+    public String createBranch(@ModelAttribute CinemaBranch branch,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
         User user = requireAdmin(session, redirectAttributes);

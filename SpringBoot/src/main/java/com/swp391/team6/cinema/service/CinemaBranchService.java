@@ -80,4 +80,8 @@ public class CinemaBranchService {
 
         cinemaBranchRepository.save(branch);
     }
+
+    public boolean existsByName(String name) {
+        return cinemaBranchRepository.existsByBranchNameIgnoreCase(name);
+    }
 }

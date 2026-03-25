@@ -54,7 +54,7 @@
                     <th>Phòng</th>
                     <th>Ngày</th>
                     <th>Giờ Bắt đầu</th>
-<!--                    <th>Ghế trống</th>-->
+                    <th>Giờ Kết thúc</th>
                     <th>Trạng thái</th>
                     <th></th>
                 </tr>
@@ -87,6 +87,12 @@
                         </span>
                     </td>
 
+                    <td>
+                        <span class="time-badge"
+                              th:text="${#temporals.format(s.endTime, 'HH:mm')}">
+                        </span>
+                    </td>
+
 
 <!--                    <td>-->
 <!--                        <span class="seat-badge"-->
@@ -99,16 +105,21 @@
                         <span class="status-badge"
                               th:text="${s.status}"
                               th:classappend="
-                                ${s.status.name() == 'open'} ? ' status-open' :
-                                (${s.status.name() == 'closed'} ? ' status-closed' : ' status-cancel')
+                                ${s.status.name() == 'open'} ? 'status-open' :
+                                (${s.status.name() == 'closed'} ? 'status-closed' :
+                                (${s.status.name() == 'cancelled'} ? 'status-cancel'))
                               ">
                         </span>
                     </td>
 
                     <td>
-                        <a class="showtime-edit-link" th:href="@{|${showtimeBasePath}/edit/${s.showtimeId}|}">
-                            ✏️
-                        </a>
+                        <button type="button"
+                                th:attr="onclick='openEditModal(' + ${s.showtimeId} + ')'"class="edit-link"
+                                title="Chỉnh sửa">
+                            <img th:src="@{/images/edit.png}"
+                                 alt="edit"
+                                 class="edit-icon">
+                        </button>
                     </td>
 
                 </tr>
@@ -125,6 +136,72 @@
 
     </main>
 </div>
+
+<div id="overlay"></div>
+
+<div id="editModal">
+    <input type="hidden" id="editId">
+
+    <label>Status:</label>
+    <select id="editStatus">
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+        <option value="cancelled">Cancelled</option>
+    </select>
+
+    <br><br>
+    <button onclick="submitEdit()">Save</button>
+    <button onclick="closeModal()">Cancel</button>
+</div>
+
+<script>
+    function openEditModal(id) {
+        fetch(`/admin/showtimes/${id}`)
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(text => {
+                        console.error("Response lỗi:", text);
+                        throw new Error("API lỗi");
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log("DATA:", data);
+
+                document.getElementById("editId").value = data.showtimeId;
+                document.getElementById("editStatus").value = data.status;
+
+                document.getElementById("editModal").style.display = "block";
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Không load được dữ liệu!");
+            });
+    }
+
+    function closeModal() {
+        document.getElementById("editModal").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
+    }
+
+    function submitEdit() {
+        const id = document.getElementById("editId").value;
+        const status = document.getElementById("editStatus").value;
+
+        fetch('/admin/showtimes/update-status', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "id=" + id + "&status=" + status
+        })
+            .then(() => {
+                alert("Cập nhật thành công");
+                location.reload();
+            });
+    }
+</script>
 
 </body>
 </html>
