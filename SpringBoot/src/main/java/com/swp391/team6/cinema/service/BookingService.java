@@ -71,15 +71,23 @@ public class BookingService {
     public Set<Long> getOccupiedSeatIdsForShowtime(Long showtimeId) {
         List<Booking> bookings = bookingRepository.findByShowtimeShowtimeId(showtimeId).stream()
                 .filter(b -> b.getStatus() == Booking.BookingStatus.pending || b.getStatus() == Booking.BookingStatus.paid)
-                .toList();
-        Set<Long> occupied = new HashSet<>();
+                .collect(Collectors.toList());
+
+        Set<String> occupiedRowNums = new HashSet<>();
         for (Booking b : bookings) {
             List<BookingSeat> seats = bookingSeatRepository.findByBookingBookingId(b.getBookingId());
             for (BookingSeat bs : seats) {
-                occupied.add(bs.getSeat().getSeatId());
+                occupiedRowNums.add(bs.getSeat().getSeatRow() + ":" + bs.getSeat().getSeatNumber());
             }
         }
-        return occupied;
+
+        Optional<Showtime> showtimeOpt = showtimeRepository.findById(showtimeId);
+        if (showtimeOpt.isEmpty()) return new HashSet<>();
+
+        return seatRepository.findByRoomRoomId(showtimeOpt.get().getRoom().getRoomId()).stream()
+                .filter(s -> occupiedRowNums.contains(s.getSeatRow() + ":" + s.getSeatNumber()))
+                .map(Seat::getSeatId)
+                .collect(Collectors.toSet());
     }
 
     /**

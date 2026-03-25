@@ -16,10 +16,14 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
@@ -29,17 +33,28 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private static final SecureRandom random = new SecureRandom();
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oauth2User = super.loadUser(userRequest);
+        Map<String, Object> attributes = oauth2User.getAttributes();
         
         // Get email from OAuth2 user info
-        String email = oauth2User.getAttribute("email");
-        String name = oauth2User.getAttribute("name");
+        String email = (String) attributes.get("email");
+        if (email == null) {
+            log.error("Google login failed: Email attribute not found in OAuth2 response");
+            throw new OAuth2AuthenticationException("Email not found from Google");
+        }
+        
+        String name = (String) attributes.get("name");
+        if (name == null || name.isBlank()) {
+            name = email.split("@")[0]; // Fallback to email prefix
+        }
         
         // Check if user exists
         User user = userRepository.findByEmail(email).orElse(null);
         
         if (user == null) {
+            log.info("Creating new user for Google login: {}", email);
             // Generate random password for new Google user
             String randomPassword = generateRandomPassword(12);
             
@@ -52,11 +67,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setStatus(UserStatus.active);
             user.setIsVerify(true); // Google users are pre-verified
             user.setCreatedAt(LocalDateTime.now());
-            userRepository.save(user);
+            user = userRepository.save(user);
             
             // Send password to user's email
             sendPasswordEmail(email, name, randomPassword);
         } else {
+            // Check status
+            if (user.getStatus() == UserStatus.inactive) {
+                log.warn("Login attempt for inactive account: {}", email);
+                throw new OAuth2AuthenticationException("Account is inactive");
+            }
+
             // Update user info if exists
             if (!user.getIsVerify()) {
                 user.setIsVerify(true); // Verify user if they login via Google
@@ -64,11 +85,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
         }
         
+        String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
+                .getUserInfoEndpoint().getUserNameAttributeName();
+        if (userNameAttributeName == null) {
+            userNameAttributeName = "email";
+        }
+
         // Return OAuth2User with authorities
         return new DefaultOAuth2User(
             Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
-            oauth2User.getAttributes(),
-            "email"
+            attributes,
+            userNameAttributeName
         );
     }
     
@@ -146,8 +173,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             
             emailService.sendEmail(email, subject, htmlContent);
         } catch (Exception e) {
-            // Log error but don't fail the authentication
-            System.err.println("Failed to send password email to " + email + ": " + e.getMessage());
+            log.error("Failed to send password email to {}: {}", email, e.getMessage());
+            // Don't fail the authentication even if email fails
         }
     }
 }

@@ -47,16 +47,29 @@ public class PayOSService {
     /**
      * Create payment link. Returns checkout URL or null if config missing or API error.
      * orderCode should be unique (e.g. bookingId).
+     * PayOS requires signature parameters sorted alphabetically.
      */
     public String createPaymentLink(long orderCode, int amountVnd, String description, String returnPath, String cancelPath) {
-        if (clientId == null || clientId.isBlank() || apiKey == null || apiKey.isBlank() || checksumKey == null || checksumKey.isBlank()) {
+        if (!isConfigured()) {
             log.warn("PayOS credentials not configured");
             return null;
         }
         String returnUrl = appUrl + returnPath;
         String cancelUrl = appUrl + cancelPath;
-        String dataStr = "amount=" + amountVnd + "&cancelUrl=" + cancelUrl + "&description=" + description + "&orderCode=" + orderCode + "&returnUrl=" + returnUrl;
-        String signature = hmacSha256(dataStr, checksumKey);
+
+        // Build signature with parameters sorted alphabetically (required by PayOS)
+        TreeMap<String, String> params = new TreeMap<>();
+        params.put("amount", String.valueOf(amountVnd));
+        params.put("cancelUrl", cancelUrl);
+        params.put("description", description);
+        params.put("orderCode", String.valueOf(orderCode));
+        params.put("returnUrl", returnUrl);
+        StringBuilder dataBuilder = new StringBuilder();
+        params.forEach((k, v) -> {
+            if (dataBuilder.length() > 0) dataBuilder.append("&");
+            dataBuilder.append(k).append("=").append(v);
+        });
+        String signature = hmacSha256(dataBuilder.toString(), checksumKey);
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("orderCode", orderCode);
@@ -74,14 +87,20 @@ public class PayOSService {
         try {
             String json = objectMapper.writeValueAsString(body);
             ResponseEntity<String> res = restTemplate.postForEntity(apiUrl + "/v2/payment-requests", new HttpEntity<>(json, headers), String.class);
-            if (!res.getStatusCode().is2xxSuccessful() || res.getBody() == null) return null;
+            if (!res.getStatusCode().is2xxSuccessful() || res.getBody() == null) {
+                log.warn("PayOS API returned non-2xx or empty body: {}", res.getStatusCode());
+                return null;
+            }
             JsonNode root = objectMapper.readTree(res.getBody());
-            if ("00".equals(root.path("code").asText())) {
+            String code = root.path("code").asText();
+            String desc = root.path("desc").asText();
+            if ("00".equals(code)) {
                 JsonNode data = root.get("data");
                 if (data != null && data.has("checkoutUrl")) {
                     return data.get("checkoutUrl").asText();
                 }
             }
+            log.warn("PayOS API error: code={}, desc={}", code, desc);
         } catch (Exception e) {
             log.error("PayOS create payment link failed", e);
         }
@@ -122,6 +141,33 @@ public class PayOSService {
         } catch (Exception e) {
             log.debug("PayOS get payment status by orderCode failed (API may not support it): {}", e.getMessage());
             return Optional.empty();
+        }
+    }
+
+    /** Check if all PayOS credentials are configured. */
+    public boolean isConfigured() {
+        return !(clientId == null || clientId.isBlank()
+                || apiKey == null || apiKey.isBlank()
+                || checksumKey == null || checksumKey.isBlank());
+    }
+
+    /** Quick health-check: attempt to list payment requests (any API call to PayOS). */
+    public boolean canReachApi() {
+        if (!isConfigured()) return false;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-client-id", clientId);
+        headers.set("x-api-key", apiKey);
+        try {
+            ResponseEntity<String> res = restTemplate.exchange(
+                    apiUrl + "/v2/payment-requests",
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    String.class
+            );
+            return res.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            log.debug("PayOS API health check failed: {}", e.getMessage());
+            return false;
         }
     }
 
