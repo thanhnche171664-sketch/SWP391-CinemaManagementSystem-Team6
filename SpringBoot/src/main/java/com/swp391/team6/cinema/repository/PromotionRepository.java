@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,21 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
     // Thống kê số lượng theo trạng thái (Cho 4 ô dashboard)
     long countByStatus(Promotion.Status status);
 
+    @Query("""
+    SELECT COUNT(p)
+    FROM Promotion p
+    WHERE p.status = 'active'
+      AND (p.endDate IS NULL OR p.endDate >= :now)
+""")
+    long countActive(@Param("now") LocalDateTime now);
+
+    @Query("""
+    SELECT COUNT(p)
+    FROM Promotion p
+    WHERE p.status = 'inactive'
+       OR (p.endDate IS NOT NULL AND p.endDate < :now)
+""")
+    long countInactive(@Param("now") LocalDateTime now);
 
     boolean existsByPromoCodeAndPromotionIdNot(String promoCode, Integer promotionId);
 
@@ -38,4 +54,14 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
             "AND (p.branch IS NULL OR p.branch.branchId = :branchId) " +
             "AND (p.usageLimit IS NULL OR p.usedCount < p.usageLimit)")
     List<Promotion> findActivePromotionsForBranch(@Param("branchId") Long branchId);
+
+    @Query("""
+    SELECT p
+    FROM Promotion p
+    WHERE p.status = 'active'
+      AND (p.startDate IS NULL OR p.startDate <= CURRENT_TIMESTAMP)
+      AND (p.endDate IS NULL OR p.endDate >= CURRENT_TIMESTAMP)
+      AND (p.usageLimit IS NULL OR p.usedCount < p.usageLimit)
+""")
+    List<Promotion> findAllValidPromotions();
 }
