@@ -2,124 +2,132 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>User Profile</title>
-
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân - Cinema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+<body class="profile-page">
+<div th:replace="~{fragments/public-header :: publicHeader}"></div>
 
-<div class="container mt-5">
-    <p class="mb-3"><a th:href="@{/}" class="btn btn-outline-secondary btn-sm">← Quay lại</a></p>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-
-            <h2 class="text-center mb-4">User Profile</h2>
-            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${message}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<section class="container py-4">
+    <div class="profile-shell">
+        <div class="profile-hero">
+            <div>
+                <h2 class="mb-1">Hồ sơ cá nhân</h2>
+                <p class="profile-subtitle mb-0">Quản lý thông tin và bảo mật tài khoản của bạn.</p>
             </div>
-
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${error}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="profile-hero-actions">
+                <a th:href="@{/booking/history}" class="btn btn-outline-light profile-btn-secondary">Lịch sử đặt vé</a>
+                <a th:href="@{/}" class="btn btn-outline-light profile-btn-secondary">Về trang chủ</a>
             </div>
+        </div>
 
-            <!-- ===== VIEW MODE ===== -->
-            <div th:if="${!edit}">
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
-                <ul class="list-group mb-4">
-                    <li class="list-group-item">
-                        <strong>Full Name:</strong>
-                        <span th:text="${user.fullName}"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Email:</strong>
-                        <span th:text="${user.email}"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Phone:</strong>
-                        <span th:text="${user.phone}"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Role:</strong>
-                        <span th:text="${user.role}"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Status:</strong>
-                        <span th:text="${user.status}"></span>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Created At:</strong>
-                        <span th:text="${user.createdAt}"></span>
-                    </li>
-                </ul>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
-                <div class="d-grid gap-2 mt-3">
-                    <a th:href="@{/profile(edit=true)}"
-                       class="btn btn-primary">
-                        Update Profile
-                    </a>
-                    <a th:href="@{/profile/change-password}"
-                       class="btn btn-outline-warning">
-                        Change Password
-                    </a>
+        <div th:if="${user == null}" class="alert profile-empty-alert mt-3">
+            Không tìm thấy thông tin tài khoản. Vui lòng đăng nhập lại.
+        </div>
+
+        <div th:if="${user != null}" class="profile-grid">
+            <aside class="profile-card profile-sidebar">
+                <div class="profile-avatar"
+                     th:text="${user.fullName != null and !user.fullName.isEmpty() ? #strings.substring(user.fullName, 0, 1) : 'U'}">
+                    U
+                </div>
+                <div class="profile-name" th:text="${user.fullName}">User Name</div>
+                <div class="profile-email" th:text="${user.email}">email@cinema.com</div>
+
+                <div class="profile-meta">
+                    <div class="profile-meta-item">
+                        <div class="profile-meta-label">Trạng thái</div>
+                        <div class="profile-meta-value" th:text="${user.status}">active</div>
+                    </div>
+                    <div class="profile-meta-item">
+                        <div class="profile-meta-label">Ngày tạo</div>
+                        <div class="profile-meta-value" th:text="${user.createdAt}">--</div>
+                    </div>
+                </div>
+
+                <div class="profile-action-group" th:if="${edit == null or !edit}">
+                    <a th:href="@{/profile(edit=${true})}" class="btn profile-btn-primary">Cập nhật hồ sơ</a>
+                    <a th:href="@{/profile/change-password}" class="btn btn-outline-light profile-btn-secondary">Đổi mật khẩu</a>
+                </div>
+                <div class="profile-action-group" th:if="${edit != null and edit}">
+                    <a th:href="@{/profile}" class="btn btn-outline-light profile-btn-secondary">Hủy chỉnh sửa</a>
+                </div>
+            </aside>
+
+            <div class="profile-main">
+                <div class="profile-card" th:if="${edit == null or !edit}">
+                    <h5 class="mb-2">Thông tin liên hệ</h5>
+                    <p class="profile-subtitle mb-3">Cập nhật thông tin để hệ thống hỗ trợ bạn tốt hơn.</p>
+                    <div class="profile-info-list">
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Họ và tên</span>
+                            <span class="profile-info-value" th:text="${user.fullName}">---</span>
+                        </div>
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Email</span>
+                            <span class="profile-info-value" th:text="${user.email}">---</span>
+                        </div>
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Số điện thoại</span>
+                            <span class="profile-info-value" th:text="${user.phone}">---</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-card mt-3" th:if="${edit == null or !edit}">
+                    <h5 class="mb-2">Bảo mật</h5>
+                    <p class="profile-subtitle mb-3">Đổi mật khẩu định kỳ để bảo vệ tài khoản của bạn.</p>
+                    <a th:href="@{/profile/change-password}" class="btn profile-btn-primary">Đổi mật khẩu</a>
+                </div>
+
+                <div class="profile-card profile-form" th:if="${edit != null and edit}">
+                    <h5 class="mb-2">Chỉnh sửa thông tin</h5>
+                    <p class="profile-subtitle mb-3">Cập nhật họ tên, email và số điện thoại liên hệ.</p>
+                    <form th:action="@{/profile/update}" th:object="${user}" method="post">
+                        <input type="hidden" th:field="*{userId}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" th:field="*{fullName}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" th:field="*{email}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" th:field="*{phone}">
+                        </div>
+
+                        <div th:if="${error}" class="alert alert-danger">
+                            <span th:text="${error}"></span>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn profile-btn-primary">Lưu thay đổi</button>
+                            <a th:href="@{/profile}" class="btn btn-outline-light profile-btn-secondary">Hủy</a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <!-- ===== EDIT MODE ===== -->
-            <div th:if="${edit}">
-                <form th:action="@{/profile/update}"
-                      th:object="${user}"
-                      method="post">
-
-                    <input type="hidden" th:field="*{userId}"/>
-
-                    <div class="mb-3">
-                        <label class="form-label">Full Name</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{fullName}"
-                               required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email"
-                               class="form-control"
-                               th:field="*{email}"
-                               required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Phone</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{phone}">
-                    </div>
-
-                    <div th:if="${error}"
-                         class="alert alert-danger">
-                        <span th:text="${error}"></span>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a th:href="@{/profile}"
-                           class="btn btn-secondary">
-                            Cancel
-                        </a>
-                        <button type="submit"
-                                class="btn btn-success">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
-            </div>
-
         </div>
     </div>
-</div>
+</section>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

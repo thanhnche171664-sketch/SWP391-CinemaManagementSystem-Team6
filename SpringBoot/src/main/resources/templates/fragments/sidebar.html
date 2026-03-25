@@ -51,6 +51,9 @@
 
         <a th:classappend="${active == 'reports'} ? 'active'"
            th:href="@{/admin/reports}">Báo cáo & Thống kê</a>
+
+        <a th:classappend="${active == 'profile'} ? 'active'"
+           th:href="${user != null and user.role != null and user.role.name() == 'MANAGER' ? '/manager/profile' : '/admin/profile'}">Hồ sơ cá nhân</a>
     </nav>
 
     <div class="sidebar-bottom" th:if="${user != null}">
@@ -62,6 +65,8 @@
             </summary>
 
             <div class="admin-user-dropdown">
+                <a th:href="${user != null and user.role != null and user.role.name() == 'MANAGER' ? '/manager/profile' : '/admin/profile'}"
+                   class="admin-user-link">Hồ sơ cá nhân</a>
                 <a th:href="@{/auth/logout}" class="admin-user-link logout-link">Đăng xuất</a>
             </div>
         </details>
