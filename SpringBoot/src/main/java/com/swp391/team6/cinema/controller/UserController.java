@@ -2,6 +2,7 @@ package com.swp391.team6.cinema.controller;
 import com.swp391.team6.cinema.dto.ChangePasswordDTO;
 import com.swp391.team6.cinema.service.UserService; // Thay đổi tùy theo package thực tế
 import com.swp391.team6.cinema.entity.User;        // Thay đổi tùy theo package thực tế
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,12 +23,18 @@ public class UserController {
     @GetMapping("/profile")
     public String viewProfile(
             @RequestParam(value = "edit", defaultValue = "false") boolean edit,
-            Model model) {
+            Model model,
+            HttpSession session) {
 
-        // demo: giả lập user đang login
-        String email = "admin@gmail.com";
+        User sessionUser = (User) session.getAttribute("loggedInUser");
+        if (sessionUser == null) {
+            return "redirect:/auth/login?redirect=/profile";
+        }
 
-        User user = userService.getUserByEmail(email);
+        User user = userService.getUserById(sessionUser.getUserId());
+        if (user == null) {
+            return "redirect:/auth/login?redirect=/profile";
+        }
         model.addAttribute("user", user);
         model.addAttribute("edit", edit);
 
@@ -38,9 +45,20 @@ public class UserController {
     @PostMapping("/profile/update")
     public String updateProfile(@ModelAttribute("user") User user,
                                 RedirectAttributes ra,
-                                Model model) {
+                                Model model,
+                                HttpSession session) {
+        User sessionUser = (User) session.getAttribute("loggedInUser");
+        if (sessionUser == null) {
+            return "redirect:/auth/login?redirect=/profile";
+        }
+
+        user.setUserId(sessionUser.getUserId());
         try {
             userService.updateProfile(user);
+            sessionUser.setFullName(user.getFullName());
+            sessionUser.setEmail(user.getEmail());
+            sessionUser.setPhone(user.getPhone());
+            session.setAttribute("loggedInUser", sessionUser);
             ra.addFlashAttribute("message", "Cập nhật thông tin cá nhân thành công!");
             return "redirect:/profile";
         } catch (RuntimeException e) {
@@ -64,7 +82,13 @@ public class UserController {
             @Valid @ModelAttribute("passwordDTO") ChangePasswordDTO dto,
             BindingResult result, // Đối tượng chứa kết quả kiểm tra lỗi
             RedirectAttributes ra,
-            Model model) {
+            Model model,
+            HttpSession session) {
+
+        User sessionUser = (User) session.getAttribute("loggedInUser");
+        if (sessionUser == null) {
+            return "redirect:/auth/login?redirect=/profile";
+        }
 
         // 1. Kiểm tra lỗi định dạng (độ dài, ký tự...) từ các Annotation trong DTO
         if (result.hasErrors()) {
@@ -79,8 +103,7 @@ public class UserController {
         }
 
         try {
-            // Giả lập ID user đang đăng nhập
-            Long currentUserId = 1L;
+            Long currentUserId = sessionUser.getUserId();
             userService.changePassword(currentUserId, dto);
 
             ra.addFlashAttribute("message", "Đổi mật khẩu thành công!");
