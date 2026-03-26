@@ -4,7 +4,17 @@
     <meta charset="UTF-8" />
     <style>
         @page { size: 300px 480px; margin: 5px; }
-        body { font-family: 'Arial', sans-serif; font-size: 13px; color: #000; text-align: center; }
+        * {
+            font-family: "DejaVu Sans", "DejaVuSans", Tahoma, Arial, sans-serif !important;
+            -fs-pdf-font-embed: embed;
+            -fs-pdf-font-encoding: Identity-H;
+        }
+        body {
+        font-family: "DejaVu Sans", "DejaVuSans", Tahoma, Arial, sans-serif;
+        font-size: 13px;
+        color: #000;
+        text-align: center;
+    }
 
         .ticket-card {
             width: 270px; border: 1px solid #000; padding: 15px;
@@ -17,20 +27,49 @@
 
         /* Body */
         .movie-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 12px; }
-        .info-row { margin-bottom: 6px; }
-        .label { color: #555; text-transform: uppercase; font-size: 10px; display: block; }
-        .value { font-weight: bold; font-size: 14px; }
+        .info-row {
+            margin-bottom: 8px;
+            line-height: 1.25;
+        }
+        .label {
+            color: #555;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            display: block;
+            font-family: "DejaVu Sans", Tahoma, Arial, sans-serif;
+        }
+        .value {
+            font-weight: bold;
+            font-size: 14px;
+            font-family: "DejaVu Sans", Tahoma, Arial, sans-serif;
+        }
+        .time-value {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.2px;
+        }
 
         /* Seat section - Điểm nhấn của vé */
         .seat-box {
             border: 2px dashed #000; padding: 10px; margin: 15px 0;
             text-align: center; background: #fdfdfd;
         }
-        .seat-label { font-size: 10px; color: #777; }
+        .seat-label {
+            font-size: 10px;
+            color: #777;
+            font-family: "DejaVu Sans", "DejaVuSans", Tahoma, Arial, sans-serif;
+        }
         .seat-value { font-size: 28px; font-weight: 900; letter-spacing: 3px; }
 
         /* Footer */
-        .footer-note { font-size: 9px; text-align: center; color: #333; margin-top: 10px; }
+        .footer-note {
+            font-size: 10px;
+            text-align: center;
+            color: #333;
+            margin-top: 10px;
+            line-height: 1.5;
+            letter-spacing: 0;
+            font-family: "DejaVu Sans", "DejaVuSans", Tahoma, Arial, sans-serif;
+        }
         .barcode-placeholder { text-align: center; font-size: 20px; font-family: 'Courier New', monospace; margin-top: 10px; }
     </style>
 </head>
@@ -41,10 +80,10 @@
 
     <div class="movie-title" th:text="${booking.showtime.movie.title}">TÊN PHIM</div>
 
-    <div class="info-row"><span class="label">Mã vé:</span><span class="value" th:text="${booking.bookingId}"></span></div>
-    <div class="info-row"><span class="label">Thời gian:</span><span class="value" th:text="${#temporals.format(booking.showtime.startTime, 'HH:mm - dd/MM/yyyy')}"></span></div>
-    <div class="info-row"><span class="label">Phòng chiếu:</span><span class="value" th:text="${booking.showtime.room.roomName}"></span></div>
-    <div class="info-row"><span class="label">Thời lượng:</span><span class="value" th:text="${booking.showtime.movie.duration} + ' phút'"></span></div>
+    <div class="info-row"><span class="label">MÃ VÉ:</span><span class="value" th:text="${booking.bookingId}"></span></div>
+    <div class="info-row"><span class="label">THỜI GIAN:</span><span class="value time-value" th:text="${#temporals.format(booking.showtime.startTime, 'HH:mm - dd/MM/yyyy')}"></span></div>
+    <div class="info-row"><span class="label">PHÒNG CHIẾU:</span><span class="value" th:text="${booking.showtime.room.roomName}"></span></div>
+    <div class="info-row"><span class="label">THỜI LƯỢNG:</span><span class="value" th:text="${booking.showtime.movie.duration} + ' phút'"></span></div>
 
     <div class="seat-box">
         <div class="seat-label">GHẾ CỦA BẠN</div>

@@ -201,14 +201,33 @@ public class CounterBookingController {
         String htmlContent = templateEngine.process("staff/print-ticket", context);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();
-        renderer.getFontResolver().addFont("/Windows/Fonts/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        try {
+            // Nạp font từ thư mục resources
+            String fontPath = "/fonts/DejaVuSans.ttf"; // Đường dẫn trong resources
+            var fontUrl = getClass().getResource(fontPath);
+
+            if (fontUrl != null) {
+                // Identity-H là bắt buộc để hiển thị tiếng Việt
+                renderer.getFontResolver().addFont(fontUrl.toString(),
+                        com.lowagie.text.pdf.BaseFont.IDENTITY_H,
+                        com.lowagie.text.pdf.BaseFont.EMBEDDED);
+            } else {
+                // Nếu không muốn dùng file trong resources, hãy dùng đường dẫn Windows nhưng phải chuẩn
+                renderer.getFontResolver().addFont("C:/Windows/Fonts/tahoma.ttf",
+                        com.lowagie.text.pdf.BaseFont.IDENTITY_H,
+                        com.lowagie.text.pdf.BaseFont.EMBEDDED);
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi nạp font: " + e.getMessage());
+        }
+
         renderer.setDocumentFromString(htmlContent);
         renderer.layout();
         renderer.createPDF(outputStream);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("filename", "Ticket_" + id + ".pdf");
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Ticket_" + id + ".pdf\"");
         return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
     }
 

@@ -111,40 +111,6 @@
                 </div>
             </div>
 
-            <div class="booking-seat-voucher">
-                <div id="voucherMessage" class="booking-seat-voucher-message" style="color: red"></div>
-                <div class="booking-seat-voucher-row">
-
-        <span class="booking-seat-voucher-label">
-            <i class="bi bi-tag"></i> Mã giảm giá
-        </span>
-
-                    <select class="form-select" id="promotionSelect" onchange="changePromotion()">
-                        <option value="">-- Chọn mã giảm giá --</option>
-
-                        <option th:each="p : ${promotions}"
-                                th:value="${p.promotionId}"
-                                th:data-type="${p.discountType}"
-                                th:data-value="${p.discountValue}"
-                                th:data-min="${p.minBookingAmount}"
-                                th:text="${p.promoCode
-                + ' - '
-                + (p.discountType.name() == 'percent'
-                    ? 'Giảm ' + p.discountValue + '%'
-                    : 'Giảm ' + #numbers.formatDecimal(p.discountValue,0,'COMMA',0,'POINT') + ' VND')}">
-                        </option>
-                    </select>
-
-
-                </div>
-
-                <input type="hidden" name="promotionId" id="promotionId">
-
-                <div class="booking-seat-discount" id="discountRow" style="display:none;">
-                    <span>Giảm: <span id="discountAmount">0</span> VND</span><br>
-                    <span style="color: red">Thanh toán: <span style="color: red" id="finalAmount">0</span> VND</span>
-                </div>
-            </div>
 
             <div class="booking-seat-action">
                 <button type="submit" class="btn booking-seat-pay-btn" id="submitBtn" disabled>

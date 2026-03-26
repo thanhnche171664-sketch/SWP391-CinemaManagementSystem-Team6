@@ -27,7 +27,7 @@ public class SeatService {
 
         Room room = roomService.getRoomById(roomId);
 
-        int seatsPerRow = 8;
+        int seatsPerRow = 10;
         int totalRows = (int) Math.ceil((double) totalSeats / seatsPerRow);
 
         List<Seat> generatedSeats = new ArrayList<>();

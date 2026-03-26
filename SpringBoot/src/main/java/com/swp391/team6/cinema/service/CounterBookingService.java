@@ -135,7 +135,7 @@ public class CounterBookingService {
         }
 
         if (customer == null) {
-            customer = userRepository.findFirstByRole(User.UserRole.CUSTOMER)
+            customer = userRepository.findFirstByRole(User.UserRole.GUEST)
                     .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản mặc định cho Role CUSTOMER"));
         }
 

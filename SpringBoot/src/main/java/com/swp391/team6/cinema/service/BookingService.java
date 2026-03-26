@@ -246,13 +246,6 @@ public class BookingService {
 
     private void cancelPendingBookingInternal(Booking booking) {
         if (booking.getStatus() != Booking.BookingStatus.pending) return;
-        if (booking.getPromotion() != null) {
-            Promotion promo = booking.getPromotion();
-            if (promo.getUsedCount() != null && promo.getUsedCount() > 0) {
-                promo.setUsedCount(promo.getUsedCount() - 1);
-                promotionRepository.save(promo);
-            }
-        }
         Long bookingId = booking.getBookingId();
         List<Payment> payments = paymentRepository.findByBookingBookingIdOrderByPaymentTimeDesc(bookingId);
         for (Payment p : payments) {

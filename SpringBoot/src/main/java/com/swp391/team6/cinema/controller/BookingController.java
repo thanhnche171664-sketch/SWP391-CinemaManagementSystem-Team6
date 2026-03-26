@@ -47,7 +47,6 @@ public class BookingController {
     private final PricingService pricingService;
     private final PayOSService payOSService;
     private final SeatService seatService;
-    private final PromotionService promotionService;
 
     @GetMapping("/{showtimeId}")
     public String seatSelection(@org.springframework.web.bind.annotation.PathVariable Long showtimeId,
@@ -118,14 +117,12 @@ public class BookingController {
         model.addAttribute("seatPrices", seatPrices);
         model.addAttribute("user", user);
 
-        model.addAttribute("promotions", promotionService.getValidPromotions());
 
         return "booking-seat";
     }
 
     @PostMapping("/create")
     public String createBooking(@RequestParam Long showtimeId,
-                                @RequestParam Long promotionId,
                                 @RequestParam List<Long> seatIds,
                                 HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
