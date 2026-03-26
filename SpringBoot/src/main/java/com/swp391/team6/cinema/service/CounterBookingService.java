@@ -37,10 +37,10 @@ public class CounterBookingService {
         Long branchId = staff.getBranchId();
 
         if (branchId != null) {
-            Page<Movie> moviePage = movieRepository.findMoviesForPOS(branchId, normalizedKeyword, status, normalizedGenre, pageable);
-            if (!moviePage.isEmpty()) return moviePage;
+            return movieRepository.findMoviesForPOS(branchId, normalizedKeyword, status, normalizedGenre, pageable);
         }
-        return movieRepository.findMoviesForPOSAllBranches(normalizedKeyword, status, normalizedGenre, pageable);
+
+        return Page.empty(pageable);
     }
 
     /**

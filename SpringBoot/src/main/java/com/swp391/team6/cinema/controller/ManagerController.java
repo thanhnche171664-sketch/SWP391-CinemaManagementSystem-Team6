@@ -100,6 +100,7 @@ public class ManagerController {
         model.addAttribute("movieBasePath", "/manager/movies");
         model.addAttribute("newMovie", new MovieDTO());
         model.addAttribute("genreList", movieService.getAllGenres());
+        model.addAttribute("branches", movieService.getActiveBranches());
         model.addAttribute("user", user);
         return "movie-management";
     }

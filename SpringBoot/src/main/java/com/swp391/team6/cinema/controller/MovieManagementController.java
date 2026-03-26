@@ -69,6 +69,7 @@ public class MovieManagementController {
         model.addAttribute("hiddenFilter", hidden == null ? "" : hidden);
         model.addAttribute("newMovie", new MovieDTO());
         model.addAttribute("genreList", genreService.getAllGenres());
+        model.addAttribute("branches", movieService.getActiveBranches());
         model.addAttribute("readOnlyMode", false);
         model.addAttribute("movieBasePath", "/admin/movies");
         User user = (User) session.getAttribute("loggedInUser");

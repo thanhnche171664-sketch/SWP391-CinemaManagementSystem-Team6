@@ -24,4 +24,6 @@ public class MovieDTO {
     private Boolean hidden;
     private List<Long> genreIds;
     private String genreNames;
+    private List<Long> branchIds;
+    private String branchNames;
 }

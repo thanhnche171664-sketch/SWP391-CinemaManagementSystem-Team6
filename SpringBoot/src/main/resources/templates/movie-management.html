@@ -62,6 +62,7 @@
                     <th>Poster</th>
                     <th>Tiêu đề</th>
                     <th>Thể loại</th>
+                    <th>Rạp chiếu</th>
                     <th>Thời lượng</th>
                     <th>Ngày phát hành</th>
                     <th>Tuổi</th>
@@ -79,6 +80,7 @@
                     </td>
                     <td th:text="${movie.title}"></td>
                     <td class="text-muted" th:text="${movie.genreNames}"></td>
+                    <td class="text-muted" th:text="${movie.branchNames}"></td>
                     <td class="text-muted" th:text="${movie.duration} + ' phút'"></td>
                     <td class="text-muted"
                         th:text="${movie.releaseDate != null ? #temporals.format(movie.releaseDate, 'dd/MM/yyyy') : '-'}"></td>
@@ -184,6 +186,12 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Rạp chiếu</label>
+                    <select multiple th:field="*{branchIds}" id="form-branches" class="form-select" required>
+                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Thời lượng (phút)</label>
                     <input type="number" min="30" max="300" step="1" th:field="*{duration}" id="form-duration" class="form-input" required>
                 </div>
@@ -242,6 +250,7 @@
     const releaseDateInput = document.getElementById('form-releaseDate');
     const ageRatingInput = document.getElementById('form-ageRating');
     const genreSelect = document.getElementById('form-genres');
+    const branchSelect = document.getElementById('form-branches');
     const descriptionInput = document.getElementById('form-description');
     let isEditMode = false;
 
@@ -297,6 +306,12 @@
             genreSelect.setCustomValidity('');
         }
 
+        if (branchSelect.selectedOptions.length === 0) {
+            branchSelect.setCustomValidity('Vui lòng chọn ít nhất một rạp chiếu.');
+        } else {
+            branchSelect.setCustomValidity('');
+        }
+
         if ((descriptionInput.value || '').length > 2000) {
             descriptionInput.setCustomValidity('Mô tả tối đa 2000 ký tự.');
         } else {
@@ -309,6 +324,7 @@
     releaseDateInput.addEventListener('input', updateValidity);
     ageRatingInput.addEventListener('change', updateValidity);
     genreSelect.addEventListener('change', updateValidity);
+    branchSelect.addEventListener('change', updateValidity);
     descriptionInput.addEventListener('input', updateValidity);
 
     form.addEventListener('submit', (event) => {
@@ -340,6 +356,9 @@
         Array.from(genreSelect.options).forEach(option => {
             option.selected = false;
         });
+        Array.from(branchSelect.options).forEach(option => {
+            option.selected = false;
+        });
         setTodayMinDate();
         updateValidity();
         document.getElementById('movieModal').classList.remove('hidden');
@@ -354,6 +373,10 @@
         const selectedIds = (movie.genreIds || []).map(String);
         Array.from(genreSelect.options).forEach(option => {
             option.selected = selectedIds.includes(option.value);
+        });
+        const selectedBranchIds = (movie.branchIds || []).map(String);
+        Array.from(branchSelect.options).forEach(option => {
+            option.selected = selectedBranchIds.includes(option.value);
         });
         document.getElementById('form-duration').value = movie.duration || "";
         document.getElementById('form-releaseDate').value = movie.releaseDate || "";
