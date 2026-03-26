@@ -35,7 +35,8 @@ public class MovieManagementController {
                        @RequestParam(defaultValue = "8") int size,
                        @RequestParam(required = false) String search,
                        @RequestParam(required = false) String status,
-                       @RequestParam(required = false) String hidden) {
+                       @RequestParam(required = false) String hidden,
+                       @RequestParam(required = false) String sort) {
         Movie.MovieStatus statusFilter = null;
         if (status != null && !status.isBlank()) {
             try {
@@ -59,7 +60,8 @@ public class MovieManagementController {
                 size,
                 search,
                 statusFilter,
-                hiddenFilter);
+                hiddenFilter,
+                sort);
         model.addAttribute("movieList", moviePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", moviePage.getTotalPages());
@@ -67,6 +69,7 @@ public class MovieManagementController {
         model.addAttribute("search", search == null ? "" : search);
         model.addAttribute("statusFilter", status == null ? "" : status);
         model.addAttribute("hiddenFilter", hidden == null ? "" : hidden);
+        model.addAttribute("sortFilter", sort == null ? "" : sort);
         model.addAttribute("newMovie", new MovieDTO());
         model.addAttribute("genreList", genreService.getAllGenres());
         model.addAttribute("branches", movieService.getActiveBranches());

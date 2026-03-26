@@ -56,7 +56,8 @@ public class ManagerController {
                                 @RequestParam(defaultValue = "8") int size,
                                 @RequestParam(required = false) String search,
                                 @RequestParam(required = false) String status,
-                                @RequestParam(required = false) String hidden) {
+                                @RequestParam(required = false) String hidden,
+                                @RequestParam(required = false) String sort) {
         User user = requireManager(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
@@ -86,7 +87,8 @@ public class ManagerController {
                 size,
                 search,
                 statusFilter,
-                hiddenFilter
+                hiddenFilter,
+                sort
         );
 
         model.addAttribute("movieList", moviePage.getContent());
@@ -96,6 +98,7 @@ public class ManagerController {
         model.addAttribute("search", search == null ? "" : search);
         model.addAttribute("statusFilter", status == null ? "" : status);
         model.addAttribute("hiddenFilter", hidden == null ? "" : hidden);
+        model.addAttribute("sortFilter", sort == null ? "" : sort);
         model.addAttribute("readOnlyMode", true);
         model.addAttribute("movieBasePath", "/manager/movies");
         model.addAttribute("newMovie", new MovieDTO());

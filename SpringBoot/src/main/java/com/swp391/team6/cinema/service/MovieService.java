@@ -147,11 +147,11 @@ public class MovieService {
 
     @Transactional(readOnly = true)
     public Page<MovieDTO> getMoviesPageWithFilters(int page, int size, String keyword,
-                                                   Movie.MovieStatus status, Boolean hidden) {
+                                                   Movie.MovieStatus status, Boolean hidden, String sort) {
         String normalizedKeyword = (keyword != null && !keyword.isBlank())
                 ? keyword.trim()
                 : null;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        PageRequest pageRequest = PageRequest.of(page, size, resolveManagementSort(sort));
         Page<Movie> moviePage = movieRepository.findAdminMoviesWithFilters(
                 normalizedKeyword,
                 status,
@@ -162,14 +162,14 @@ public class MovieService {
 
     @Transactional(readOnly = true)
     public Page<MovieDTO> getBranchMoviesPageWithFilters(Long branchId, int page, int size, String keyword,
-                                                         Movie.MovieStatus status, Boolean hidden) {
+                                                         Movie.MovieStatus status, Boolean hidden, String sort) {
         if (branchId == null) {
             throw new IllegalArgumentException("Branch không hợp lệ.");
         }
         String normalizedKeyword = (keyword != null && !keyword.isBlank())
                 ? keyword.trim()
                 : null;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        PageRequest pageRequest = PageRequest.of(page, size, resolveManagementSort(sort));
         Page<Movie> moviePage = movieRepository.findBranchMoviesForManagement(
                 branchId,
                 normalizedKeyword,
@@ -417,6 +417,23 @@ public class MovieService {
 
     private String normalizeText(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private Sort resolveManagementSort(String sort) {
+        String normalizedSort = sort == null ? "" : sort.trim().toLowerCase();
+        if ("release_asc".equals(normalizedSort)) { // tăng dần
+            return Sort.by(
+                    Sort.Order.asc("releaseDate"),
+                    Sort.Order.desc("movieId") // cùng phát hành thì so movieid
+            );
+        }
+        if ("release_desc".equals(normalizedSort)) { // giảm dần
+            return Sort.by(
+                    Sort.Order.desc("releaseDate"),
+                    Sort.Order.desc("movieId")
+            );
+        }
+        return Sort.by(Sort.Order.desc("movieId"));
     }
 
     public List<GenreDTO> getAllGenres() {

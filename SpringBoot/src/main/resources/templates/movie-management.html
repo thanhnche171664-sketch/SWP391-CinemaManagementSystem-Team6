@@ -52,6 +52,12 @@
                 <option value="shown" th:selected="${hiddenFilter == 'shown'}">Shown</option>
                 <option value="hidden" th:selected="${hiddenFilter == 'hidden'}">Hidden</option>
             </select>
+
+            <select id="sortFilter" name="sort" onchange="submitFilters()" class="filter-select">
+                <option value="" th:selected="${sortFilter == ''}">Mặc định (mới nhất theo ID)</option>
+                <option value="release_desc" th:selected="${sortFilter == 'release_desc'}">Ngày phát hành: mới đến cũ</option>
+                <option value="release_asc" th:selected="${sortFilter == 'release_asc'}">Ngày phát hành: cũ đến mới</option>
+            </select>
         </form>
 
         <div class="table-card">
@@ -122,20 +128,20 @@
         <div class="pagination" th:if="${totalPages > 1}">
             <a class="page-link"
                th:if="${!readOnlyMode}"
-               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage == 0} ? ' disabled' : ''">
                 &laquo;
             </a>
             <a class="page-link"
                th:if="${readOnlyMode}"
-               th:href="@{/manager/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/manager/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage == 0} ? ' disabled' : ''">
                 &laquo;
             </a>
             <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                th:if="${!readOnlyMode}"
-               th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${i == currentPage} ? ' active' : ''"
                th:text="${i + 1}">
                 1
@@ -143,20 +149,20 @@
             <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                th:if="${readOnlyMode}"
-               th:href="@{/manager/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/manager/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${i == currentPage} ? ' active' : ''"
                th:text="${i + 1}">
                 1
             </a>
             <a class="page-link"
                th:if="${!readOnlyMode}"
-               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
                 &raquo;
             </a>
             <a class="page-link"
                th:if="${readOnlyMode}"
-               th:href="@{/manager/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/manager/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
                 &raquo;
             </a>

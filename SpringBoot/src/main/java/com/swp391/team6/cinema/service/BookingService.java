@@ -150,7 +150,7 @@ public class BookingService {
             result.put("message", "Vui lòng nhập mã khuyến mãi.");
             return result;
         }
-        if (currentTotal == null || currentTotal.compareTo(BigDecimal.ZERO) <= 0) {
+        if (currentTotal == null || currentTotal.compareTo(BigDecimal.ZERO) <= 0) { // nếu tổng tiền =0 -> ra message
             result.put("message", "Vui lòng chọn ghế trước khi áp mã.");
             return result;
         }
@@ -162,7 +162,7 @@ public class BookingService {
         }
 
         String normalizedCode = promoCode.trim().toUpperCase();
-        Promotion promo = promotionRepository.findByPromoCode(normalizedCode).orElse(null);
+        Promotion promo = promotionRepository.findByPromoCode(normalizedCode).orElse(null); //tìm mã giảm giá theo code
         if (promo == null) {
             result.put("message", "Mã khuyến mãi không tồn tại.");
             return result;
@@ -173,7 +173,7 @@ public class BookingService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        if (promo.getStartDate() != null && now.isBefore(promo.getStartDate())) {
+        if (promo.getStartDate() != null && now.isBefore(promo.getStartDate())) { //kiểm tra tg bắt đầu khác null và lấy tg hiện tại xem bằng tg bắt đầu không
             result.put("message", "Mã khuyến mãi chưa có hiệu lực.");
             return result;
         }
@@ -185,7 +185,7 @@ public class BookingService {
             result.put("message", "Mã khuyến mãi đã hết lượt sử dụng.");
             return result;
         }
-        if (promo.getMinBookingAmount() != null && currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
+        if (promo.getMinBookingAmount() != null && currentTotal.compareTo(promo.getMinBookingAmount()) < 0) { // nếu số tiền tổng < số tiền đơn hàng tối thiểu (khi create)
             result.put("message", "Đơn hàng tối thiểu " + promo.getMinBookingAmount().intValue() + " VND.");
             return result;
         }
@@ -197,12 +197,12 @@ public class BookingService {
             return result;
         }
 
-        BigDecimal discount = promo.getDiscountType() == Promotion.DiscountType.percent
-                ? currentTotal.multiply(promo.getDiscountValue()).divide(BigDecimal.valueOf(100))
-                : promo.getDiscountValue();
-        if (discount.compareTo(currentTotal) > 0) discount = currentTotal;
+        BigDecimal discount = promo.getDiscountType() == Promotion.DiscountType.percent //kiểm tra nếu loại discount là %
+                ? currentTotal.multiply(promo.getDiscountValue()).divide(BigDecimal.valueOf(100)) // thì tiền giảm giá = tổng tiền * giá trị discount / 100
+                : promo.getDiscountValue(); // nếu không phải loại % -> là loại VNĐ -> tiền giảm giá = giá trị giảm giá luôn
+        if (discount.compareTo(currentTotal) > 0) discount = currentTotal; // nếu tiền discount > tổng tiền -> discount = tổng tiền
 
-        BigDecimal finalAmount = currentTotal.subtract(discount);
+        BigDecimal finalAmount = currentTotal.subtract(discount); //final = tổng tiền - tiền giảm giá
         result.put("valid", true);
         result.put("message", "Áp mã thành công.");
         result.put("discountAmount", discount.intValue());
