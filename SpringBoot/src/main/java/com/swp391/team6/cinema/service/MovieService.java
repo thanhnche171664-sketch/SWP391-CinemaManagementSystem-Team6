@@ -10,7 +10,9 @@ import com.swp391.team6.cinema.repository.BranchMovieRepository;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.GenreRepository;
 import com.swp391.team6.cinema.repository.MovieRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,9 +38,43 @@ public class MovieService {
     private final GenreRepository genreRepository;
     private final BranchMovieRepository branchMovieRepository;
     private final CinemaBranchRepository cinemaBranchRepository;
+    private final JdbcTemplate jdbcTemplate;
     private static final Set<String> ALLOWED_AGE_RATINGS = new HashSet<>(Arrays.asList(
             "G", "PG", "PG-13", "C13", "C16", "C18", "P"
     ));
+
+    @PostConstruct
+    @Transactional
+    public void repairBranchMovieIndexesIfNeeded() {
+        // Legacy DB may still have a unique index only on branch_id,
+        // which incorrectly allows only one movie per branch.
+        List<String> legacyIndexes = jdbcTemplate.query(
+                "SELECT s.INDEX_NAME " +
+                        "FROM INFORMATION_SCHEMA.STATISTICS s " +
+                        "WHERE s.TABLE_SCHEMA = DATABASE() " +
+                        "AND s.TABLE_NAME = 'branch_movies' " +
+                        "AND s.NON_UNIQUE = 0 " +
+                        "GROUP BY s.INDEX_NAME " +
+                        "HAVING COUNT(*) = 1 AND MAX(s.COLUMN_NAME) = 'branch_id'",
+                (rs, rowNum) -> rs.getString("INDEX_NAME")
+        );
+
+        for (String indexName : legacyIndexes) {
+            jdbcTemplate.execute("ALTER TABLE branch_movies DROP INDEX " + indexName);
+        }
+
+        Integer uniqueCompositeIdx = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() " +
+                        "AND TABLE_NAME = 'branch_movies' " +
+                        "AND INDEX_NAME = 'uq_branch_movie'",
+                Integer.class
+        );
+
+        if (uniqueCompositeIdx == null || uniqueCompositeIdx == 0) {
+            jdbcTemplate.execute("ALTER TABLE branch_movies ADD CONSTRAINT uq_branch_movie UNIQUE (branch_id, movie_id)");
+        }
+    }
 
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
@@ -352,8 +389,13 @@ public class MovieService {
             throw new IllegalArgumentException("Phim chưa được khởi tạo để gán rạp.");
         }
 
-        List<CinemaBranch> branches = resolveBranches(branchIds);
+        List<Long> uniqueBranchIds = branchIds == null
+                ? new ArrayList<>()
+                : new ArrayList<>(new LinkedHashSet<>(branchIds));
+        List<CinemaBranch> branches = resolveBranches(uniqueBranchIds);
         branchMovieRepository.deleteByMovieMovieId(movie.getMovieId());
+        // Force delete before insert to avoid unique-key collision in same transaction.
+        branchMovieRepository.flush();
         for (CinemaBranch branch : branches) {
             BranchMovie branchMovie = new BranchMovie();
             branchMovie.setMovie(movie);
