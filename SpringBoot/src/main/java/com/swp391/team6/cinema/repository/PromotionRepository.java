@@ -24,6 +24,8 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
 
     List<Promotion> findAllByBranch_BranchId(Long branchId);
 
+    boolean existsByPromoCode(String promoCode); //check promotion code đã tồn tại hay chưa
+
     List<Promotion> findAllByBranch_BranchId(Long branchId, Sort sort);
 
     // Thống kê số lượng theo trạng thái (Cho 4 ô dashboard)

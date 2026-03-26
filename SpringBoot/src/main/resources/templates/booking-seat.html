@@ -104,11 +104,27 @@
                     <h6><i class="bi bi-cursor-fill"></i> Ghế đã chọn:</h6>
                     <p id="selectedSeatsDisplay" class="booking-seat-summary-text mb-0">Chưa chọn ghế</p>
                     <input type="hidden" name="selectedSeats" id="selectedSeatsInput" value="">
+                    <input type="hidden" name="promoCode" id="promoCodeHidden" value="">
                 </div>
                 <div class="booking-seat-total">
-                    <h6><i class="bi bi-cash"></i> Tổng tiền:</h6>
+                    <h6><i class="bi bi-cash"></i> Tạm tính:</h6>
+                    <p class="total-amount mb-1" id="subtotalAmount">0 VND</p>
+                    <p class="mb-1 text-success" id="discountRow" style="display:none;">
+                        Giảm giá: -<span id="discountAmount">0</span> VND
+                    </p>
+                    <h6 class="mt-2"><i class="bi bi-wallet2"></i> Tổng thanh toán:</h6>
                     <p class="total-amount" id="totalAmount">0 VND</p>
                 </div>
+            </div>
+
+            <div class="mt-3">
+                <label for="promoCodeInput" class="form-label fw-semibold mb-1">Mã khuyến mãi</label>
+                <div class="input-group">
+                    <input type="text" id="promoCodeInput" class="form-control" placeholder="Nhập mã (ví dụ: SALE10)">
+                    <button type="button" class="btn btn-outline-primary" id="applyPromoBtn">Áp mã</button>
+                    <button type="button" class="btn btn-outline-secondary" id="clearPromoBtn">Xóa</button>
+                </div>
+                <small id="promoMessage" class="d-block mt-1 text-muted"></small>
             </div>
 
 
@@ -142,26 +158,31 @@
 
 <script th:inline="javascript">
 (function() {
-    // Config
-    const POLL_INTERVAL = 10000; // 10 seconds
+    const POLL_INTERVAL = 10000;
     const showtimeId = /*[[${showtime.showtimeId}]]*/ 0;
 
     let refreshInterval;
+    let currentSubtotal = 0;
+    let appliedPromoCode = '';
 
-    // Elements
     const form = document.getElementById('bookingForm');
+    const subtotalEl = document.getElementById('subtotalAmount');
     const totalEl = document.getElementById('totalAmount');
+    const discountRow = document.getElementById('discountRow');
+    const discountAmountEl = document.getElementById('discountAmount');
     const selectedSeatsDisplay = document.getElementById('selectedSeatsDisplay');
     const selectedSeatsInput = document.getElementById('selectedSeatsInput');
+    const promoCodeInput = document.getElementById('promoCodeInput');
+    const promoCodeHidden = document.getElementById('promoCodeHidden');
+    const promoMessage = document.getElementById('promoMessage');
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
+    const clearPromoBtn = document.getElementById('clearPromoBtn');
     const submitBtn = document.getElementById('submitBtn');
     const checkboxes = form.querySelectorAll('input[name="seatIds"]');
     const seatStatusNotice = document.getElementById('seatStatusNotice');
     const seatStatusText = document.getElementById('seatStatusText');
 
-    // Seat data for display
     const seatsData = /*[[${seats}]]*/ [];
-
-    // --- Helpers ---
 
     function showToast(message, type) {
         type = type || 'warning';
@@ -180,6 +201,27 @@
         }
     }
 
+    function formatCurrency(value) {
+        return Number(value || 0).toLocaleString('vi-VN') + ' VND';
+    }
+
+    function setPromoMessage(message, cssClass) {
+        if (!promoMessage) return;
+        promoMessage.className = 'd-block mt-1 ' + (cssClass || 'text-muted');
+        promoMessage.textContent = message || '';
+    }
+
+    function updatePriceDisplay(subtotal, discount) {
+        const safeSubtotal = Number(subtotal || 0);
+        const safeDiscount = Number(discount || 0);
+        const finalAmount = Math.max(0, safeSubtotal - safeDiscount);
+
+        if (subtotalEl) subtotalEl.textContent = formatCurrency(safeSubtotal);
+        if (discountRow) discountRow.style.display = safeDiscount > 0 ? 'block' : 'none';
+        if (discountAmountEl) discountAmountEl.textContent = safeDiscount.toLocaleString('vi-VN');
+        if (totalEl) totalEl.textContent = formatCurrency(finalAmount);
+    }
+
     function getSeatLabel(seatId) {
         seatId = String(seatId);
         for (var i = 0; i < seatsData.length; i++) {
@@ -190,7 +232,6 @@
         return 'Ghế ' + seatId;
     }
 
-    // Show/hide the notification banner
     function updateNotice(pendingSeatIds) {
         if (!seatStatusNotice || !seatStatusText) return;
         if (pendingSeatIds.length === 0) {
@@ -202,7 +243,6 @@
         seatStatusNotice.style.display = 'flex';
     }
 
-    // Apply correct seat state from the 3 categories
     function applySeatStates(paidSet, pendingSet) {
         var changed = false;
 
@@ -212,14 +252,12 @@
             if (!label) return;
 
             if (paidSet.has(seatId)) {
-                // Ghế đã thanh toán — lock vĩnh viễn
                 label.classList.remove('available', 'selected', 'pending-seat');
                 label.classList.add('occupied');
                 cb.disabled = true;
                 cb.checked = false;
                 changed = true;
             } else if (pendingSet.has(seatId)) {
-                // Ghế đang chờ thanh toán
                 if (!cb.checked) {
                     label.classList.remove('available', 'selected', 'occupied');
                     label.classList.add('pending-seat');
@@ -227,7 +265,6 @@
                     changed = true;
                 }
             } else {
-                // Ghế trống — chỉ enable nếu user chưa chọn
                 if (!cb.checked) {
                     label.classList.remove('occupied', 'pending-seat');
                     label.classList.add('available');
@@ -239,28 +276,94 @@
         if (changed) updateSelectedUI();
     }
 
-    // Update total price and selected seats summary
+    async function applyPromotion(silent) {
+        const code = (promoCodeInput && promoCodeInput.value ? promoCodeInput.value.trim() : '');
+        if (!code) {
+            appliedPromoCode = '';
+            if (promoCodeHidden) promoCodeHidden.value = '';
+            updatePriceDisplay(currentSubtotal, 0);
+            if (!silent) setPromoMessage('Vui lòng nhập mã khuyến mãi.', 'text-danger');
+            return;
+        }
+        if (currentSubtotal <= 0) {
+            if (!silent) setPromoMessage('Vui lòng chọn ghế trước khi áp mã.', 'text-danger');
+            return;
+        }
+
+        if (applyPromoBtn) {
+            applyPromoBtn.disabled = true;
+            applyPromoBtn.textContent = 'Đang kiểm tra...';
+        }
+
+        try {
+            const params = new URLSearchParams({
+                showtimeId: String(showtimeId),
+                promoCode: code,
+                currentTotal: String(currentSubtotal)
+            });
+            const resp = await fetch('/booking/api/validate-promo?' + params.toString());
+            const data = await resp.json();
+
+            if (!resp.ok || !data.valid) {
+                appliedPromoCode = '';
+                if (promoCodeHidden) promoCodeHidden.value = '';
+                updatePriceDisplay(currentSubtotal, 0);
+                if (!silent) setPromoMessage(data.message || 'Mã khuyến mãi không hợp lệ.', 'text-danger');
+                return;
+            }
+
+            const discount = Number(data.discountAmount || 0);
+            appliedPromoCode = data.promoCode || code.toUpperCase();
+            if (promoCodeInput) promoCodeInput.value = appliedPromoCode;
+            if (promoCodeHidden) promoCodeHidden.value = appliedPromoCode;
+            updatePriceDisplay(currentSubtotal, discount);
+            if (!silent) setPromoMessage(data.message || 'Áp mã thành công.', 'text-success');
+        } catch (e) {
+            appliedPromoCode = '';
+            if (promoCodeHidden) promoCodeHidden.value = '';
+            updatePriceDisplay(currentSubtotal, 0);
+            if (!silent) setPromoMessage('Không thể kiểm tra mã khuyến mãi lúc này.', 'text-danger');
+        } finally {
+            if (applyPromoBtn) {
+                applyPromoBtn.disabled = false;
+                applyPromoBtn.textContent = 'Áp mã';
+            }
+        }
+    }
+
+    function clearPromotion() {
+        appliedPromoCode = '';
+        if (promoCodeInput) promoCodeInput.value = '';
+        if (promoCodeHidden) promoCodeHidden.value = '';
+        updatePriceDisplay(currentSubtotal, 0);
+        setPromoMessage('', 'text-muted');
+    }
+
     function updateSelectedUI() {
-        var total = 0;
+        var subtotal = 0;
         var selectedNames = [];
         checkboxes.forEach(function(cb) {
             if (cb.checked) {
                 var label = cb.closest('.seat-option');
                 if (label) {
                     var price = parseInt(label.getAttribute('data-price') || '0', 10);
-                    total += price;
+                    subtotal += price;
                 }
                 selectedNames.push(getSeatLabel(cb.value));
             }
         });
-        totalEl.textContent = total.toLocaleString() + ' VND';
+        currentSubtotal = subtotal;
+        updatePriceDisplay(currentSubtotal, 0);
         selectedSeatsDisplay.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Chưa chọn ghế';
         selectedSeatsInput.value = selectedNames.join(',');
         submitBtn.disabled = (selectedNames.length === 0);
-        const select = document.getElementById("promotionSelect");
+
+        if (appliedPromoCode) {
+            if (promoCodeInput) promoCodeInput.value = appliedPromoCode;
+            applyPromotion(true);
+        }
     }
 
-    // --- Main polling function ---
     async function pollOccupiedSeats() {
         try {
             var resp = await fetch('/booking/api/seats/status?showtimeId=' + showtimeId);
@@ -268,12 +371,9 @@
             var raw = await resp.json();
             if (!raw || typeof raw !== 'object') return;
 
-            // Build Number Sets from arrays (JSON parses as Number[])
             var paidSet    = new Set((raw.paid    || []).map(function(n) { return parseInt(n, 10); }));
             var pendingSet = new Set((raw.pending || []).map(function(n) { return parseInt(n, 10); }));
-            var freeSet    = new Set((raw.free    || []).map(function(n) { return parseInt(n, 10); }));
 
-            // Nếu ghế user đang chọn bị người khác chiếm → bỏ chọn + cảnh báo
             checkboxes.forEach(function(cb) {
                 if (!cb.checked) return;
                 var seatId = parseInt(cb.value, 10);
@@ -285,20 +385,12 @@
                 }
             });
 
-            // Cập nhật trạng thái tất cả ghế
             applySeatStates(paidSet, pendingSet);
-
-            // Cập nhật notification banner
             updateNotice(raw.pending || []);
-
         } catch (e) {
-            // Silent fail
         }
     }
 
-    // --- Event handlers ---
-
-    // Seat selection change
     checkboxes.forEach(function(cb) {
         cb.addEventListener('change', function() {
             var label = this.closest('.seat-option');
@@ -307,11 +399,30 @@
                 else label.classList.remove('selected');
             }
             updateSelectedUI();
-            changePromotion();
         });
     });
 
-    // Form submit
+    if (applyPromoBtn) {
+        applyPromoBtn.addEventListener('click', function() {
+            applyPromotion(false);
+        });
+    }
+
+    if (clearPromoBtn) {
+        clearPromoBtn.addEventListener('click', function() {
+            clearPromotion();
+        });
+    }
+
+    if (promoCodeInput) {
+        promoCodeInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyPromotion(false);
+            }
+        });
+    }
+
     form.addEventListener('submit', function(e) {
         var selected = Array.from(checkboxes).filter(function(cb) { return cb.checked; }).map(function(cb) { return cb.value; });
         if (selected.length === 0) {
@@ -319,79 +430,18 @@
             showToast('Vui lòng chọn ghế!', 'warning');
             return;
         }
+        if (promoCodeInput && promoCodeInput.value.trim() && promoCodeHidden && !promoCodeHidden.value) {
+            e.preventDefault();
+            setPromoMessage('Vui lòng bấm "Áp mã" để xác nhận khuyến mãi trước khi thanh toán.', 'text-danger');
+            return;
+        }
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
     });
 
-    // Start polling
     refreshInterval = setInterval(pollOccupiedSeats, POLL_INTERVAL);
-
-    console.log('Booking flow initialized.');
+    updateSelectedUI();
 })();
-
-function changePromotion(){
-    applyPromotion();
-    console.log("proId: " + document.getElementById("promotionId").value);
-}
-
-function applyPromotion() {
-
-    const select = document.getElementById("promotionSelect");
-    const option = select.options[select.selectedIndex];
-
-    if (select.value === "") {
-        document.getElementById("promotionId").value = select.value;
-        document.getElementById("discountRow").style.display = "none";
-        return;
-    }
-
-    const type = option.getAttribute("data-type");
-    const value = parseFloat(option.getAttribute("data-value"));
-    const min = parseFloat(option.getAttribute("data-min")) || 0;
-
-    // Tổng tiền vé hiện tại
-    let totalText = document.getElementById("totalAmount").textContent;
-
-    let total = parseFloat(
-        totalText.replace("VND", "")
-                 .replace(/,/g, "")
-                 .trim()
-    );
-
-        // ===== Kiểm tra đủ điều kiện áp dụng =====
-    if (total < min) {
-        document.getElementById("voucherMessage").innerText =
-            "Đơn tối thiểu phải từ " + min.toLocaleString("vi-VN") + " VND";
-            document.getElementById("discountRow").style.display = "none";
-            document.getElementById("promotionId").value = "";
-        return;
-    }else{
-    }
-
-    let discount = 0;
-
-    if (type === "percent") {
-        discount = total * value / 100;
-    } else {
-        discount = value;
-    }
-
-    // Không cho giảm quá tổng tiền
-    if (discount > total) discount = total;
-
-    let finalPrice = total - discount;
-
-    // Hiển thị đúng tiền Việt
-    document.getElementById("discountAmount").textContent =
-        discount.toLocaleString("vi-VN");
-
-    document.getElementById("finalAmount").textContent =
-        finalPrice.toLocaleString("vi-VN");
-
-    document.getElementById("discountRow").style.display = "block";
-    document.getElementById("promotionId").value = select.value;
-    document.getElementById("voucherMessage").innerText = "";
-}
 </script>
 </body>
 </html>

@@ -265,7 +265,7 @@
           <div class="mb-3">
             <label class="fw-bold">SĐT hoặc Email:</label>
             <div class="input-group">
-              <input type="text" id="contactKey" class="form-control" placeholder="Nhập để tìm hoặc tạo mới" onblur="findUser()">
+              <input type="text" id="contactKey" class="form-control" placeholder="Nhập để tìm khách hàng" onblur="findUser()">
               <span class="input-group-text"><i class="bi bi-search"></i></span>
             </div>
           </div>
@@ -570,14 +570,49 @@ window.addEventListener('beforeunload', function (e) {
   }
 
 async function findUser() {
-      const val = document.getElementById('contactKey').value;
-      if(!val) return;
-      const url = val.includes('@') ? '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) : '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
-      try {
-          const r = await fetch(url);
-          document.getElementById('customerName').value = r.ok ? (await r.json()).full_name : "Khách vãng lai";
-      } catch(e) { document.getElementById('customerName').value = "Khách vãng lai"; }
-  }
+    const contactInput = document.getElementById('contactKey');
+    const val = contactInput.value.trim();
+    const nameInput = document.getElementById('customerName');
+
+    if (!val) {
+        nameInput.value = "Khách vãng lai";
+        contactInput.classList.remove('is-invalid');
+        return;
+    }
+
+    if (!isValidContact(val)) {
+        contactInput.classList.add('is-invalid');
+        nameInput.value = "Định dạng sai";
+        return;
+    }
+
+    contactInput.classList.remove('is-invalid');
+    const url = val.includes('@') ?
+        '/staff/booking/api/find-user-by-email?email=' + encodeURIComponent(val) :
+        '/staff/booking/api/find-user?phone=' + encodeURIComponent(val);
+
+    try {
+        const r = await fetch(url);
+        if (r.ok) {
+            const user = await r.json();
+            nameInput.value = user.fullName || user.full_name;
+        } else {
+            nameInput.value = "Khách vãng lai";
+        }
+    } catch(e) {
+        nameInput.value = "Khách vãng lai";
+    }
+}
+
+  function isValidContact(value) {
+    if (!value || value.trim() === "") return true; // CHẤP NHẬN NULL/TRỐNG
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
+
+    if (value.includes('@')) return emailRegex.test(value);
+    return phoneRegex.test(value);
+}
 
   async function loadInitialCustomers() {
       const res = await fetch('/staff/booking/api/search-users?name=');
@@ -614,6 +649,10 @@ async function findUser() {
 
   function processPayment() {
       const contactVal = document.getElementById('contactKey').value;
+      if (contactVal !== "" && !isValidContact(contactVal)) {
+        Swal.fire('Lỗi', 'Thông tin liên lạc không đúng định dạng!', 'error');
+        return;
+      }
       const customerName = document.getElementById('customerName').value;
       const activeShowtime = document.querySelector('.showtime-btn.active');
       const seatNames = selectedSeats.map(s => s.name).join(', ');
@@ -623,7 +662,7 @@ async function findUser() {
       if (!activeShowtime) { alert("Vui lòng chọn suất chiếu!"); return; }
 
       document.getElementById('reviewCustomer').innerText = customerName || "Khách vãng lai";
-      document.getElementById('reviewContact').innerText = contactVal;
+      document.getElementById('reviewContact').innerText = contactVal || "Không cung cấp";
       document.getElementById('reviewMovie').innerText = document.getElementById('movieTitle').innerText;
 
       document.getElementById('reviewTime').innerText = activeShowtime.innerText.replace(/\s+/g, ' ');

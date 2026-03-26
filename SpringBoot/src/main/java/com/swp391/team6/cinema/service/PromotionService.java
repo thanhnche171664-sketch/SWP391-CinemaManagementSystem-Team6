@@ -61,6 +61,10 @@ public class PromotionService {
 
     @Transactional
     public void create(Promotion promotion) {
+
+        if (promotionRepository.existsByPromoCode(promotion.getPromoCode())) {
+            throw new RuntimeException("Mã khuyến mãi '" + promotion.getPromoCode() + "' đã tồn tại trên hệ thống!");
+        }
         // Kiểm tra logic số âm
         if (promotion.getUsageLimit() != null && promotion.getUsageLimit() < 0) {
             throw new RuntimeException("Giới hạn sử dụng không được là số âm");

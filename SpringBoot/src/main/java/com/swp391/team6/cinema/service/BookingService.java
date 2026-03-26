@@ -137,6 +137,81 @@ public class BookingService {
         return result;
     }
 
+    @Transactional(readOnly = true)
+    public Map<String, Object> validatePromotion(String promoCode, BigDecimal currentTotal, Long showtimeId) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", false);
+        result.put("message", "Mã khuyến mãi không hợp lệ.");
+        result.put("discountAmount", 0);
+        result.put("finalAmount", currentTotal != null ? currentTotal.intValue() : 0);
+        result.put("promoCode", null);
+
+        if (promoCode == null || promoCode.isBlank()) {
+            result.put("message", "Vui lòng nhập mã khuyến mãi.");
+            return result;
+        }
+        if (currentTotal == null || currentTotal.compareTo(BigDecimal.ZERO) <= 0) {
+            result.put("message", "Vui lòng chọn ghế trước khi áp mã.");
+            return result;
+        }
+
+        Showtime showtime = showtimeRepository.findById(showtimeId).orElse(null);
+        if (showtime == null) {
+            result.put("message", "Suất chiếu không tồn tại.");
+            return result;
+        }
+
+        String normalizedCode = promoCode.trim().toUpperCase();
+        Promotion promo = promotionRepository.findByPromoCode(normalizedCode).orElse(null);
+        if (promo == null) {
+            result.put("message", "Mã khuyến mãi không tồn tại.");
+            return result;
+        }
+        if (promo.getStatus() != Promotion.Status.active) {
+            result.put("message", "Mã khuyến mãi đã ngừng hoạt động.");
+            return result;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (promo.getStartDate() != null && now.isBefore(promo.getStartDate())) {
+            result.put("message", "Mã khuyến mãi chưa có hiệu lực.");
+            return result;
+        }
+        if (promo.getEndDate() != null && now.isAfter(promo.getEndDate())) {
+            result.put("message", "Mã khuyến mãi đã hết hạn.");
+            return result;
+        }
+        if (promo.getUsageLimit() != null && promo.getUsedCount() != null && promo.getUsedCount() >= promo.getUsageLimit()) {
+            result.put("message", "Mã khuyến mãi đã hết lượt sử dụng.");
+            return result;
+        }
+        if (promo.getMinBookingAmount() != null && currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
+            result.put("message", "Đơn hàng tối thiểu " + promo.getMinBookingAmount().intValue() + " VND.");
+            return result;
+        }
+
+        Long showtimeBranchId = showtime.getRoom().getBranch().getBranchId();
+        if (promo.getBranch() != null && promo.getBranch().getBranchId() != null
+                && !promo.getBranch().getBranchId().equals(showtimeBranchId)) {
+            result.put("message", "Mã khuyến mãi không áp dụng cho chi nhánh này.");
+            return result;
+        }
+
+        BigDecimal discount = promo.getDiscountType() == Promotion.DiscountType.percent
+                ? currentTotal.multiply(promo.getDiscountValue()).divide(BigDecimal.valueOf(100))
+                : promo.getDiscountValue();
+        if (discount.compareTo(currentTotal) > 0) discount = currentTotal;
+
+        BigDecimal finalAmount = currentTotal.subtract(discount);
+        result.put("valid", true);
+        result.put("message", "Áp mã thành công.");
+        result.put("discountAmount", discount.intValue());
+        result.put("finalAmount", finalAmount.intValue());
+        result.put("promoCode", normalizedCode);
+        result.put("promotionId", promo.getPromotionId());
+        return result;
+    }
+
     /**
      * Create a pending booking with seats and a pending payment record.
      * Uses PESSIMISTIC_WRITE lock on the showtime row to prevent race conditions:
@@ -144,7 +219,7 @@ public class BookingService {
      * - Thread B blocks on lock → reads occupied seats (now includes A's booking) → fails correctly
      */
     @Transactional
-    public Booking createBooking(Long userId, Long showtimeId, List<Long> seatIds) {
+    public Booking createBooking(Long userId, Long showtimeId, List<Long> seatIds, String promoCode) {
         // Pessimistic lock: blocks any concurrent createBooking for this showtime
         Showtime showtime = showtimeRepository.findByIdWithLock(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("Showtime not found"));
@@ -167,12 +242,30 @@ public class BookingService {
         }
         if (selectedSeats.isEmpty()) throw new IllegalArgumentException("Select at least one seat");
 
+        Promotion appliedPromotion = null;
+        if (promoCode != null && !promoCode.isBlank()) {
+            Map<String, Object> validation = validatePromotion(promoCode, total, showtimeId);
+            if (!Boolean.TRUE.equals(validation.get("valid"))) {
+                throw new IllegalArgumentException(String.valueOf(validation.get("message")));
+            }
+            String normalizedCode = String.valueOf(validation.get("promoCode"));
+            BigDecimal discount = BigDecimal.valueOf(((Number) validation.get("discountAmount")).longValue());
+            total = total.subtract(discount);
+
+            appliedPromotion = promotionRepository.findByPromoCode(normalizedCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Mã khuyến mãi không tồn tại."));
+            Integer usedCount = appliedPromotion.getUsedCount() == null ? 0 : appliedPromotion.getUsedCount();
+            appliedPromotion.setUsedCount(usedCount + 1);
+            promotionRepository.save(appliedPromotion);
+        }
+
         Booking booking = new Booking();
         booking.setShowtime(showtime);
         booking.setUser(userRepository.getReferenceById(userId));
         booking.setBookingType(Booking.BookingType.online);
         booking.setStatus(Booking.BookingStatus.pending);
         booking.setTotalAmount(total);
+        booking.setPromotion(appliedPromotion);
         booking = bookingRepository.save(booking);
 
         for (Seat seat : selectedSeats) {

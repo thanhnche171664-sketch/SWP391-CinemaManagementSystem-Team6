@@ -109,13 +109,13 @@ public class CounterBookingService {
         return response;
     }
 
-    /**
-     * Xử lý đặt vé tại quầy (Logic nguyên bản từ Controller cũ)
-     */
+
     @Transactional
     public Booking processCounterBooking(User staff, Long showtimeId, List<Long> seatIds,
                                          String phone, String email, String paymentMethodStr,
                                          String promoCode) {
+
+        validateContactInfo(phone, email);
 
         boolean isPayOS = "payos".equalsIgnoreCase(paymentMethodStr) || "online".equalsIgnoreCase(paymentMethodStr);
         boolean isCash = "cash".equalsIgnoreCase(paymentMethodStr);
@@ -128,15 +128,18 @@ public class CounterBookingService {
                 .orElseThrow(() -> new IllegalArgumentException("Suất chiếu không tồn tại"));
 
         User customer = null;
+        String rawContact = (phone != null && !phone.isBlank()) ? phone.trim() : (email != null ? email.trim() : null);
+
         if (email != null && !email.trim().isEmpty()) {
             customer = userRepository.findByEmail(email.trim()).orElse(null);
         } else if (phone != null && !phone.trim().isEmpty()) {
             customer = userRepository.findByPhone(phone.trim()).orElse(null);
         }
 
-        if (customer == null) {
+        boolean isGuest = (customer == null);
+        if (isGuest) {
             customer = userRepository.findFirstByRole(User.UserRole.GUEST)
-                    .orElseThrow(() -> new IllegalArgumentException("Hệ thống chưa cấu hình tài khoản mặc định cho Role CUSTOMER"));
+                    .orElseThrow(() -> new IllegalArgumentException("Chưa cấu hình tài khoản GUEST"));
         }
 
         Long branchId = showtime.getRoom().getBranch().getBranchId();
@@ -158,7 +161,6 @@ public class CounterBookingService {
         Promotion appliedPromo = null;
         if (promoCode != null && !promoCode.isBlank()) {
             appliedPromo = promotionRepository.findByPromoCode(promoCode).orElse(null);
-            // Validation logic (giữ nguyên logic gốc)
             if (appliedPromo == null || appliedPromo.getStatus() != Promotion.Status.active) throw new IllegalArgumentException("Mã không khả dụng");
             if (!appliedPromo.getBranch().getBranchId().equals(branchId)) throw new IllegalArgumentException("Mã không thuộc chi nhánh");
 
@@ -178,6 +180,10 @@ public class CounterBookingService {
         booking.setStatus(isPayOS ? Booking.BookingStatus.pending : Booking.BookingStatus.paid);
         booking.setTotalAmount(total);
         if (appliedPromo != null) booking.setPromotion(appliedPromo);
+
+        if (isGuest) {
+            booking.setCustomerInfo(rawContact);
+        }
 
         booking = bookingRepository.save(booking);
 
@@ -239,10 +245,20 @@ public class CounterBookingService {
     public Map<String, Object> getBookingDetailSummary(Long id) {
         Booking b = bookingRepository.findByIdWithDetails(id).orElseThrow();
         Map<String, Object> map = new HashMap<>();
+
+        boolean isGuest = b.getUser().getRole() == User.UserRole.GUEST;
+        String contact = (b.getCustomerInfo() != null) ? b.getCustomerInfo() : "N/A";
+
         map.put("bookingId", b.getBookingId());
-        map.put("customer", b.getUser().getFullName());
-        map.put("email", b.getUser().getEmail() != null ? b.getUser().getEmail() : "N/A");
-        map.put("phone", b.getUser().getPhone() != null ? b.getUser().getPhone() : "N/A");
+        map.put("customer", isGuest ? "Khách vãng lai" : b.getUser().getFullName());
+        if (isGuest) {
+            map.put("email", contact.contains("@") ? contact : "N/A");
+            map.put("phone", !contact.contains("@") ? contact : "N/A");
+        } else {
+            map.put("email", b.getUser().getEmail() != null ? b.getUser().getEmail() : "N/A");
+            map.put("phone", b.getUser().getPhone() != null ? b.getUser().getPhone() : "N/A");
+        }
+
         map.put("movie", b.getShowtime().getMovie().getTitle());
         map.put("room", b.getShowtime().getRoom().getRoomName());
         map.put("startTime", b.getShowtime().getStartTime().toString());
@@ -250,5 +266,21 @@ public class CounterBookingService {
         map.put("total", b.getTotalAmount());
         map.put("promo", b.getPromotion() != null ? b.getPromotion().getPromoCode() : "Không sử dụng");
         return map;
+    }
+
+    private void validateContactInfo(String phone, String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        String phoneRegex = "^(0[3|5|7|8|9])[0-9]{8}$";
+
+        if (phone != null && !phone.isBlank()) {
+            if (!phone.trim().matches(phoneRegex)) {
+                throw new IllegalArgumentException("Số điện thoại không đúng định dạng (10 số)");
+            }
+        }
+        if (email != null && !email.isBlank()) {
+            if (!email.trim().matches(emailRegex)) {
+                throw new IllegalArgumentException("Email không đúng định dạng");
+            }
+        }
     }
 }
