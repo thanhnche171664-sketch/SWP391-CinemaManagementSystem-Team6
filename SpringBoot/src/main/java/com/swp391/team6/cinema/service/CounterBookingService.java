@@ -91,9 +91,17 @@ public class CounterBookingService {
         if (!promo.getBranch().getBranchId().equals(branchId)) {
             throw new IllegalArgumentException("Mã không áp dụng cho chi nhánh này");
         }
+
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (promo.getStartDate() != null && now.isBefore(promo.getStartDate())) {
+            throw new IllegalArgumentException("Chương trình khuyến mãi chưa bắt đầu");
+        }
         if (promo.getEndDate() != null && now.isAfter(promo.getEndDate())) {
             throw new IllegalArgumentException("Mã đã hết hạn");
+        }
+
+        if (promo.getUsageLimit() != null && promo.getUsedCount() >= promo.getUsageLimit()) {
+            throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng");
         }
         if (currentTotal.compareTo(promo.getMinBookingAmount()) < 0) {
             throw new IllegalArgumentException("Đơn hàng chưa đạt giá trị tối thiểu");
