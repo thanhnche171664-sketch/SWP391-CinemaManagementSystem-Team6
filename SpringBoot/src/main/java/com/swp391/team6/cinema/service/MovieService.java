@@ -467,4 +467,11 @@ public class MovieService {
     public List<CinemaBranch> getActiveBranches() {
         return cinemaBranchRepository.findByStatus(CinemaBranch.BranchStatus.active);
     }
+
+    public List<Movie> getMoviesByBranch(Long branchId) {
+        return branchMovieRepository.findByBranchBranchId(branchId)
+                .stream()
+                .map(BranchMovie::getMovie)
+                .toList();
+    }
 }

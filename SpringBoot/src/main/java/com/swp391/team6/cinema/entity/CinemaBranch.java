@@ -33,9 +33,11 @@ public class CinemaBranch {
     private BranchStatus status = BranchStatus.active;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Room> rooms;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<BranchMovie> branchMovies;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)

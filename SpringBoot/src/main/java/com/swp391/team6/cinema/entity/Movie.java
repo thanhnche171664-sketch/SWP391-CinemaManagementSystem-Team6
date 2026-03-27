@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -55,9 +56,11 @@ public class Movie {
     private Boolean isHidden = false;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<BranchMovie> branchMovies;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Showtime> showtimes;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)

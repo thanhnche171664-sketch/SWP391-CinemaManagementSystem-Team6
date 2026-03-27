@@ -14,4 +14,6 @@ public interface BranchMovieRepository extends JpaRepository<BranchMovie, Long> 
     List<BranchMovie> findByMovieMovieId(Long movieId);
 
     void deleteByMovieMovieId(Long movieId);
+
+    List<BranchMovie> findByBranch_BranchId(Long branchId);
 }

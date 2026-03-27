@@ -1,9 +1,7 @@
 package com.swp391.team6.cinema.controller;
 
-import com.swp391.team6.cinema.entity.CinemaBranch;
-import com.swp391.team6.cinema.entity.Room;
-import com.swp391.team6.cinema.entity.Showtime;
-import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.entity.*;
+import com.swp391.team6.cinema.repository.BranchMovieRepository;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.service.MovieService;
 import com.swp391.team6.cinema.service.RoomService;
@@ -33,6 +31,7 @@ public class ShowtimeController {
     private final MovieService movieService;
     private final RoomService roomService;
     private final CinemaBranchRepository branchRepository;
+    private final BranchMovieRepository branchMovieRepository;
 
 
     @GetMapping("/admin/showtimes")
@@ -114,6 +113,28 @@ public class ShowtimeController {
         return roomService.getRoomsByBranch(branchId);
     }
 
+    @GetMapping("/admin/movies/by-branch")
+    @ResponseBody
+    public List<Movie> getMoviesByBranch(@RequestParam(required = false) Long branchId,
+                                         HttpSession session) {
+
+        User user = (User) session.getAttribute("loggedInUser");
+
+        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+            return List.of();
+        }
+
+        // nếu chưa chọn branch → trả empty
+        if (branchId == null) {
+            return List.of();
+        }
+
+        return branchMovieRepository.findByBranch_BranchId(branchId)
+                .stream()
+                .map(BranchMovie::getMovie)
+                .toList();
+    }
+
     @PostMapping("/admin/showtimes/create")
     public String createShowtime(
             @RequestParam Long movieId,
@@ -169,6 +190,7 @@ public class ShowtimeController {
 
         return "redirect:/admin/showtimes";
     }
+
 
     @GetMapping("/admin/showtimes/{id}")
     @ResponseBody
