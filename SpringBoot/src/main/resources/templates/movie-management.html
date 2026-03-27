@@ -52,6 +52,12 @@
                 <option value="shown" th:selected="${hiddenFilter == 'shown'}">Shown</option>
                 <option value="hidden" th:selected="${hiddenFilter == 'hidden'}">Hidden</option>
             </select>
+
+            <select id="sortFilter" name="sort" onchange="submitFilters()" class="filter-select">
+                <option value="" th:selected="${sortFilter == ''}">Mặc định (mới nhất theo ID)</option>
+                <option value="release_desc" th:selected="${sortFilter == 'release_desc'}">Ngày phát hành: mới đến cũ</option>
+                <option value="release_asc" th:selected="${sortFilter == 'release_asc'}">Ngày phát hành: cũ đến mới</option>
+            </select>
         </form>
 
         <div class="table-card">
@@ -62,6 +68,7 @@
                     <th>Poster</th>
                     <th>Tiêu đề</th>
                     <th>Thể loại</th>
+                    <th>Rạp chiếu</th>
                     <th>Thời lượng</th>
                     <th>Ngày phát hành</th>
                     <th>Tuổi</th>
@@ -79,6 +86,7 @@
                     </td>
                     <td th:text="${movie.title}"></td>
                     <td class="text-muted" th:text="${movie.genreNames}"></td>
+                    <td class="text-muted" th:text="${movie.branchNames}"></td>
                     <td class="text-muted" th:text="${movie.duration} + ' phút'"></td>
                     <td class="text-muted"
                         th:text="${movie.releaseDate != null ? #temporals.format(movie.releaseDate, 'dd/MM/yyyy') : '-'}"></td>
@@ -120,20 +128,20 @@
         <div class="pagination" th:if="${totalPages > 1}">
             <a class="page-link"
                th:if="${!readOnlyMode}"
-               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/admin/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage == 0} ? ' disabled' : ''">
                 &laquo;
             </a>
             <a class="page-link"
                th:if="${readOnlyMode}"
-               th:href="@{/manager/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/manager/movies(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage == 0} ? ' disabled' : ''">
                 &laquo;
             </a>
             <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                th:if="${!readOnlyMode}"
-               th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/admin/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${i == currentPage} ? ' active' : ''"
                th:text="${i + 1}">
                 1
@@ -141,20 +149,20 @@
             <a class="page-link"
                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                th:if="${readOnlyMode}"
-               th:href="@{/manager/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/manager/movies(page=${i}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${i == currentPage} ? ' active' : ''"
                th:text="${i + 1}">
                 1
             </a>
             <a class="page-link"
                th:if="${!readOnlyMode}"
-               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/admin/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
                 &raquo;
             </a>
             <a class="page-link"
                th:if="${readOnlyMode}"
-               th:href="@{/manager/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter})}"
+               th:href="@{/manager/movies(page=${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}, size=${pageSize}, search=${search}, status=${statusFilter}, hidden=${hiddenFilter}, sort=${sortFilter})}"
                th:classappend="${currentPage + 1 >= totalPages} ? ' disabled' : ''">
                 &raquo;
             </a>
@@ -181,6 +189,12 @@
                     <label class="form-label">Thể loại</label>
                     <select multiple th:field="*{genreIds}" id="form-genres" class="form-select" required>
                         <option th:each="g : ${genreList}" th:value="${g.genreId}" th:text="${g.genreName}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rạp chiếu</label>
+                    <select multiple th:field="*{branchIds}" id="form-branches" class="form-select" required>
+                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"></option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -242,6 +256,7 @@
     const releaseDateInput = document.getElementById('form-releaseDate');
     const ageRatingInput = document.getElementById('form-ageRating');
     const genreSelect = document.getElementById('form-genres');
+    const branchSelect = document.getElementById('form-branches');
     const descriptionInput = document.getElementById('form-description');
     let isEditMode = false;
 
@@ -297,6 +312,12 @@
             genreSelect.setCustomValidity('');
         }
 
+        if (branchSelect.selectedOptions.length === 0) {
+            branchSelect.setCustomValidity('Vui lòng chọn ít nhất một rạp chiếu.');
+        } else {
+            branchSelect.setCustomValidity('');
+        }
+
         if ((descriptionInput.value || '').length > 2000) {
             descriptionInput.setCustomValidity('Mô tả tối đa 2000 ký tự.');
         } else {
@@ -309,6 +330,7 @@
     releaseDateInput.addEventListener('input', updateValidity);
     ageRatingInput.addEventListener('change', updateValidity);
     genreSelect.addEventListener('change', updateValidity);
+    branchSelect.addEventListener('change', updateValidity);
     descriptionInput.addEventListener('input', updateValidity);
 
     form.addEventListener('submit', (event) => {
@@ -340,6 +362,9 @@
         Array.from(genreSelect.options).forEach(option => {
             option.selected = false;
         });
+        Array.from(branchSelect.options).forEach(option => {
+            option.selected = false;
+        });
         setTodayMinDate();
         updateValidity();
         document.getElementById('movieModal').classList.remove('hidden');
@@ -354,6 +379,10 @@
         const selectedIds = (movie.genreIds || []).map(String);
         Array.from(genreSelect.options).forEach(option => {
             option.selected = selectedIds.includes(option.value);
+        });
+        const selectedBranchIds = (movie.branchIds || []).map(String);
+        Array.from(branchSelect.options).forEach(option => {
+            option.selected = selectedBranchIds.includes(option.value);
         });
         document.getElementById('form-duration').value = movie.duration || "";
         document.getElementById('form-releaseDate').value = movie.releaseDate || "";

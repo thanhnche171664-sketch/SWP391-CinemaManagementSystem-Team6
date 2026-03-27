@@ -32,12 +32,16 @@ public class PromotionController {
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) String keyword,
-                                 @RequestParam(required = false) String status){
+                                 @RequestParam(required = false) String status,
+                                 @RequestParam(required = false) String discountType,
+                                 @RequestParam(required = false) String timeFilter){
         User user = requireAdmin(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
-        Page<Promotion> promotionPage = promotionService.getAllPromotions(page, size, keyword, status);
+        Page<Promotion> promotionPage = promotionService.getAllPromotions(
+                page, size, keyword, status, discountType, timeFilter
+        );
 
         model.addAttribute("totalPromotions", promotionService.countAll());
         model.addAttribute("activeCount", promotionService.countActive());
@@ -47,6 +51,8 @@ public class PromotionController {
         model.addAttribute("promotions", promotionPage.getContent());
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
+        model.addAttribute("discountType", discountType);
+        model.addAttribute("timeFilter", timeFilter);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", promotionPage.getTotalPages());
         model.addAttribute("totalElements", promotionPage.getTotalElements());
@@ -75,17 +81,25 @@ public class PromotionController {
         if (user == null) {
             return "redirect:/auth/login";
         }
+
         try {
             promotionService.create(promotion);
+            // Nếu thành công, dùng FlashAttribute để hiện thông báo ở trang List
+            redirectAttributes.addFlashAttribute("success", "Thêm khuyến mãi thành công!");
             return "redirect:/admin/promotions/view";
+
         } catch (RuntimeException e) {
+            // LỖI NGHIỆP VỤ (Trùng mã, v.v.): Trả về trang form ngay lập tức
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("promotion", promotion);
+            model.addAttribute("promotion", promotion); // Giữ lại dữ liệu đã nhập
             model.addAttribute("promotionBasePath", "/admin/promotions");
             return "promotion-create";
+
         } catch (Exception e) {
+            // LỖI HỆ THỐNG
             log.error("Lỗi khi tạo khuyến mãi: ", e);
             model.addAttribute("error", "Có lỗi hệ thống xảy ra!");
+            model.addAttribute("promotion", promotion);
             model.addAttribute("promotionBasePath", "/admin/promotions");
             return "promotion-create";
         }

@@ -118,7 +118,7 @@
   lucide.createIcons();
 
   function printTicket(bookingId) {
-      window.open('/staff/booking/print/' + bookingId, '_blank', 'width=500,height=600');
+      window.location.href = '/staff/booking/print/' + bookingId;
   }
 
   function viewDetail(id) {

@@ -2,11 +2,17 @@ package com.swp391.team6.cinema.service;
 
 import com.swp391.team6.cinema.dto.GenreDTO;
 import com.swp391.team6.cinema.dto.MovieDTO;
+import com.swp391.team6.cinema.entity.BranchMovie;
+import com.swp391.team6.cinema.entity.CinemaBranch;
 import com.swp391.team6.cinema.entity.Genre;
 import com.swp391.team6.cinema.entity.Movie;
+import com.swp391.team6.cinema.repository.BranchMovieRepository;
+import com.swp391.team6.cinema.repository.CinemaBranchRepository;
 import com.swp391.team6.cinema.repository.GenreRepository;
 import com.swp391.team6.cinema.repository.MovieRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,9 +36,45 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private final BranchMovieRepository branchMovieRepository;
+    private final CinemaBranchRepository cinemaBranchRepository;
+    private final JdbcTemplate jdbcTemplate;
     private static final Set<String> ALLOWED_AGE_RATINGS = new HashSet<>(Arrays.asList(
             "G", "PG", "PG-13", "C13", "C16", "C18", "P"
     ));
+
+    @PostConstruct
+    @Transactional
+    public void repairBranchMovieIndexesIfNeeded() {
+        // Legacy DB may still have a unique index only on branch_id,
+        // which incorrectly allows only one movie per branch.
+        List<String> legacyIndexes = jdbcTemplate.query(
+                "SELECT s.INDEX_NAME " +
+                        "FROM INFORMATION_SCHEMA.STATISTICS s " +
+                        "WHERE s.TABLE_SCHEMA = DATABASE() " +
+                        "AND s.TABLE_NAME = 'branch_movies' " +
+                        "AND s.NON_UNIQUE = 0 " +
+                        "GROUP BY s.INDEX_NAME " +
+                        "HAVING COUNT(*) = 1 AND MAX(s.COLUMN_NAME) = 'branch_id'",
+                (rs, rowNum) -> rs.getString("INDEX_NAME")
+        );
+
+        for (String indexName : legacyIndexes) {
+            jdbcTemplate.execute("ALTER TABLE branch_movies DROP INDEX " + indexName);
+        }
+
+        Integer uniqueCompositeIdx = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() " +
+                        "AND TABLE_NAME = 'branch_movies' " +
+                        "AND INDEX_NAME = 'uq_branch_movie'",
+                Integer.class
+        );
+
+        if (uniqueCompositeIdx == null || uniqueCompositeIdx == 0) {
+            jdbcTemplate.execute("ALTER TABLE branch_movies ADD CONSTRAINT uq_branch_movie UNIQUE (branch_id, movie_id)");
+        }
+    }
 
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
@@ -104,11 +147,11 @@ public class MovieService {
 
     @Transactional(readOnly = true)
     public Page<MovieDTO> getMoviesPageWithFilters(int page, int size, String keyword,
-                                                   Movie.MovieStatus status, Boolean hidden) {
+                                                   Movie.MovieStatus status, Boolean hidden, String sort) {
         String normalizedKeyword = (keyword != null && !keyword.isBlank())
                 ? keyword.trim()
                 : null;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        PageRequest pageRequest = PageRequest.of(page, size, resolveManagementSort(sort));
         Page<Movie> moviePage = movieRepository.findAdminMoviesWithFilters(
                 normalizedKeyword,
                 status,
@@ -119,14 +162,14 @@ public class MovieService {
 
     @Transactional(readOnly = true)
     public Page<MovieDTO> getBranchMoviesPageWithFilters(Long branchId, int page, int size, String keyword,
-                                                         Movie.MovieStatus status, Boolean hidden) {
+                                                         Movie.MovieStatus status, Boolean hidden, String sort) {
         if (branchId == null) {
             throw new IllegalArgumentException("Branch không hợp lệ.");
         }
         String normalizedKeyword = (keyword != null && !keyword.isBlank())
                 ? keyword.trim()
                 : null;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movieId"));
+        PageRequest pageRequest = PageRequest.of(page, size, resolveManagementSort(sort));
         Page<Movie> moviePage = movieRepository.findBranchMoviesForManagement(
                 branchId,
                 normalizedKeyword,
@@ -158,6 +201,7 @@ public class MovieService {
         // Ensure new entity is always inserted
         movie.setMovieId(null);
         Movie savedMovie = movieRepository.save(movie);
+        saveMovieBranches(savedMovie, movieDTO.getBranchIds());
         return convertToDTO(savedMovie);
     }
 
@@ -196,6 +240,9 @@ public class MovieService {
         if (movieDTO.getHidden() != null) {
             existingMovie.setIsHidden(movieDTO.getHidden());
         }
+        if (movieDTO.getBranchIds() != null) {
+            saveMovieBranches(existingMovie, movieDTO.getBranchIds());
+        }
 
         validateMovieEntity(existingMovie, id);
 
@@ -232,6 +279,15 @@ public class MovieService {
                 .map(Genre::getGenreId)
                 .collect(Collectors.toList()));
         dto.setGenreNames(movie.getGenreNames());
+        List<BranchMovie> branchMovies = branchMovieRepository.findByMovieMovieId(movie.getMovieId());
+        dto.setBranchIds(branchMovies.stream()
+                .map(bm -> bm.getBranch().getBranchId())
+                .distinct()
+                .collect(Collectors.toList()));
+        dto.setBranchNames(branchMovies.stream()
+                .map(bm -> bm.getBranch().getBranchName())
+                .distinct()
+                .collect(Collectors.joining(", ")));
         return dto;
     }
 
@@ -291,6 +347,9 @@ public class MovieService {
         if (dto.getGenreIds() == null || dto.getGenreIds().isEmpty()) {
             throw new IllegalArgumentException("Vui lòng chọn ít nhất một thể loại.");
         }
+        if (dto.getBranchIds() == null || dto.getBranchIds().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất một rạp chiếu.");
+        }
 
         String ageRating = normalizeText(dto.getAgeRating());
         if (ageRating.isEmpty()) {
@@ -319,11 +378,62 @@ public class MovieService {
                 .collect(Collectors.toList()));
         dto.setAgeRating(movie.getAgeRating());
         dto.setReleaseDate(movie.getReleaseDate());
+        dto.setBranchIds(branchMovieRepository.findByMovieMovieId(movie.getMovieId()).stream()
+                .map(bm -> bm.getBranch().getBranchId())
+                .collect(Collectors.toList()));
         validateMovieDTO(dto, currentMovieId, false);
+    }
+
+    private void saveMovieBranches(Movie movie, List<Long> branchIds) {
+        if (movie.getMovieId() == null) {
+            throw new IllegalArgumentException("Phim chưa được khởi tạo để gán rạp.");
+        }
+
+        List<Long> uniqueBranchIds = branchIds == null
+                ? new ArrayList<>()
+                : new ArrayList<>(new LinkedHashSet<>(branchIds));
+        List<CinemaBranch> branches = resolveBranches(uniqueBranchIds);
+        branchMovieRepository.deleteByMovieMovieId(movie.getMovieId());
+        // Force delete before insert to avoid unique-key collision in same transaction.
+        branchMovieRepository.flush();
+        for (CinemaBranch branch : branches) {
+            BranchMovie branchMovie = new BranchMovie();
+            branchMovie.setMovie(movie);
+            branchMovie.setBranch(branch);
+            branchMovieRepository.save(branchMovie);
+        }
+    }
+
+    private List<CinemaBranch> resolveBranches(List<Long> branchIds) {
+        if (branchIds == null || branchIds.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất một rạp chiếu.");
+        }
+        List<CinemaBranch> branches = cinemaBranchRepository.findAllById(branchIds);
+        if (branches.size() != branchIds.stream().distinct().count()) {
+            throw new IllegalArgumentException("Có rạp chiếu không tồn tại.");
+        }
+        return branches;
     }
 
     private String normalizeText(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private Sort resolveManagementSort(String sort) {
+        String normalizedSort = sort == null ? "" : sort.trim().toLowerCase();
+        if ("release_asc".equals(normalizedSort)) { // tăng dần
+            return Sort.by(
+                    Sort.Order.asc("releaseDate"),
+                    Sort.Order.desc("movieId") // cùng phát hành thì so movieid
+            );
+        }
+        if ("release_desc".equals(normalizedSort)) { // giảm dần
+            return Sort.by(
+                    Sort.Order.desc("releaseDate"),
+                    Sort.Order.desc("movieId")
+            );
+        }
+        return Sort.by(Sort.Order.desc("movieId"));
     }
 
     public List<GenreDTO> getAllGenres() {
@@ -351,5 +461,10 @@ public class MovieService {
                 .filter(m -> !Boolean.TRUE.equals(m.getIsHidden()))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CinemaBranch> getActiveBranches() {
+        return cinemaBranchRepository.findByStatus(CinemaBranch.BranchStatus.active);
     }
 }

@@ -1,10 +1,12 @@
 package com.swp391.team6.cinema.repository;
 
 import com.swp391.team6.cinema.entity.Promotion;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -23,6 +25,8 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
     List<Promotion> findAllByBranch_BranchIdOrBranchIsNull(Long branchId);
 
     List<Promotion> findAllByBranch_BranchId(Long branchId);
+
+    boolean existsByPromoCode(String promoCode); //check promotion code đã tồn tại hay chưa
 
     List<Promotion> findAllByBranch_BranchId(Long branchId, Sort sort);
 
@@ -54,6 +58,8 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
             "AND (p.branch IS NULL OR p.branch.branchId = :branchId) " +
             "AND (p.usageLimit IS NULL OR p.usedCount < p.usageLimit)")
     List<Promotion> findActivePromotionsForBranch(@Param("branchId") Long branchId);
+
+
 
     @Query("""
     SELECT p

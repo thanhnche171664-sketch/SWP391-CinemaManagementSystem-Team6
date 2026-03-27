@@ -194,21 +194,46 @@ public class CounterBookingController {
         Booking booking = bookingRepository.findByIdWithDetails(id).orElseThrow();
         String seatNames = booking.getBookingSeats().stream().map(bs -> bs.getSeat().getSeatRow() + bs.getSeat().getSeatNumber()).sorted().collect(Collectors.joining(", "));
 
+        String contactToPrint = "N/A";
+        if (booking.getCustomerInfo() != null && !booking.getCustomerInfo().isBlank()) {
+            contactToPrint = booking.getCustomerInfo();
+        } else if (booking.getUser() != null) {
+            contactToPrint = (booking.getUser().getPhone() != null) ?
+                    booking.getUser().getPhone() : booking.getUser().getEmail();
+        }
+
         Context context = new Context();
         context.setVariable("booking", booking);
         context.setVariable("seatNames", seatNames);
+        context.setVariable("customerContact", contactToPrint);
 
         String htmlContent = templateEngine.process("staff/print-ticket", context);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();
-        renderer.getFontResolver().addFont("/Windows/Fonts/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        try {
+            String fontPath = "/fonts/DejaVuSans.ttf";
+            var fontUrl = getClass().getResource(fontPath);
+
+            if (fontUrl != null) {
+                renderer.getFontResolver().addFont(fontUrl.toString(),
+                        com.lowagie.text.pdf.BaseFont.IDENTITY_H,
+                        com.lowagie.text.pdf.BaseFont.EMBEDDED);
+            } else {
+                renderer.getFontResolver().addFont("C:/Windows/Fonts/tahoma.ttf",
+                        com.lowagie.text.pdf.BaseFont.IDENTITY_H,
+                        com.lowagie.text.pdf.BaseFont.EMBEDDED);
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi nạp font: " + e.getMessage());
+        }
+
         renderer.setDocumentFromString(htmlContent);
         renderer.layout();
         renderer.createPDF(outputStream);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("filename", "Ticket_" + id + ".pdf");
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Ticket_" + id + ".pdf\"");
         return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
     }
 

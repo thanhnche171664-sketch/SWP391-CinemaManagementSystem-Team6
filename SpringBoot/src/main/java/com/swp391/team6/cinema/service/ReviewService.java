@@ -11,7 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -55,7 +57,13 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    public Page<Review> getReviews(Long movieId, String keyword, int page) {
+    public Page<Review> getReviews(Long movieId,
+                                   String keyword,
+                                   Integer rating,
+                                   Review.ReviewStatus status,
+                                   LocalDate fromDate,
+                                   LocalDate toDate,
+                                   int page) {
 
         Pageable pageable = PageRequest.of(page, 7, Sort.by("createdAt").descending());
 
@@ -63,7 +71,18 @@ public class ReviewService {
             keyword = null;
         }
 
-        return reviewRepository.filterReviews(movieId, keyword, pageable);
+        LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime toDateTime = toDate != null ? toDate.atTime(LocalTime.MAX) : null;
+
+        return reviewRepository.filterReviews(
+                movieId,
+                keyword,
+                rating,
+                status,
+                fromDateTime,
+                toDateTime,
+                pageable
+        );
     }
 
 }

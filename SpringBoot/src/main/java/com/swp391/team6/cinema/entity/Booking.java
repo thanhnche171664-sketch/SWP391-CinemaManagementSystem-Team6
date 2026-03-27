@@ -43,6 +43,9 @@ public class Booking {
     @Column(name = "total_amount", precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    @Column(name = "customer_info", length = 255)
+    private String customerInfo;
+
     @ManyToOne
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;

@@ -17,8 +17,10 @@
                 <h2>Thêm khuyến mãi mới</h2>
                 <a th:href="@{|${promotionBasePath}/view|}" class="btn-close" style="text-decoration: none;">&times;</a>
             </div>
-            <div th:if="${error}" class="alert-error">
-                <i class="fas fa-exclamation-circle"></i>
+
+            <div th:if="${error}" class="alert alert-danger"
+                 style="background-color: #ef4444; color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-exclamation-circle mr-2"></i>
                 <span th:text="${error}"></span>
             </div>
 

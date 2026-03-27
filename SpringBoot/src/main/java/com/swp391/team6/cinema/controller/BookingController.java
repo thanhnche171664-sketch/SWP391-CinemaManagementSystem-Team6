@@ -47,7 +47,6 @@ public class BookingController {
     private final PricingService pricingService;
     private final PayOSService payOSService;
     private final SeatService seatService;
-    private final PromotionService promotionService;
 
     @GetMapping("/{showtimeId}")
     public String seatSelection(@org.springframework.web.bind.annotation.PathVariable Long showtimeId,
@@ -118,15 +117,14 @@ public class BookingController {
         model.addAttribute("seatPrices", seatPrices);
         model.addAttribute("user", user);
 
-        model.addAttribute("promotions", promotionService.getValidPromotions());
 
         return "booking-seat";
     }
 
     @PostMapping("/create")
     public String createBooking(@RequestParam Long showtimeId,
-                                @RequestParam Long promotionId,
                                 @RequestParam List<Long> seatIds,
+                                @RequestParam(required = false) String promoCode,
                                 HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null) {
@@ -134,7 +132,7 @@ public class BookingController {
             return "redirect:/auth/login";
         }
         try {
-            var booking = bookingService.createBooking(user.getUserId(), showtimeId, seatIds);
+            var booking = bookingService.createBooking(user.getUserId(), showtimeId, seatIds, promoCode);
             int amountVnd = booking.getTotalAmount().intValue();
             if (amountVnd < 1000) amountVnd = 1000;
             String desc = "Booking #" + booking.getBookingId();
@@ -152,6 +150,19 @@ public class BookingController {
             redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi tạo thanh toán: " + e.getMessage());
         }
         return "redirect:/booking/" + showtimeId;
+    }
+
+    @GetMapping("/api/validate-promo")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validatePromo(@RequestParam Long showtimeId,
+                                                              @RequestParam String promoCode,
+                                                              @RequestParam BigDecimal currentTotal) {
+        try {
+            return ResponseEntity.ok(bookingService.validatePromotion(promoCode, currentTotal, showtimeId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("valid", false, "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/success")
