@@ -47,7 +47,39 @@
                     </select>
                 </div>
 
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-star"></i>
+                    <select name="rating">
+                        <option value="">-- Tất cả sao --</option>
+                        <option th:each="i : ${#numbers.sequence(1, 5)}"
+                                th:value="${i}"
+                                th:text="${i + ' sao'}"
+                                th:selected="${rating == i}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-check-circle"></i>
+                    <select name="status">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="approved" th:selected="${status != null and status.name() == 'approved'}">Đã duyệt</option>
+                        <option value="pending" th:selected="${status != null and status.name() == 'pending'}">Chờ duyệt</option>
+                    </select>
+                </div>
+
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-calendar-day"></i>
+                    <input type="date" name="fromDate" th:value="${fromDate}" title="Từ ngày">
+                </div>
+
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-calendar-check"></i>
+                    <input type="date" name="toDate" th:value="${toDate}" title="Đến ngày">
+                </div>
+
                 <button type="submit" class="btn-dark">Tìm kiếm</button>
+                <a th:href="@{/admin/reviews}" class="btn-white" style="text-decoration: none;">Đặt lại</a>
             </form>
 
         </div>
@@ -100,21 +132,21 @@
 
                     <a class="page-link"
                        th:if="${!reviewPage.first}"
-                       th:href="@{/admin/reviews(page=${reviewPage.number-1}, movieId=${movieId}, keyword=${keyword})}">
+                       th:href="@{/admin/reviews(page=${reviewPage.number-1}, movieId=${movieId}, keyword=${keyword}, rating=${rating}, status=${status}, fromDate=${fromDate}, toDate=${toDate})}">
                         Trước
                     </a>
 
                     <span class="page-link" th:if="${reviewPage.first}">Trước</span>
                 </li>
                 <li class="page-item" th:each="i : ${#numbers.sequence(0, reviewPage.totalPages - 1)}" th:classappend="${i == reviewPage.number} ? 'active'">
-                    <a class="page-link" th:href="@{/admin/reviews(page=${i}, movieId=${movieId}, keyword=${keyword})}" th:text="${i + 1}"></a>
+                    <a class="page-link" th:href="@{/admin/reviews(page=${i}, movieId=${movieId}, keyword=${keyword}, rating=${rating}, status=${status}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}"></a>
                 </li>
                 <li class="page-item"
                     th:classappend="${reviewPage.last} ? ' disabled'">
 
                     <a class="page-link"
                        th:if="${!reviewPage.last}"
-                       th:href="@{/admin/reviews(page=${reviewPage.number+1}, movieId=${movieId}, keyword=${keyword})}">
+                       th:href="@{/admin/reviews(page=${reviewPage.number+1}, movieId=${movieId}, keyword=${keyword}, rating=${rating}, status=${status}, fromDate=${fromDate}, toDate=${toDate})}">
                         Sau
                     </a>
 

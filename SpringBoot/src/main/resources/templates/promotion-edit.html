@@ -11,8 +11,15 @@
 <div class="layout">
     <div th:replace="fragments/sidebar :: sidebar('promotions')"></div>
     <main class="content">
-        <div class="card-dark max-w-2xl">
-            <h2>Cập nhật: <span th:text="${promotion.promoCode}" style="color: #3b82f6;"></span></h2>
+        <div class="form-container-modal card-dark max-w-2xl">
+            <div class="modal-header">
+                <h2>Cập nhật mã giảm giá</h2>
+                <a th:href="@{|${promotionBasePath}/view|}" class="btn-close" style="text-decoration: none;">&times;</a>
+            </div>
+
+            <p class="text-gray-400 mb-8">
+                Mã: <strong th:text="${promotion.promoCode}">PROMO</strong>
+            </p>
 
             <div th:if="${error}" class="alert-error">
                 <i class="fas fa-exclamation-circle"></i>
@@ -23,26 +30,28 @@
 
                 <input type="hidden" name="promotionId" th:value="${promotion.promotionId}">
 
-                <div class="form-group">
-                    <label>Mã code</label>
-                    <input type="text" name="promoCode" class="input-field" th:value="${promotion.promoCode}" readonly>
-                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mã code</label>
+                        <input type="text" name="promoCode" class="input-field" th:value="${promotion.promoCode}" readonly>
+                    </div>
 
-                <div class="form-group">
-                    <label>Tên khuyến mãi</label>
-                    <input type="text" name="description" class="input-field" th:value="${promotion.description}" required>
+                    <div class="form-group">
+                        <label>Tên khuyến mãi</label>
+                        <input type="text" name="description" class="input-field" th:value="${promotion.description}" required>
+                    </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Ngày bắt đầu</label>
                         <input type="datetime-local" name="startDate" class="input-field"
-                               th:value="${promotion.startDate}" required>
+                               th:value="${promotion.startDate != null ? #temporals.format(promotion.startDate, 'yyyy-MM-dd''T''HH:mm') : ''}" required>
                     </div>
                     <div class="form-group">
                         <label>Ngày kết thúc</label>
                         <input type="datetime-local" name="endDate" class="input-field"
-                               th:value="${promotion.endDate}" required>
+                               th:value="${promotion.endDate != null ? #temporals.format(promotion.endDate, 'yyyy-MM-dd''T''HH:mm') : ''}" required>
                     </div>
                 </div>
 
@@ -56,13 +65,35 @@
                     </div>
                     <div class="form-group">
                         <label>Giá trị</label>
-                        <input type="number" name="discountValue" class="input-field" th:value="${promotion.discountValue}" required>
+                        <input type="number" step="0.01" min="0" name="discountValue" class="input-field" th:value="${promotion.discountValue}" required>
                     </div>
                 </div>
 
-                <div class="actions" style="margin-top: 2rem; display: flex; gap: 10px;">
-                    <a th:href="@{|${promotionBasePath}/view|}" class="btn-dark" style="text-decoration: none; padding: 10px 20px; border-radius: 4px;">Quay lại</a>
-                    <button type="submit" class="btn-white" style="cursor: pointer;">Cập nhật ngay</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min booking amount (VNĐ)</label>
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               name="minBookingAmount"
+                               class="input-field"
+                               th:value="${promotion.minBookingAmount}"
+                               placeholder="VD: 100000">
+                    </div>
+                    <div class="form-group">
+                        <label>Giới hạn số lần sử dụng</label>
+                        <input type="number"
+                               name="usageLimit"
+                               class="input-field"
+                               min="0"
+                               th:value="${promotion.usageLimit}"
+                               required>
+                    </div>
+                </div>
+
+                <div class="form-actions-modal">
+                    <a th:href="@{|${promotionBasePath}/view|}" class="btn-cancel" style="text-decoration: none;">Quay lại</a>
+                    <button type="submit" class="btn-submit">Cập nhật ngay</button>
                 </div>
             </form>
         </div>

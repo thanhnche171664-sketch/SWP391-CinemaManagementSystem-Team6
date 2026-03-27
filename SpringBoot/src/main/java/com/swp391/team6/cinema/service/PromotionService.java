@@ -23,14 +23,25 @@ public class PromotionService {
     private PromotionRepository promotionRepository;
 
     // Phân trang
-    public Page<Promotion> getAllPromotions(int page, int size, String keyword, String status) {
+    public Page<Promotion> getAllPromotions(int page,
+                                            int size,
+                                            String keyword,
+                                            String status,
+                                            String discountType,
+                                            String timeFilter) {
         List<Promotion> allPromotions = promotionRepository.findAll(Sort.by("promotionId").descending());
-        return buildPromotionPage(allPromotions, page, size, keyword, status);
+        return buildPromotionPage(allPromotions, page, size, keyword, status, discountType, timeFilter);
     }
 
-    public Page<Promotion> getPromotionsForBranch(Long branchId, int page, int size, String keyword, String status) {
+    public Page<Promotion> getPromotionsForBranch(Long branchId,
+                                                  int page,
+                                                  int size,
+                                                  String keyword,
+                                                  String status,
+                                                  String discountType,
+                                                  String timeFilter) {
         List<Promotion> promotions = promotionRepository.findAllByBranch_BranchId(branchId, Sort.by("promotionId").descending());
-        return buildPromotionPage(promotions, page, size, keyword, status);
+        return buildPromotionPage(promotions, page, size, keyword, status, discountType, timeFilter);
     }
 
     public List<Promotion> getPromotionsByBranch(Long branchId) {
@@ -117,8 +128,11 @@ public class PromotionService {
                                                int page,
                                                int size,
                                                String keyword,
-                                               String status) {
+                                               String status,
+                                               String discountType,
+                                               String timeFilter) {
         applyExpiryStatus(promotions);
+        LocalDateTime now = LocalDateTime.now();
 
         List<Promotion> filteredList = promotions.stream()
                 .filter(p -> {
@@ -135,6 +149,27 @@ public class PromotionService {
                         return matchCode || matchDesc;
                     }
                     return true;
+                })
+                .filter(p -> {
+                    if (discountType != null && !discountType.isBlank()) {
+                        return p.getDiscountType() != null
+                                && p.getDiscountType().name().equalsIgnoreCase(discountType);
+                    }
+                    return true;
+                })
+                .filter(p -> {
+                    if (timeFilter == null || timeFilter.isBlank()) {
+                        return true;
+                    }
+
+                    return switch (timeFilter.toLowerCase()) {
+                        case "upcoming" -> p.getStartDate() != null && p.getStartDate().isAfter(now);
+                        case "ongoing" ->
+                                (p.getStartDate() == null || !p.getStartDate().isAfter(now))
+                                        && (p.getEndDate() == null || !p.getEndDate().isBefore(now));
+                        case "expired" -> p.getEndDate() != null && p.getEndDate().isBefore(now);
+                        default -> true;
+                    };
                 })
                 .collect(Collectors.toList());
 

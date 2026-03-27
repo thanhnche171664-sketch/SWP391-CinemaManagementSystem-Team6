@@ -32,12 +32,16 @@ public class PromotionController {
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) String keyword,
-                                 @RequestParam(required = false) String status){
+                                 @RequestParam(required = false) String status,
+                                 @RequestParam(required = false) String discountType,
+                                 @RequestParam(required = false) String timeFilter){
         User user = requireAdmin(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
         }
-        Page<Promotion> promotionPage = promotionService.getAllPromotions(page, size, keyword, status);
+        Page<Promotion> promotionPage = promotionService.getAllPromotions(
+                page, size, keyword, status, discountType, timeFilter
+        );
 
         model.addAttribute("totalPromotions", promotionService.countAll());
         model.addAttribute("activeCount", promotionService.countActive());
@@ -47,6 +51,8 @@ public class PromotionController {
         model.addAttribute("promotions", promotionPage.getContent());
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
+        model.addAttribute("discountType", discountType);
+        model.addAttribute("timeFilter", timeFilter);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", promotionPage.getTotalPages());
         model.addAttribute("totalElements", promotionPage.getTotalElements());

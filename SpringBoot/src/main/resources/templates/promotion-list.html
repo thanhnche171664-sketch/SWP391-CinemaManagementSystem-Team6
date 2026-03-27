@@ -55,6 +55,25 @@
                     </select>
                 </div>
 
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-percent"></i>
+                    <select name="discountType">
+                        <option value="">Tất cả loại giảm</option>
+                        <option value="percent" th:selected="${discountType == 'percent'}">Theo %</option>
+                        <option value="amount" th:selected="${discountType == 'amount'}">Giảm số tiền</option>
+                    </select>
+                </div>
+
+                <div class="filter-status-wrapper">
+                    <i class="fas fa-clock"></i>
+                    <select name="timeFilter">
+                        <option value="">Tất cả thời gian</option>
+                        <option value="upcoming" th:selected="${timeFilter == 'upcoming'}">Sắp diễn ra</option>
+                        <option value="ongoing" th:selected="${timeFilter == 'ongoing'}">Đang diễn ra</option>
+                        <option value="expired" th:selected="${timeFilter == 'expired'}">Đã hết hạn</option>
+                    </select>
+                </div>
+
                 <button type="submit" class="btn-dark">Tìm kiếm</button>
             </form>
 
