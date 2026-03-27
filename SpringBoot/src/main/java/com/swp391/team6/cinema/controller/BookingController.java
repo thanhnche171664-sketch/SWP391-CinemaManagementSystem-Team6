@@ -6,10 +6,7 @@ import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.repository.SeatRepository;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
-import com.swp391.team6.cinema.service.BookingService;
-import com.swp391.team6.cinema.service.PayOSService;
-import com.swp391.team6.cinema.service.PricingService;
-import com.swp391.team6.cinema.service.SeatService;
+import com.swp391.team6.cinema.service.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -50,6 +47,7 @@ public class BookingController {
     private final PricingService pricingService;
     private final PayOSService payOSService;
     private final SeatService seatService;
+    private final PromotionService promotionService;
 
     @GetMapping("/{showtimeId}")
     public String seatSelection(@org.springframework.web.bind.annotation.PathVariable Long showtimeId,
@@ -119,11 +117,15 @@ public class BookingController {
         model.addAttribute("occupiedIds", occupied);
         model.addAttribute("seatPrices", seatPrices);
         model.addAttribute("user", user);
+
+        model.addAttribute("promotions", promotionService.getValidPromotions());
+
         return "booking-seat";
     }
 
     @PostMapping("/create")
     public String createBooking(@RequestParam Long showtimeId,
+                                @RequestParam Long promotionId,
                                 @RequestParam List<Long> seatIds,
                                 HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -226,7 +228,23 @@ public class BookingController {
     @GetMapping("/api/occupied-seats")
     @ResponseBody
     public Set<Long> getOccupiedSeats(@RequestParam Long showtimeId) {
+        bookingService.cancelExpiredPendingBookings();
         return bookingService.getOccupiedSeatIdsForShowtime(showtimeId);
+    }
+
+    /**
+     * Returns full seat status for a showtime — used by frontend polling.
+     * {
+     *   "paid":    [seatId, ...],   // paid bookings — lock vĩnh viễn
+     *   "pending": [seatId, ...],   // pending bookings — đang chờ thanh toán
+     *   "free":    [seatId, ...]    // available seats
+     * }
+     */
+    @GetMapping("/api/seats/status")
+    @ResponseBody
+    public Map<String, Object> getSeatsStatus(@RequestParam Long showtimeId) {
+        bookingService.cancelExpiredPendingBookings();
+        return bookingService.getSeatsStatusForShowtime(showtimeId);
     }
 
     @PostMapping("/api/validate-seats")

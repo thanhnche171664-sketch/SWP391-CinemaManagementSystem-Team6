@@ -134,6 +134,31 @@
 
                 </tbody>
             </table>
+            <div class="pagination">
+
+                <!-- Previous -->
+                <a th:if="${currentPage > 0}"
+                   th:href="@{${showtimeBasePath}(page=${currentPage - 1}, size=5, date=${date}, branchId=${branchId})}">
+                    ← Previous
+                </a>
+
+                <!-- Page numbers -->
+                <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+
+                    <a th:href="@{${showtimeBasePath}(page=${i}, size=5, date=${date}, branchId=${branchId})}"
+                       th:text="${i + 1}"
+                       th:classappend="${i == currentPage} ? 'active'">
+                    </a>
+
+                </span>
+
+                <!-- Next -->
+                <a th:if="${currentPage < totalPages - 1}"
+                   th:href="@{${showtimeBasePath}(page=${currentPage + 1}, size=5, date=${date}, branchId=${branchId})}">
+                    Next →
+                </a>
+
+            </div>
         </div>
 
     </main>

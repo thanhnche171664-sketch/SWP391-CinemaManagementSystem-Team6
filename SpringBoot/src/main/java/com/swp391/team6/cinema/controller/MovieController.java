@@ -72,4 +72,15 @@ public class MovieController {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    /** Load movies by branch — used for AJAX on /cinemas page */
+    @GetMapping("/by-branch/{branchId}")
+    public ResponseEntity<ApiResponse<List<MovieDTO>>> getMoviesByBranch(@PathVariable Long branchId) {
+        try {
+            List<MovieDTO> movies = movieService.getMoviesByBranchId(branchId);
+            return ResponseEntity.ok(ApiResponse.success("Get movies by branch successfully", movies));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

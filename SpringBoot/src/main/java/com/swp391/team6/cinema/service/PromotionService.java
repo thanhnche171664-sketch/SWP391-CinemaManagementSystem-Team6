@@ -44,11 +44,13 @@ public class PromotionService {
     }
 
     public long countActive() {
-        return promotionRepository.countByStatus(Promotion.Status.active);
+        LocalDateTime now = LocalDateTime.now();
+        return promotionRepository.countActive(now);
     }
 
     public long countInactive() {
-        return promotionRepository.countByStatus(Promotion.Status.inactive);
+        LocalDateTime now = LocalDateTime.now();
+        return promotionRepository.countInactive(now);
     }
 
     // Tìm kiếm theo ID
@@ -228,5 +230,9 @@ public class PromotionService {
         }
 
         return result;
+    }
+
+    public List<Promotion> getValidPromotions() {
+        return promotionRepository.findAllValidPromotions();
     }
 }

@@ -26,7 +26,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error",
                                 "/home/**", "/movies/**", "/news/**", "/showtimes/**", "/static/**",
-                                "/api/payment/payos/webhook").permitAll()
+                                "/cinemas/**",
+                                "/api/movies/**", "/api/payment/payos/webhook").permitAll()
                 .requestMatchers("/booking/**").authenticated()
                 .requestMatchers("/admin/news/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/bookings/**").hasAnyRole("ADMIN", "MANAGER")

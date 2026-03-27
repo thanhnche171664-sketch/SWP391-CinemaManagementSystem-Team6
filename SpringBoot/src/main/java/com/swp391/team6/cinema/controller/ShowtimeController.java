@@ -10,6 +10,7 @@ import com.swp391.team6.cinema.service.RoomService;
 import com.swp391.team6.cinema.service.ShowtimeService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,13 +34,18 @@ public class ShowtimeController {
     private final RoomService roomService;
     private final CinemaBranchRepository branchRepository;
 
+
     @GetMapping("/admin/showtimes")
     public String showtimePage(
             @RequestParam(required = false) String date,
             @RequestParam(required = false) Long branchId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
             HttpSession session,
             RedirectAttributes redirectAttributes,
             Model model) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Showtime> showtimePage;
         User user = requireAdmin(session, redirectAttributes);
         if (user == null) {
             return "redirect:/auth/login";
@@ -46,22 +54,27 @@ public class ShowtimeController {
         List<Showtime> showtimes;
 
         if (date != null && !date.isEmpty() && branchId != null) {
-            showtimes = showtimeService.getByDateAndBranch(
-                    LocalDate.parse(date), branchId);
+            showtimePage = showtimeService.getByDateAndBranch(
+                    LocalDate.parse(date), branchId, pageable);
         }
         else if (date != null && !date.isEmpty()) {
-            showtimes = showtimeService.getByDate(LocalDate.parse(date));
+            showtimePage = showtimeService.getByDate(
+                    LocalDate.parse(date), pageable);
         }
         else if (branchId != null) {
-            showtimes = showtimeService.getByBranch(branchId);
+            showtimePage = showtimeService.getByBranch(branchId, pageable);
         }
         else {
-            showtimes = showtimeService.getAll();
+            showtimePage = showtimeService.getAll(pageable);
         }
 
         model.addAttribute("branches", branchRepository.findAll());
 
-        model.addAttribute("showtimes", showtimes);
+        model.addAttribute("showtimes", showtimePage.getContent());
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", showtimePage.getTotalPages());
+
         model.addAttribute("date", date);
         model.addAttribute("branchId", branchId);
         model.addAttribute("showtimeBasePath", "/admin/showtimes");
