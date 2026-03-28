@@ -1,9 +1,7 @@
 package com.swp391.team6.cinema.controller;
 
-import com.swp391.team6.cinema.entity.Booking;
-import com.swp391.team6.cinema.entity.Seat;
-import com.swp391.team6.cinema.entity.Showtime;
-import com.swp391.team6.cinema.entity.User;
+import com.swp391.team6.cinema.entity.*;
+import com.swp391.team6.cinema.repository.PromotionRepository;
 import com.swp391.team6.cinema.repository.SeatRepository;
 import com.swp391.team6.cinema.repository.ShowtimeRepository;
 import com.swp391.team6.cinema.service.*;
@@ -47,6 +45,7 @@ public class BookingController {
     private final PricingService pricingService;
     private final PayOSService payOSService;
     private final SeatService seatService;
+    private final PromotionRepository promotionRepository;
 
     @GetMapping("/{showtimeId}")
     public String seatSelection(@org.springframework.web.bind.annotation.PathVariable Long showtimeId,
@@ -137,7 +136,7 @@ public class BookingController {
             if (amountVnd < 1000) amountVnd = 1000;
             String desc = "Booking #" + booking.getBookingId();
             String returnPath = "/booking/success?bookingId=" + booking.getBookingId();
-            String cancelPath = "/booking/failed?bookingId=" + booking.getBookingId();
+            String cancelPath = "/booking/failed?bookingId=" + booking.getBookingId() + "&promoCode=" + promoCode;
             String checkoutUrl = payOSService.createPaymentLink(booking.getBookingId(), amountVnd, desc, returnPath, cancelPath);
             if (checkoutUrl != null && !checkoutUrl.isBlank()) {
                 return "redirect:" + checkoutUrl;
@@ -187,7 +186,8 @@ public class BookingController {
     }
 
     @GetMapping("/failed")
-    public String failed(@RequestParam Long bookingId, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String failed(@RequestParam Long bookingId, @RequestParam(required = false) String promoCode,
+                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null) {
             return "redirect:/auth/login";
@@ -201,6 +201,15 @@ public class BookingController {
             detail.ifPresent(b -> model.addAttribute("booking", b));
         }
         model.addAttribute("user", user);
+
+        if(promoCode != null && !promoCode.isBlank()){
+            Promotion promo = promotionRepository.findByPromoCode(promoCode.trim().toUpperCase()).orElse(null); //tìm mã giảm giá theo code
+            if(promo != null){
+                promo.setUsedCount(promo.getUsedCount() - 1);
+                promotionRepository.save(promo);
+            }
+        }
+
         return "booking-failed";
     }
 
