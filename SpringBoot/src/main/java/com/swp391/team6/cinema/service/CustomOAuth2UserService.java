@@ -109,7 +109,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     
     private void sendPasswordEmail(String email, String name, String password) {
         try {
-            String subject = "Welcome to Cinema Management - Your Account Password";
+            String subject = "Welcome to CinemaGO - Your Account Password";
             String htmlContent = String.format("""
                 <!DOCTYPE html>
                 <html>
@@ -129,7 +129,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>🎬 Welcome to Cinema Management!</h1>
+                            <h1>🎬 Welcome to CinemaGO!</h1>
                         </div>
                         <div class="content">
                             <h2>Hello %s!</h2>
@@ -163,7 +163,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                             
                             <div class="footer">
                                 <p>This is an automated email. Please do not reply.</p>
-                                <p>&copy; 2026 Cinema Management System. All rights reserved.</p>
+                                <p>&copy; 2026 CinemaGO. All rights reserved.</p>
                             </div>
                         </div>
                     </div>

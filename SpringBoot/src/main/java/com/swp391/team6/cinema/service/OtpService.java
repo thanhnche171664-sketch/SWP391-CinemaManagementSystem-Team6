@@ -88,7 +88,7 @@ public class OtpService {
      * Send OTP email
      */
     private void sendOtpEmail(String toEmail, String otpCode) throws MessagingException {
-        String subject = "Password Reset OTP - Cinema Management";
+        String subject = "Password Reset OTP - CinemaGO";
         String htmlContent = buildOtpEmailContent(otpCode);
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -138,7 +138,7 @@ public class OtpService {
                 "<p>If you didn't request a password reset, please ignore this email.</p>" +
                 "</div>" +
                 "<div class='footer'>" +
-                "<p>© 2026 Cinema Management System. All rights reserved.</p>" +
+                "<p>© 2026 CinemaGO. All rights reserved.</p>" +
                 "<p>This is an automated email, please do not reply.</p>" +
                 "</div>" +
                 "</div>" +

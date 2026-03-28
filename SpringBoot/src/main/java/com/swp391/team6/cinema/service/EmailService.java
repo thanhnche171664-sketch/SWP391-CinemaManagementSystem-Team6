@@ -24,7 +24,7 @@ public class EmailService {
     public void sendVerificationEmail(String toEmail, String fullName, String token) throws MessagingException {
         String verificationUrl = appUrl + "/auth/verify?token=" + token;
 
-        String subject = "Verify Your Cinema Management Account";
+        String subject = "Verify Your CinemaGO Account";
         String htmlContent = buildVerificationEmailContent(fullName, verificationUrl);
 
         sendHtmlEmail(toEmail, subject, htmlContent);
@@ -66,11 +66,11 @@ public class EmailService {
                 "<body>" +
                 "<div class='container'>" +
                 "<div class='header'>" +
-                "<h1>Welcome to Cinema Management!</h1>" +
+                "<h1>Welcome to CinemaGO!</h1>" +
                 "</div>" +
                 "<div class='content'>" +
                 "<h2>Hello " + fullName + ",</h2>" +
-                "<p>Thank you for registering with Cinema Management System. We're excited to have you on board!</p>" +
+                "<p>Thank you for registering with CinemaGO. We're excited to have you on board!</p>" +
                 "<p>To complete your registration and verify your email address, please click the button below:</p>" +
                 "<div style='text-align: center;'>" +
                 "<a href='" + verificationUrl + "' class='button'>Verify Email Address</a>" +
@@ -80,10 +80,10 @@ public class EmailService {
                 "</div>" +
                 "<p>If the button doesn't work, copy and paste this link into your browser:</p>" +
                 "<p style='word-break: break-all; color: #00A9FF;'>" + verificationUrl + "</p>" +
-                "<p>If you didn't create an account with Cinema Management, please ignore this email.</p>" +
+                "<p>If you didn't create an account with CinemaGO, please ignore this email.</p>" +
                 "</div>" +
                 "<div class='footer'>" +
-                "<p>© 2026 Cinema Management System. All rights reserved.</p>" +
+                "<p>© 2026 CinemaGO. All rights reserved.</p>" +
                 "<p>This is an automated email, please do not reply.</p>" +
                 "</div>" +
                 "</div>" +
