@@ -26,7 +26,7 @@
                 <p class="text-gray-400">Quản lý mã giảm giá và chương trình khuyến mãi hệ thống</p>
             </div>
             <div class="flex-gap">
-                <a th:href="@{|${promotionBasePath}/view|}" class="btn-dark" style="text-decoration: none;">
+                <a th:href="@{/admin/promotions/view}" class="btn-dark" style="text-decoration: none;">
                     <i class="fas fa-sync-alt"></i> Làm mới
                 </a>
             </div>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="filter-action-bar mb-8" style="display: flex; gap: 1rem; align-items: center;">
-            <form th:action="@{|${promotionBasePath}/view|}" method="get" class="filter-action-bar mb-8">
+            <form th:action="@{/admin/promotions/view}" method="get" class="filter-action-bar mb-8">
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm...">
@@ -85,7 +85,7 @@
                 <button type="submit" class="btn-dark">Tìm kiếm</button>
             </form>
 
-            <a th:href="@{|${promotionBasePath}/create|}" class="btn-white" style="text-decoration: none; white-space: nowrap;">
+            <a th:href="@{/admin/promotions/create}" class="btn-white" style="text-decoration: none; white-space: nowrap;">
                 <i class="fas fa-plus mr-2"></i> Thêm khuyến mãi
             </a>
         </div>
@@ -116,8 +116,8 @@
                     </td>
                     <td>
                         <div class="flex-gap">
-                            <a th:if="${promo.status.name() == 'active'}" th:href="@{|${promotionBasePath}/edit/${promo.promotionId}|}" class="btn-icon"><i class="fas fa-edit"></i></a>
-                            <a th:if="${promo.status.name() == 'active'}" th:href="@{|${promotionBasePath}/delete/${promo.promotionId}|}"
+                            <a th:if="${promo.status.name() == 'active'}" th:href="@{|/admin/promotions/edit/${promo.promotionId}|}" class="btn-icon"><i class="fas fa-edit"></i></a>
+                            <a th:if="${promo.status.name() == 'active'}" th:href="@{|/admin/promotions/delete/${promo.promotionId}|}"
                                class="btn-icon text-red"
                                onclick="return confirm('Bạn có chắc chắn muốn tạm dừng mã khuyến mãi này?')">
                                 <i class="fas fa-trash-alt"></i>

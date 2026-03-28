@@ -46,18 +46,13 @@ public class PromotionController {
         model.addAttribute("totalPromotions", promotionService.countAll());
         model.addAttribute("activeCount", promotionService.countActive());
         model.addAttribute("inactiveCount", promotionService.countInactive());
-        model.addAttribute("totalDiscountedAmount", "0 đ");
 
-        model.addAttribute("promotions", promotionPage.getContent());
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
         model.addAttribute("discountType", discountType);
         model.addAttribute("timeFilter", timeFilter);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", promotionPage.getTotalPages());
-        model.addAttribute("totalElements", promotionPage.getTotalElements());
-        model.addAttribute("promotionBasePath", "/admin/promotions");
 
+        model.addAttribute("promotions", promotionPage.getContent());
         model.addAttribute("promotionPage", promotionPage);
 
         return "promotion-list";
