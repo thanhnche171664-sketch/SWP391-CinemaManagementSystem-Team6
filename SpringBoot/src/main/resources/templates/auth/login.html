@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - CinemaGO</title>
-    <link rel="stylesheet" th:href="@{/css/auth-login.css?v=1}">
+    <link rel="stylesheet" th:href="@{/css/auth-login.css?v=2}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -125,18 +125,20 @@
                                     <polyline points="22,6 12,13 2,6"/>
                                 </svg>
                             </span>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                th:field="*{email}" 
+                            <input
+                                type="email"
+                                id="email"
+                                th:field="*{email}"
                                 th:value="${email}"
-                                required 
+                                required
                                 placeholder="Enter your email"
                                 autocomplete="email"
+                                th:style="${#fields.hasErrors('email')} ? 'border-color: var(--error-color)' : ''"
                             >
                         </div>
+                        <span class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
                     </div>
-                    
+
                     <!-- Password Input -->
                     <div class="form-group">
                         <label for="password">Password</label>
@@ -147,13 +149,14 @@
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                 </svg>
                             </span>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                th:field="*{password}" 
-                                required 
+                            <input
+                                type="password"
+                                id="password"
+                                th:field="*{password}"
+                                required
                                 placeholder="Enter your password"
                                 autocomplete="current-password"
+                                th:style="${#fields.hasErrors('password')} ? 'border-color: var(--error-color)' : ''"
                             >
                             <button type="button" class="toggle-password" onclick="togglePassword(event)" aria-label="Toggle password visibility">
                                 <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -166,6 +169,7 @@
                                 </svg>
                             </button>
                         </div>
+                        <span class="error-message" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
                     </div>
                     
                     <!-- Remember & Forgot -->

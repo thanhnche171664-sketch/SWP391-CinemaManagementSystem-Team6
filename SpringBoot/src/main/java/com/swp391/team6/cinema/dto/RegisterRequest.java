@@ -28,6 +28,6 @@ public class RegisterRequest {
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
 
-    @Pattern(regexp = "^(\\+84|0)[0-9]{9}$", message = "Invalid phone number format")
+    @Pattern(regexp = "^((\\+84|0)[0-9]{9})?$", message = "Invalid phone number format (e.g. 0912345678 or +84912345678)")
     private String phone;
 }

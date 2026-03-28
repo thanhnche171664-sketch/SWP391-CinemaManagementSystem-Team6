@@ -23,8 +23,8 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     margin: 0;
     padding: 0;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* Login Page Layout */
@@ -129,6 +129,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 40px;
+    overflow-y: auto;
 }
 
 .login-card {
@@ -298,6 +299,15 @@ input[type="text"]:focus {
     box-shadow: 0 0 0 3px rgba(0, 169, 255, 0.1);
 }
 
+/* Field Error Messages */
+.error-message {
+    display: block;
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 4px;
+    padding-left: 2px;
+}
+
 /* Form Options */
 .form-options {
     display: flex;
@@ -437,34 +447,133 @@ input[type="text"]:focus {
 
 /* Responsive */
 @media (max-width: 968px) {
+    body {
+        height: auto;
+        overflow: auto;
+    }
+
     .login-page {
         flex-direction: column;
+        min-height: 100vh;
+        height: auto;
     }
-    
+
     .left-section {
-        padding: 30px;
-        min-height: 40vh;
+        min-height: auto;
+        padding: 24px 32px;
+        flex: none;
     }
-    
+
+    .home-button {
+        margin-bottom: 20px;
+    }
+
+    .welcome-content {
+        padding: 20px 0;
+    }
+
     .welcome-content h1 {
-        font-size: 36px;
+        font-size: 32px;
     }
-    
+
+    .subtitle {
+        display: none;
+    }
+
     .features-list {
         display: none;
     }
-    
+
     .right-section {
-        padding: 20px;
+        flex: none;
+        padding: 24px 20px;
+        overflow-y: visible;
+        min-height: 0;
+        align-items: flex-start;
+    }
+
+    .login-card {
+        max-width: 100%;
+        width: 100%;
     }
 }
 
 @media (max-width: 480px) {
-    .login-card {
-        padding: 30px 20px;
+    body {
+        height: auto;
+        overflow: auto;
     }
-    
+
+    .login-page {
+        min-height: 100vh;
+        height: auto;
+    }
+
+    .left-section {
+        padding: 16px 20px;
+    }
+
+    .welcome-content {
+        padding: 10px 0;
+    }
+
     .welcome-content h1 {
-        font-size: 28px;
+        font-size: 26px;
+        margin-bottom: 8px;
+    }
+
+    .right-section {
+        padding: 16px 12px;
+    }
+
+    .login-card {
+        padding: 24px 16px;
+        border-radius: 16px;
+    }
+
+    .login-header h2 {
+        font-size: 24px;
+    }
+
+    .input-icon {
+        left: 12px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+        padding: 12px 48px 12px 40px;
+    }
+
+    .btn-login {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .btn-google {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .register-link {
+        font-size: 13px;
+    }
+
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .forgot-link {
+        align-self: flex-end;
+    }
+
+    .remember-checkbox {
+        font-size: 13px;
+    }
+
+    .error-message {
+        font-size: 11px;
     }
 }
