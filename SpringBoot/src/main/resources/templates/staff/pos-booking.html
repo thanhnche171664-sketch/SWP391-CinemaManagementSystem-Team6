@@ -29,68 +29,72 @@
     .showtime-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
     .seat-map-wrapper {
       overflow-x: auto;
-      background: #fff5f7;
+      background: #fff;
       border: 1px solid #f0c9d1;
-      padding: 18px;
+      padding: 14px 12px 12px;
       border-radius: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+    }
+    .staff-screen-curve {
+      width: min(540px, 90%);
+      height: 14px;
+      border-radius: 50% / 100% 100% 0 0;
+      background: linear-gradient(180deg, #515a6b 0%, #242a36 100%);
+      box-shadow: 0 10px 16px rgba(37, 99, 235, 0.18);
+      margin-bottom: 4px;
     }
     .seat-map-grid {
       display: inline-flex;
       flex-direction: column;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
       padding: 8px 10px;
-      border: 1px solid #f0c9d1;
-      border-radius: 14px;
       background: #fff;
+      min-width: 470px;
     }
     .seat-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      gap: 7px;
     }
     .seat-row-label {
       width: 18px;
       text-align: center;
-      color: #1f5aa6;
+      color: #9ca3af;
       font-weight: 700;
+      font-size: 12px;
     }
     .seat {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
+      width: 34px;
+      height: 26px;
+      border-radius: 9px;
       cursor: pointer;
       display: inline-flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1px;
-      font-size: 9px;
-      font-weight: 700;
-      border: 2px solid #ced4da;
-      transition: 0.2s;
-      background: #fff;
-      color: #6a7a93;
-    }
-    .seat i {
-      font-size: 14px;
+      font-size: 10px;
+      font-weight: 800;
       line-height: 1;
+      border: 1px solid transparent;
+      transition: 0.2s;
+      color: #fff;
     }
-    .seat.NORMAL { border-color: #7fb2f7; color: #3b6ea8; }
-    .seat.VIP { border-color: #f1a500; color: #b77500; }
-    .seat.COUPLE { border-color: #e95ba9; color: #b93c83; width: 52px; }
-    .seat.occupied { background: #9aa3ad !important; cursor: not-allowed; color: #fff; border-color: #9aa3ad !important; }
-    .seat.selected { background: #eaf2ff !important; border-color: #1f5aa6 !important; color: #1f5aa6; }
+    .seat.NORMAL { background: #22d3a7; border-color: #10b981; }
+    .seat.VIP { background: #fbbf24; border-color: #f59e0b; }
+    .seat.COUPLE { background: #f472b6; border-color: #ec4899; width: 44px; text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+    .seat.occupied { background: #eef2f7 !important; border-color: #e2e8f0 !important; color: #64748b !important; cursor: not-allowed; }
+    .seat.selected { filter: brightness(0.8); box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.18); border-color: rgba(17,24,39,.35) !important; }
     .legend-box {
       display: inline-flex;
       flex-wrap: wrap;
-      gap: 22px;
+      gap: 16px;
       justify-content: center;
       margin-top: 14px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       border: 1px solid #f0c9d1;
       border-radius: 12px;
       background: #fff;
@@ -103,20 +107,20 @@
       color: #1f3b67;
     }
     .legend-seat {
-      width: 26px;
-      height: 26px;
-      border-radius: 10px;
-      border: 2px solid #ced4da;
+      width: 14px;
+      height: 14px;
+      border-radius: 6px;
+      border: 1px solid transparent;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       background: #fff;
-      font-size: 12px;
+      font-size: 0;
     }
-    .legend-seat.normal { border-color: #7fb2f7; color: #3b6ea8; }
-    .legend-seat.vip { border-color: #f1a500; color: #b77500; }
-    .legend-seat.couple { border-color: #e95ba9; color: #b93c83; }
-    .legend-seat.occupied { border-color: #9aa3ad; background: #9aa3ad; color: #fff; }
+    .legend-seat.normal { background: #22d3a7; border-color: #10b981; }
+    .legend-seat.vip { background: #fbbf24; border-color: #f59e0b; }
+    .legend-seat.couple { background: #f472b6; border-color: #ec4899; }
+    .legend-seat.occupied { background: #eef2f7; border-color: #e2e8f0; }
     .pos-shell { background: #fff; border: 1px solid #f0c9d1; border-radius: 16px; box-shadow: 0 12px 30px rgba(31,90,166,0.08); }
     .badge-staff-user { background: #eaf2ff; color: #1f5aa6; border: 1px solid #d6e4ff; }
     .pos-screen { background: #1f5aa6 !important; color: #fff; }
@@ -228,16 +232,16 @@
         </div>
         <div class="col-md-6 text-center">
           <div class="seat-map-wrapper">
-            <div class="p-1 rounded mb-4 w-75 mx-auto pos-screen">MÀN HÌNH</div>
+            <div class="staff-screen-curve"></div>
             <div id="seatMap" class="seat-map-grid"></div>
           </div>
         </div>
       </div>
       <div class="legend-box">
-        <div class="legend-item"><span class="legend-seat normal"><i class="bi bi-person-workspace"></i></span> Ghế thường</div>
-        <div class="legend-item"><span class="legend-seat vip"><i class="bi bi-person-workspace"></i></span> Ghế VIP</div>
-        <div class="legend-item"><span class="legend-seat couple"><i class="bi bi-person-workspace"></i></span> Ghế đôi</div>
-        <div class="legend-item"><span class="legend-seat occupied"><i class="bi bi-person-workspace"></i></span> Đã đặt</div>
+        <div class="legend-item"><span class="legend-seat normal"></span> Ghế thường</div>
+        <div class="legend-item"><span class="legend-seat vip"></span> Ghế VIP</div>
+        <div class="legend-item"><span class="legend-seat couple"></span> Ghế đôi</div>
+        <div class="legend-item"><span class="legend-seat occupied"></span> Đã đặt</div>
       </div>
       <div class="mt-3 fs-5 fw-bold">Tổng tiền: <span id="totalDisplay" class="text-danger">0</span> VNĐ</div>
       <button class="btn btn-primary btn-lg w-100 mt-4" id="btnStep3" disabled onclick="showStep(3)">Tiếp tục thanh toán</button>
@@ -490,7 +494,7 @@
                   seat.className = `seat ${type === 'COUPLE' ? 'COUPLE' : type} ${s.isBooked ? 'occupied' : ''}`;
                   const seatName = s.seatRow + s.seatNumber;
                   seat.dataset.seatName = seatName;
-                  seat.innerHTML = `<i class="bi bi-person-workspace"></i><span>${s.seatNumber}</span>`;
+                  seat.innerHTML = `<span>${seatName}</span>`;
                   if(!s.isBooked) seat.onclick = () => toggleSeat(s.seatId, seat);
                   rowDiv.appendChild(seat);
               });
