@@ -1,8 +1,10 @@
 package com.swp391.team6.cinema.service;
 
 import com.swp391.team6.cinema.entity.Booking;
+import com.swp391.team6.cinema.entity.Movie;
 import com.swp391.team6.cinema.entity.Review;
 import com.swp391.team6.cinema.repository.BookingRepository;
+import com.swp391.team6.cinema.repository.MovieRepository;
 import com.swp391.team6.cinema.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,10 +22,12 @@ import java.util.List;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
+    private final MovieRepository movieRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository) {
+    public ReviewService(ReviewRepository reviewRepository, BookingRepository bookingRepository, MovieRepository movieRepository) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
+        this.movieRepository = movieRepository;
     }
 
     // lấy danh sách review theo movie
@@ -38,7 +42,8 @@ public class ReviewService {
 
         Long userId = review.getUser().getUserId();
         Long movieId = review.getMovie().getMovieId();
-        LocalDateTime thresholdTime = LocalDateTime.now().minusMinutes(120);
+        Movie movie = movieRepository.getReferenceById(movieId);
+        LocalDateTime thresholdTime = LocalDateTime.now().minusMinutes(movie.getDuration());
 
         // Đã sửa thành Booking.BookingStatus.paid để khớp với Entity của bạn
         boolean canReview = bookingRepository.existsByUserUserIdAndShowtimeMovieMovieIdAndStatusAndShowtimeStartTimeBefore(
