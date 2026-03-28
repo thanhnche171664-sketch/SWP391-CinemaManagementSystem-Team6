@@ -50,6 +50,33 @@ public class PricingService {
         pricingRepository.save(pricing);
     }
 
+    public String validateSeatPriceOrder(BigDecimal normalPrice, BigDecimal vipPrice, BigDecimal couplePrice) {
+        BigDecimal normal = normalizePrice(normalPrice);
+        BigDecimal vip = normalizePrice(vipPrice);
+        BigDecimal couple = normalizePrice(couplePrice);
+
+        if (normal.compareTo(vip) > 0) {
+            return "Giá ghế thường không thể lớn hơn giá ghế VIP.";
+        }
+
+        if (normal.compareTo(couple) > 0) {
+            return "Giá ghế thường không thể lớn hơn giá ghế đôi.";
+        }
+
+        if (vip.compareTo(couple) > 0) {
+            return "Giá ghế VIP không thể lớn hơn giá ghế đôi.";
+        }
+
+        return null;
+    }
+
+    public BigDecimal normalizePrice(BigDecimal price) {
+        if (price == null) {
+            return BigDecimal.ZERO;
+        }
+        return price;
+    }
+
     /**
      * Get price for a seat type at a branch for a given showtime start time.
      * Uses timeRange "weekend" (Sat/Sun) or "weekday" if configured in pricing table.

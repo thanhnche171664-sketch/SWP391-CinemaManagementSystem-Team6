@@ -91,10 +91,17 @@ public class ManagerPricingController {
             return "redirect:/manager/pricing";
         }
 
+        String validationError = pricingService.validateSeatPriceOrder(normalPrice, vipPrice, couplePrice);
+        if (validationError != null) {
+            redirectAttributes.addFlashAttribute("error", validationError);
+            return "redirect:/manager/pricing";
+        }
+
         pricingService.updatePrice(branchId, normalType, normalPrice);
         pricingService.updatePrice(branchId, vipType, vipPrice);
         pricingService.updatePrice(branchId, coupleType, couplePrice);
 
+        redirectAttributes.addFlashAttribute("success", "Lưu cấu hình ghế thành công.");
         return "redirect:/manager/pricing";
     }
 

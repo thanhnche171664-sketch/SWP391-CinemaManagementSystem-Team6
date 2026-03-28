@@ -95,10 +95,17 @@ public class PricingController {
             return "redirect:/auth/login";
         }
 
+        String validationError = pricingService.validateSeatPriceOrder(normalPrice, vipPrice, couplePrice);
+        if (validationError != null) {
+            redirectAttributes.addFlashAttribute("error", validationError);
+            return "redirect:/admin/pricing?branchId=" + branchId;
+        }
+
         pricingService.updatePrice(branchId, normalType, normalPrice);
         pricingService.updatePrice(branchId, vipType, vipPrice);
         pricingService.updatePrice(branchId, coupleType, couplePrice);
 
+        redirectAttributes.addFlashAttribute("success", "Lưu cấu hình ghế thành công.");
         return "redirect:/admin/pricing?branchId=" + branchId;
     }
 
