@@ -73,47 +73,175 @@ public class PromotionService {
     @Transactional
     public void create(Promotion promotion) {
 
-        if (promotionRepository.existsByPromoCode(promotion.getPromoCode())) {
-            throw new RuntimeException("Mã khuyến mãi '" + promotion.getPromoCode() + "' đã tồn tại trên hệ thống!");
+        // ===================== 1. Validate mã khuyến mãi =====================
+        if (promotion.getPromoCode() == null || promotion.getPromoCode().trim().isEmpty()) {
+            throw new RuntimeException("Mã khuyến mãi không được để trống");
         }
-        // Kiểm tra logic số âm
-        if (promotion.getUsageLimit() != null && promotion.getUsageLimit() < 0) {
-            throw new RuntimeException("Giới hạn sử dụng không được là số âm");
+
+        if (promotionRepository.existsByPromoCode(promotion.getPromoCode().trim())) {
+            throw new RuntimeException("Mã khuyến mãi '" + promotion.getPromoCode() + "' đã tồn tại!");
         }
-        // 2. Kiểm tra logic ngày tháng
-        if (promotion.getStartDate() != null && promotion.getEndDate() != null) {
-            if (promotion.getStartDate().isAfter(promotion.getEndDate())) {
-                throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
+
+        // ===================== 2. Validate tên khuyến mãi =====================
+        if (promotion.getDescription() == null || promotion.getDescription().trim().isEmpty()) {
+            throw new RuntimeException("Tên khuyến mãi không được để trống");
+        }
+
+        // ===================== 3. Validate loại giảm giá =====================
+        if (promotion.getDiscountType() == null) {
+            throw new RuntimeException("Vui lòng chọn loại khuyến mãi");
+        }
+
+        // ===================== 4. Validate giá trị giảm =====================
+        if (promotion.getDiscountValue() == null) {
+            throw new RuntimeException("Giá trị giảm không được để trống");
+        }
+
+        if (promotion.getDiscountValue().doubleValue() <= 0) {
+            throw new RuntimeException("Giá trị giảm phải lớn hơn 0");
+        }
+
+        // Nếu giảm theo %
+        if (promotion.getDiscountType() == Promotion.DiscountType.percent) {
+            if (promotion.getDiscountValue().doubleValue() > 100) {
+                throw new RuntimeException("Giảm theo % không được lớn hơn 100%");
             }
         }
-        if (promotion.getStatus() == null) promotion.setStatus(Promotion.Status.active);
-        if (promotion.getUsedCount() == null) promotion.setUsedCount(0);
+
+        // ===================== 5. Validate đơn hàng tối thiểu =====================
+        if (promotion.getMinBookingAmount() != null &&
+                promotion.getMinBookingAmount().doubleValue() < 0) {
+            throw new RuntimeException("Đơn hàng tối thiểu không được là số âm");
+        }
+
+        // ===================== 6. Validate giới hạn sử dụng =====================
+        if (promotion.getUsageLimit() == null) {
+            throw new RuntimeException("Vui lòng nhập giới hạn số lần sử dụng");
+        }
+
+        if (promotion.getUsageLimit() < 0) {
+            throw new RuntimeException("Giới hạn sử dụng không được là số âm");
+        }
+
+        // ===================== 7. Validate ngày bắt đầu - kết thúc =====================
+        if (promotion.getStartDate() == null) {
+            throw new RuntimeException("Ngày bắt đầu không được để trống");
+        }
+
+        if (promotion.getEndDate() == null) {
+            throw new RuntimeException("Ngày kết thúc không được để trống");
+        }
+
+        if (promotion.getStartDate().isAfter(promotion.getEndDate())) {
+            throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
+        }
+
+        // Không cho tạo khuyến mãi đã hết hạn
+        if (promotion.getEndDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Ngày kết thúc phải lớn hơn thời điểm hiện tại");
+        }
+
+        // ===================== 8. Default value =====================
+        if (promotion.getStatus() == null) {
+            promotion.setStatus(Promotion.Status.active);
+        }
+
+        if (promotion.getUsedCount() == null) {
+            promotion.setUsedCount(0);
+        }
+
+        if (promotion.getPromoCode() != null) {
+            promotion.setPromoCode(promotion.getPromoCode().trim().toUpperCase());
+        }
+
+        // ===================== 9. Save =====================
         promotionRepository.save(promotion);
     }
 
     @Transactional
     public void update(Promotion promotion) {
-        if (promotion.getUsageLimit() != null && promotion.getUsageLimit() < 0) {
+        // ===================== 1. Lấy promotion hiện tại =====================
+        Promotion existing = findById(promotion.getPromotionId());
+
+        if (existing == null) {
+            throw new RuntimeException("Không tìm thấy khuyến mãi");
+        }
+
+        // ===================== 2. Validate mã code =====================
+        if (promotion.getPromoCode() == null || promotion.getPromoCode().trim().isEmpty()) {
+            throw new RuntimeException("Mã khuyến mãi không được để trống");
+        }
+
+        // Nếu code bị đổi thì mới check trùng
+        if (!existing.getPromoCode().equalsIgnoreCase(promotion.getPromoCode().trim())) {
+            if (promotionRepository.existsByPromoCode(promotion.getPromoCode().trim())) {
+                throw new RuntimeException("Mã khuyến mãi đã tồn tại");
+            }
+        }
+
+        // ===================== 3. Validate tên =====================
+        if (promotion.getDescription() == null || promotion.getDescription().trim().isEmpty()) {
+            throw new RuntimeException("Tên khuyến mãi không được để trống");
+        }
+
+        // ===================== 4. Validate discount =====================
+        if (promotion.getDiscountValue() == null) {
+            throw new RuntimeException("Giá trị giảm không được để trống");
+        }
+
+        if (promotion.getDiscountValue().doubleValue() <= 0) {
+            throw new RuntimeException("Giá trị giảm phải lớn hơn 0");
+        }
+
+        if (promotion.getDiscountType() == Promotion.DiscountType.percent &&
+                promotion.getDiscountValue().doubleValue() > 100) {
+            throw new RuntimeException("Giảm theo % không được lớn hơn 100%");
+        }
+
+        // ===================== 5. Validate min booking =====================
+        if (promotion.getMinBookingAmount() != null &&
+                promotion.getMinBookingAmount().doubleValue() < 0) {
+            throw new RuntimeException("Đơn hàng tối thiểu không được là số âm");
+        }
+
+        // ===================== 6. Validate usage limit =====================
+        if (promotion.getUsageLimit() == null) {
+            throw new RuntimeException("Giới hạn sử dụng không được để trống");
+        }
+
+        if (promotion.getUsageLimit() < 0) {
             throw new RuntimeException("Giới hạn sử dụng không được là số âm");
         }
-        if (promotion.getStartDate() != null && promotion.getEndDate() != null) {
-            if (promotion.getStartDate().isAfter(promotion.getEndDate())) {
-                throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
-            }
-            Promotion existing = findById(promotion.getPromotionId());
 
-            // Cập nhật các trường dữ liệu
-            existing.setPromoCode(promotion.getPromoCode());
-            existing.setDescription(promotion.getDescription());
-            existing.setDiscountType(promotion.getDiscountType());
-            existing.setDiscountValue(promotion.getDiscountValue());
-            existing.setStartDate(promotion.getStartDate());
-            existing.setEndDate(promotion.getEndDate());
-            existing.setUsageLimit(promotion.getUsageLimit());
-            existing.setMinBookingAmount(promotion.getMinBookingAmount());
-
-            promotionRepository.save(existing);
+        // Không cho sửa usageLimit nhỏ hơn số lần đã dùng
+        if (promotion.getUsageLimit() < existing.getUsedCount()) {
+            throw new RuntimeException("Giới hạn sử dụng không được nhỏ hơn số lần đã sử dụng");
         }
+
+        // ===================== 7. Validate ngày tháng =====================
+        if (promotion.getStartDate() == null) {
+            throw new RuntimeException("Ngày bắt đầu không được để trống");
+        }
+
+        if (promotion.getEndDate() == null) {
+            throw new RuntimeException("Ngày kết thúc không được để trống");
+        }
+
+        if (promotion.getStartDate().isAfter(promotion.getEndDate())) {
+            throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
+        }
+
+        // ===================== 8. Update dữ liệu =====================
+        existing.setPromoCode(promotion.getPromoCode().trim().toUpperCase());
+        existing.setDescription(promotion.getDescription());
+        existing.setDiscountType(promotion.getDiscountType());
+        existing.setDiscountValue(promotion.getDiscountValue());
+        existing.setStartDate(promotion.getStartDate());
+        existing.setEndDate(promotion.getEndDate());
+        existing.setUsageLimit(promotion.getUsageLimit());
+        existing.setMinBookingAmount(promotion.getMinBookingAmount());
+
+        promotionRepository.save(existing);
     }
 
         @Transactional

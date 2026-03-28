@@ -58,6 +58,8 @@ public class PromotionController {
         model.addAttribute("totalElements", promotionPage.getTotalElements());
         model.addAttribute("promotionBasePath", "/admin/promotions");
 
+        model.addAttribute("promotionPage", promotionPage);
+
         return "promotion-list";
     }
 

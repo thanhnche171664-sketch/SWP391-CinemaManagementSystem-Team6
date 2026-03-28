@@ -6,6 +6,14 @@
     <link rel="stylesheet" th:href="@{/styles/admin-branch.css}">
     <link rel="stylesheet" th:href="@{/styles/admin-promotion.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .pagination {
+            list-style: none;
+            padding-left: 0;
+        }
+        .page-link{ color: #1f5aa6; }
+        .page-item.active .page-link { background: #1f5aa6; border-color: #1f5aa6; color: white }
+    </style>
 </head>
 <body>
 <div class="layout">
@@ -108,8 +116,8 @@
                     </td>
                     <td>
                         <div class="flex-gap">
-                            <a th:href="@{|${promotionBasePath}/edit/${promo.promotionId}|}" class="btn-icon"><i class="fas fa-edit"></i></a>
-                            <a th:href="@{|${promotionBasePath}/delete/${promo.promotionId}|}"
+                            <a th:if="${promo.status.name() == 'active'}" th:href="@{|${promotionBasePath}/edit/${promo.promotionId}|}" class="btn-icon"><i class="fas fa-edit"></i></a>
+                            <a th:if="${promo.status.name() == 'active'}" th:href="@{|${promotionBasePath}/delete/${promo.promotionId}|}"
                                class="btn-icon text-red"
                                onclick="return confirm('Bạn có chắc chắn muốn tạm dừng mã khuyến mãi này?')">
                                 <i class="fas fa-trash-alt"></i>
@@ -119,6 +127,37 @@
                 </tr>
                 </tbody>
             </table>
+
+            <nav class="mt-4" th:if="${promotionPage.totalPages > 0}">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item"
+                        th:classappend="${promotionPage.first} ? ' disabled'">
+
+                        <a class="page-link"
+                           th:if="${!promotionPage.first}"
+                           th:href="@{/admin/promotions/view(page=${promotionPage.number-1}, status=${status}, keyword=${keyword}, discountType=${discountType}, timeFilter=${timeFilter})}">
+                            Trước
+                        </a>
+
+                        <span class="page-link" th:if="${promotionPage.first}">Trước</span>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, promotionPage.totalPages - 1)}" th:classappend="${i == promotionPage.number} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/promotions/view(page=${i}, status=${status}, keyword=${keyword}, discountType=${discountType}, timeFilter=${timeFilter})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item"
+                        th:classappend="${promotionPage.last} ? ' disabled'">
+
+                        <a class="page-link"
+                           th:if="${!promotionPage.last}"
+                           th:href="@{/admin/promotions/view(page=${promotionPage.number+1}, status=${status}, keyword=${keyword}, discountType=${discountType}, timeFilter=${timeFilter})}">
+                            Sau
+                        </a>
+
+                        <span class="page-link" th:if="${promotionPage.last}">Sau</span>
+                    </li>
+                </ul>
+            </nav>
+
         </div>
     </main>
 </div>

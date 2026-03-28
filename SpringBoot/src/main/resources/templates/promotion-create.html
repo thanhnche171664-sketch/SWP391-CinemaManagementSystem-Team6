@@ -24,47 +24,47 @@
                 <span th:text="${error}"></span>
             </div>
 
-            <form th:action="@{|${promotionBasePath}/create-action|}" method="post" class="promotion-form">
+            <form th:action="@{|${promotionBasePath}/create-action|}" method="post" class="promotion-form" th:object="${promotion}">
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Mã code <span class="text-red">*</span></label>
-                        <input type="text" name="promoCode" placeholder="VD: WELCOME10" required>
+                        <input type="text" name="promoCode" placeholder="VD: WELCOME10" required th:field="*{promoCode}">
                     </div>
                     <div class="form-group">
                         <label>Tên khuyến mãi <span class="text-red">*</span></label>
-                        <input type="text" name="description" placeholder="VD: Giảm giá chào mừng" required>
+                        <input type="text" name="description" placeholder="VD: Giảm giá chào mừng" required th:field="*{description}">
                     </div>
                 </div>
 
-                <div class="form-group full-width">
-                    <label>Mô tả chi tiết</label>
-                    <textarea name="detailedDescription" placeholder="Mô tả chi tiết về khuyến mãi"></textarea>
-                </div>
+<!--                <div class="form-group full-width">-->
+<!--                    <label>Mô tả chi tiết</label>-->
+<!--                    <textarea name="detailedDescription" th:field="*{detailedDescription}" placeholder="Mô tả chi tiết về khuyến mãi"></textarea>-->
+<!--                </div>-->
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Loại khuyến mãi</label>
-                        <select name="discountType">
+                        <select name="discountType" th:field="*{discountType}">
                             <option value="percent">Giảm theo phần trăm (%)</option>
                             <option value="amount">Giảm theo số tiền (VNĐ)</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Giá trị</label>
-                        <input type="number" step="0.01" name="discountValue" placeholder="VD: 10" required>
+                        <input type="number" step="0.01" th:field="*{discountValue}" name="discountValue" placeholder="VD: 10" required  min="0">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Đơn hàng tối thiểu (VNĐ)</label>
-                        <input type="number" step="0.01" name="minBookingAmount" placeholder="VD: 100000">
+                        <input type="number" step="0.01" name="minBookingAmount" placeholder="VD: 100000" th:field="*{minBookingAmount}"  min="0">
                     </div>
                     <div class="form-group">
                         <label>Giới hạn số lần sử dụng</label>
                         <input type="number" name="usageLimit"
-                               th:value="${promotion.usageLimit}"
+                               th:field="*{usageLimit}"
                                min="0"
                                required>
                     </div>
@@ -73,11 +73,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Ngày bắt đầu <span class="text-red">*</span></label>
-                        <input type="datetime-local" name="startDate" th:value="${promotion.startDate}" required>
+                        <input type="datetime-local" name="startDate" th:field="*{startDate}" required>
                     </div>
                     <div class="form-group">
                         <label>Ngày kết thúc <span class="text-red">*</span></label>
-                        <input type="datetime-local" name="endDate" th:value="${promotion.endDate}" required>
+                        <input type="datetime-local" name="endDate" th:field="*{endDate}" required>
                     </div>
                 </div>
 
