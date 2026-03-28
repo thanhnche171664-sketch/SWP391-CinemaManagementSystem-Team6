@@ -1,26 +1,190 @@
 // Register Form Handler
 document.addEventListener('DOMContentLoaded', function() {
     const registerForm = document.getElementById('registerForm');
+    const fullNameInput = document.getElementById('fullName');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
 
-    // Form Submit Handler
-    registerForm.addEventListener('submit', function(e) {
-        // Validate passwords match
-        if (passwordInput.value !== confirmPasswordInput.value) {
-            e.preventDefault();
-            showModal('Error', 'Passwords do not match!', 'error');
-            confirmPasswordInput.focus();
-            return false;
+    // InsertAfter helper for Element
+    if (!Element.prototype.insertAfter) {
+        Element.prototype.insertAfter = function(newNode, referenceNode) {
+            this.insertBefore(newNode, referenceNode.nextSibling);
+        };
+    }
+
+    // Clear previous error states on input
+    [fullNameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput].forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', function() {
+            clearFieldError(this);
+        });
+    });
+
+    // Helper: set error on a field
+    function setFieldError(input, message) {
+        clearFieldError(input);
+        const wrapper = input.closest('.input-wrapper') || input.parentElement;
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'field-error';
+        errorSpan.textContent = message;
+        wrapper.insertAfter(errorSpan, input.nextSibling);
+        input.style.borderColor = 'var(--error-color)';
+    }
+
+    // Helper: clear error on a field
+    function clearFieldError(input) {
+        input.style.borderColor = '';
+        const wrapper = input.closest('.input-wrapper') || input.parentElement;
+        const existing = wrapper.querySelector('.field-error');
+        if (existing) existing.remove();
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Validate Vietnamese phone number: (+84 or 0) + 9 digits
+    function isValidPhone(phone) {
+        if (!phone) return true; // optional field
+        const re = /^(\+84|0)[0-9]{9}$/;
+        return re.test(phone);
+    }
+
+    // Validate a single field
+    function validateField(input) {
+        const value = input.value.trim();
+
+        if (input.id === 'fullName') {
+            if (!value) {
+                setFieldError(input, 'Full name is required');
+                return false;
+            }
+            if (value.length < 2) {
+                setFieldError(input, 'Full name must be at least 2 characters');
+                return false;
+            }
+            if (value.length > 100) {
+                setFieldError(input, 'Full name must not exceed 100 characters');
+                return false;
+            }
+            clearFieldError(input);
+            return true;
+        }
+
+        if (input.id === 'email') {
+            if (!value) {
+                setFieldError(input, 'Email is required');
+                return false;
+            }
+            if (!isValidEmail(value)) {
+                setFieldError(input, 'Invalid email format');
+                return false;
+            }
+            clearFieldError(input);
+            return true;
+        }
+
+        if (input.id === 'phone') {
+            if (value && !isValidPhone(value)) {
+                setFieldError(input, 'Invalid phone number (e.g. 0912345678 or +84912345678)');
+                return false;
+            }
+            clearFieldError(input);
+            return true;
+        }
+
+        if (input.id === 'password') {
+            if (!value) {
+                setFieldError(input, 'Password is required');
+                return false;
+            }
+            if (value.length < 6) {
+                setFieldError(input, 'Password must be at least 6 characters');
+                return false;
+            }
+            if (value.length > 100) {
+                setFieldError(input, 'Password must not exceed 100 characters');
+                return false;
+            }
+            // Real-time check against confirm password
+            if (confirmPasswordInput.value && value !== confirmPasswordInput.value) {
+                confirmPasswordInput.style.borderColor = 'var(--error-color)';
+            } else {
+                clearFieldError(confirmPasswordInput);
+            }
+            clearFieldError(input);
+            return true;
+        }
+
+        if (input.id === 'confirmPassword') {
+            if (!value) {
+                setFieldError(input, 'Confirm password is required');
+                return false;
+            }
+            if (value !== passwordInput.value) {
+                setFieldError(input, 'Passwords do not match');
+                return false;
+            }
+            clearFieldError(input);
+            return true;
+        }
+
+        return true;
+    }
+
+    // Blur validations
+    emailInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (!value) return;
+        if (!isValidEmail(value)) {
+            this.style.borderColor = 'var(--error-color)';
+        } else {
+            clearFieldError(this);
         }
     });
 
-    // Real-time password match validation
+    phoneInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (value && !isValidPhone(value)) {
+            this.style.borderColor = 'var(--error-color)';
+        } else {
+            clearFieldError(this);
+        }
+    });
+
+    // Real-time password match check
     confirmPasswordInput.addEventListener('input', function() {
         if (this.value && passwordInput.value !== this.value) {
             this.style.borderColor = 'var(--error-color)';
         } else {
-            this.style.borderColor = 'var(--border-color)';
+            clearFieldError(this);
+        }
+    });
+
+    // Form Submit Handler
+    registerForm.addEventListener('submit', function(e) {
+        let valid = true;
+
+        if (!validateField(fullNameInput)) valid = false;
+        if (!validateField(emailInput)) valid = false;
+        if (!validateField(phoneInput)) valid = false;
+        if (!validateField(passwordInput)) valid = false;
+        if (!validateField(confirmPasswordInput)) valid = false;
+
+        if (!valid) {
+            e.preventDefault();
+            const firstError = registerForm.querySelector('.field-error');
+            if (firstError) {
+                const errorInput = firstError.previousElementSibling;
+                if (errorInput) {
+                    errorInput.focus();
+                }
+            }
+            return;
         }
     });
 
@@ -41,7 +205,7 @@ function togglePassword(inputId) {
     const passwordInput = document.getElementById(inputId);
     const toggleButton = passwordInput.parentElement.querySelector('.toggle-password');
     const eyeIcon = toggleButton.querySelector('.eye-icon');
-    
+
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
         eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
@@ -64,6 +228,13 @@ style.textContent = `
             transform: translateY(-10px);
         }
     }
+    .field-error {
+        display: block;
+        color: #f56565;
+        font-size: 12px;
+        margin-top: 4px;
+        padding-left: 2px;
+    }
 `;
 document.head.appendChild(style);
 
@@ -74,13 +245,13 @@ function showModal(title, message, type = 'info') {
     const modalMessage = document.getElementById('modalMessage');
     const modalIcon = document.getElementById('modalIcon');
     const modalContent = modal.querySelector('.modal-content');
-    
+
     modalTitle.textContent = title;
     modalMessage.textContent = message;
-    
+
     // Reset classes
     modalContent.classList.remove('modal-success', 'modal-error', 'modal-warning');
-    
+
     // Set icon and color based on type
     if (type === 'error') {
         modalContent.classList.add('modal-error');
@@ -94,7 +265,7 @@ function showModal(title, message, type = 'info') {
     } else {
         modalIcon.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00A9FF" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="0.5" fill="#00A9FF"/></svg>';
     }
-    
+
     modal.style.display = 'flex';
     setTimeout(() => {
         modal.classList.add('show');

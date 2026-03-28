@@ -4,6 +4,7 @@ import com.swp391.team6.cinema.dto.LoginRequest;
 import com.swp391.team6.cinema.entity.User;
 import com.swp391.team6.cinema.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,10 +53,18 @@ public class AuthController {
      * Xử lý đăng nhập
      */
     @PostMapping("/login")
-    public String login(@ModelAttribute LoginRequest loginRequest,
+    public String login(@Valid @ModelAttribute LoginRequest loginRequest,
+                        BindingResult bindingResult,
                         @RequestParam(required = false) String redirect,
                         HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                        RedirectAttributes redirectAttributes,
+                        Model model) {
+
+        // Server-side validation errors
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("org.springframework.validation.BindingResult.loginRequest", bindingResult);
+            return "auth/login";
+        }
 
         Map<String, Object> result = userService.authenticateUser(
                 loginRequest.getEmail(),
