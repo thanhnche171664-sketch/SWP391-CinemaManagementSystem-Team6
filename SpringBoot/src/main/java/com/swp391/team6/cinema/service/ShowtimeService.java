@@ -111,6 +111,10 @@ public class ShowtimeService {
         Movie movie = movieService.getById(movieId);
         Room room = roomService.getById(roomId);
 
+        if (movie.getReleaseDate() != null && !time.toLocalDate().isAfter(movie.getReleaseDate())) {
+            throw new RuntimeException("Ngày chiếu phải lớn hơn ngày phát hành của phim.");
+        }
+
         LocalDateTime endTime = time.plusMinutes(movie.getDuration());
 
         if (movie.getStatus() != Movie.MovieStatus.now_showing) {

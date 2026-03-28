@@ -101,6 +101,7 @@ public class ManagerShowtimeController {
         model.addAttribute("selectedBranchId", user.getBranchId());
         model.addAttribute("showtimeBasePath", "/manager/showtimes");
         model.addAttribute("roomsBasePath", "/manager/rooms/by-branch");
+        model.addAttribute("moviesBasePath", "/manager/showtimes/movies/by-branch");
         model.addAttribute("isManager", true);
 
         return "showtime-create";

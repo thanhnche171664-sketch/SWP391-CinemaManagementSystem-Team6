@@ -93,6 +93,10 @@
     const branchSelect = document.getElementById("branchSelect");
     const roomSelect = document.getElementById("roomSelect");
     const movieSelect = document.getElementById("movieSelect");
+    const dateInput = document.getElementById("date");
+    const timeInput = document.getElementById("time");
+    const form = document.querySelector("form.showtime-form");
+    const movieReleaseDates = new Map();
 
     const roomsUrl = /*[[${roomsBasePath}]]*/ '/admin/rooms/by-branch';
     const moviesUrl = /*[[${moviesBasePath}]]*/ '/admin/movies/by-branch';
@@ -147,10 +151,47 @@
                     const option = document.createElement("option");
                     option.value = movie.movieId;
                     option.textContent = movie.title;
+                    option.dataset.releaseDate = movie.releaseDate || "";
                     movieSelect.appendChild(option);
+                    movieReleaseDates.set(String(movie.movieId), movie.releaseDate || "");
                 });
+                applyDateMinConstraint();
             })
             .catch(err => console.error("Lỗi load movie:", err));
+    }
+
+    function toIsoDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    function addDays(isoDate, days) {
+        const dt = new Date(`${isoDate}T00:00:00`);
+        dt.setDate(dt.getDate() + days);
+        return toIsoDate(dt);
+    }
+
+    function getMinDateByMovie() {
+        const selectedMovieId = movieSelect.value;
+        const releaseDate = movieReleaseDates.get(String(selectedMovieId));
+        const today = toIsoDate(new Date());
+
+        if (!releaseDate) {
+            return today;
+        }
+
+        const nextDayAfterRelease = addDays(releaseDate, 1);
+        return nextDayAfterRelease > today ? nextDayAfterRelease : today;
+    }
+
+    function applyDateMinConstraint() {
+        const minDate = getMinDateByMovie();
+        dateInput.min = minDate;
+        if (dateInput.value && dateInput.value < minDate) {
+            dateInput.value = "";
+        }
     }
 
     // ===== EVENT CHANGE BRANCH =====
@@ -159,6 +200,9 @@
             const branchId = this.value;
             loadRooms(branchId);
             loadMovies(branchId);
+            movieReleaseDates.clear();
+            dateInput.value = "";
+            applyDateMinConstraint();
         });
 
         // load khi page load (manager auto)
@@ -168,13 +212,24 @@
         }
     }
 
+    movieSelect.addEventListener("change", applyDateMinConstraint);
+    applyDateMinConstraint();
+
     // ===== COMBINE DATE + TIME =====
-    document.querySelector("form").addEventListener("submit", function (event) {
-        const date = document.getElementById("date").value;
-        const time = document.getElementById("time").value;
+    form.addEventListener("submit", function (event) {
+        const date = dateInput.value;
+        const time = timeInput.value;
 
         if (!date || !time) {
             alert("Vui lòng chọn ngày và giờ");
+            event.preventDefault();
+            return;
+        }
+
+        const selectedMovieId = movieSelect.value;
+        const releaseDate = movieReleaseDates.get(String(selectedMovieId));
+        if (releaseDate && date <= releaseDate) {
+            alert("Ngày chiếu phải lớn hơn ngày phát hành của phim.");
             event.preventDefault();
             return;
         }
