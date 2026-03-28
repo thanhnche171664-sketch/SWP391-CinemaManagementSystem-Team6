@@ -32,24 +32,24 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Mã code</label>
+                        <label>Mã code <span class="text-red">*</span></label>
                         <input type="text" name="promoCode" class="input-field" th:value="${promotion.promoCode}" readonly>
                     </div>
 
                     <div class="form-group">
-                        <label>Tên khuyến mãi</label>
+                        <label>Tên khuyến mãi <span class="text-red">*</span></label>
                         <input type="text" name="description" class="input-field" th:value="${promotion.description}" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Ngày bắt đầu</label>
+                        <label>Ngày bắt đầu <span class="text-red">*</span></label>
                         <input type="datetime-local" name="startDate" class="input-field"
                                th:value="${promotion.startDate != null ? #temporals.format(promotion.startDate, 'yyyy-MM-dd''T''HH:mm') : ''}" required>
                     </div>
                     <div class="form-group">
-                        <label>Ngày kết thúc</label>
+                        <label>Ngày kết thúc <span class="text-red">*</span></label>
                         <input type="datetime-local" name="endDate" class="input-field"
                                th:value="${promotion.endDate != null ? #temporals.format(promotion.endDate, 'yyyy-MM-dd''T''HH:mm') : ''}" required>
                     </div>
