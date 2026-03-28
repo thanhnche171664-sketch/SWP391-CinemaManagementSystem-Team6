@@ -1,6 +1,8 @@
 package com.swp391.team6.cinema.controller;
 
+import com.swp391.team6.cinema.dto.MovieDTO;
 import com.swp391.team6.cinema.entity.CinemaBranch;
+import com.swp391.team6.cinema.entity.Movie;
 import com.swp391.team6.cinema.entity.Room;
 import com.swp391.team6.cinema.entity.Showtime;
 import com.swp391.team6.cinema.entity.User;
@@ -26,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -79,6 +82,7 @@ public class ManagerShowtimeController {
         model.addAttribute("selectedBranchId", user.getBranchId());
         model.addAttribute("showtimeBasePath", "/manager/showtimes");
         model.addAttribute("roomsBasePath", "/manager/rooms/by-branch");
+        model.addAttribute("moviesBasePath", "/manager/showtimes/movies/by-branch");
         model.addAttribute("isManager", true);
 
         return "showtime-list";
@@ -113,6 +117,27 @@ public class ManagerShowtimeController {
             return List.of();
         }
         return roomService.getRoomsByBranch(branchId);
+    }
+
+    @GetMapping("/movies/by-branch")
+    @ResponseBody
+    public List<MovieDTO> getMoviesByBranch(@RequestParam Long branchId, HttpSession session) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null || user.getRole() != User.UserRole.MANAGER || user.getBranchId() == null) {
+            return List.of();
+        }
+        if (!user.getBranchId().equals(branchId)) {
+            return List.of();
+        }
+
+        List<MovieDTO> branchMovies = movieService.getMoviesByBranchId(branchId);
+        if (!branchMovies.isEmpty()) {
+            return branchMovies;
+        }
+        return movieService.getAllMovies(false).stream()
+                .filter(m -> m.getStatus() == Movie.MovieStatus.now_showing)
+                .sorted(Comparator.comparing(MovieDTO::getTitle, String.CASE_INSENSITIVE_ORDER))
+                .toList();
     }
 
     @PostMapping("/create")
@@ -166,6 +191,7 @@ public class ManagerShowtimeController {
         model.addAttribute("selectedBranchId", user.getBranchId());
         model.addAttribute("showtimeBasePath", "/manager/showtimes");
         model.addAttribute("roomsBasePath", "/manager/rooms/by-branch");
+        model.addAttribute("moviesBasePath", "/manager/showtimes/movies/by-branch");
         model.addAttribute("isManager", true);
 
         return "showtime-edit";

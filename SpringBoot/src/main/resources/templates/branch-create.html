@@ -15,50 +15,62 @@
 
         <header class="header">
             <div>
-                <a th:href="${branchBasePath}" class="btn-back" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: #86efac; text-decoration: none; font-size: 14px;">← Quay lại</a>
+                <a th:href="${branchBasePath}" class="btn-back">← Quay lại</a>
                 <h1>Thêm rạp chiếu mới</h1>
                 <p>Tạo mới rạp chiếu phim trong hệ thống</p>
             </div>
         </header>
 
-        <div class="form-wrapper">
+        <div th:if="${error}" class="alert alert-error">
+            <span th:text="${error}"></span>
+        </div>
+        <div th:if="${success}" class="alert alert-success">
+            <span th:text="${success}"></span>
+        </div>
 
+        <div class="edit-branch-card">
             <form th:action="${branchBasePath}"
                   th:object="${branch}"
                   method="post"
-                  class="branch-card form-card">
+                  class="edit-branch-form">
 
                 <div class="form-group">
-                    <label>Tên rạp</label>
+                    <label for="branchName">Tên rạp</label>
                     <input type="text"
+                           id="branchName"
                            th:field="*{branchName}"
                            placeholder="VD: CGV Vincom Quận 1"
+                           minlength="3"
+                           maxlength="100"
                            required>
                 </div>
 
                 <div class="form-group">
-                    <label>Thành phố</label>
+                    <label for="city">Thành phố</label>
                     <input type="text"
+                           id="city"
                            th:field="*{city}"
                            placeholder="VD: Hồ Chí Minh"
+                           maxlength="100"
                            required>
                 </div>
 
-                <div class="form-group">
-                    <label>Địa chỉ</label>
+                <div class="form-group full">
+                    <label for="address">Địa chỉ</label>
                     <input type="text"
+                           id="address"
                            th:field="*{address}"
                            placeholder="VD: 72 Lê Thánh Tôn, Quận 1"
+                           maxlength="255"
                            required>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-add"> Lưu rạp</button>
+                    <button type="submit" class="btn-add">Lưu rạp</button>
                     <a th:href="${branchBasePath}" class="btn-cancel">Hủy</a>
                 </div>
 
             </form>
-
         </div>
 
     </main>

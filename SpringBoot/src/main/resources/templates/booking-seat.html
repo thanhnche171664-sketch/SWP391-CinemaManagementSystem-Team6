@@ -26,22 +26,35 @@
             </div>
             <h2 class="booking-seat-title" th:text="${showtime.movie.title}">Movie Title</h2>
             <p class="booking-seat-subtitle mb-0">Chọn vị trí ngồi phù hợp và tiếp tục thanh toán.</p>
+            <div class="booking-seat-type-prices">
+                <div class="price-chip normal">
+                    <span class="chip-name">Thường</span>
+                    <span class="chip-price" id="legendNormalPrice">--</span>
+                </div>
+                <div class="price-chip vip">
+                    <span class="chip-name">VIP</span>
+                    <span class="chip-price" id="legendVipPrice">--</span>
+                </div>
+                <div class="price-chip couple">
+                    <span class="chip-name">Sweetbox</span>
+                    <span class="chip-price" id="legendCouplePrice">--</span>
+                </div>
+            </div>
             <div class="booking-seat-meta">
                 <div class="booking-seat-meta-item">
-                    <div class="booking-seat-meta-label">Ngày giờ chiếu</div>
-                    <div class="booking-seat-meta-value" th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')}">19/03/2026 14:30</div>
-                </div>
-                <div class="booking-seat-meta-item">
-                    <div class="booking-seat-meta-label">Rạp chiếu</div>
+                    <div class="booking-seat-meta-label">Rạp chiếu:</div>
                     <div class="booking-seat-meta-value" th:text="${showtime.room.branch.branchName}">CGV Vincom Center</div>
                 </div>
                 <div class="booking-seat-meta-item">
-                    <div class="booking-seat-meta-label">Phòng chiếu</div>
-                    <div class="booking-seat-meta-value" th:text="${showtime.room.roomName}">Phòng 1</div>
+                    <div class="booking-seat-meta-label">Suất chiếu:</div>
+                    <div class="booking-seat-meta-value"
+                         th:text="${#temporals.format(showtime.startTime, 'HH:mm') + ' ~ ' + #temporals.format(showtime.endTime, 'HH:mm') + ' | ' + #temporals.format(showtime.startTime, 'dd/MM/yyyy')}">
+                        22:30 ~ 00:46 | 20/09/2025
+                    </div>
                 </div>
                 <div class="booking-seat-meta-item">
-                    <div class="booking-seat-meta-label">Suất chiếu</div>
-                    <div class="booking-seat-meta-value" th:text="${showtime.status}">OPEN</div>
+                    <div class="booking-seat-meta-label">Phòng chiếu:</div>
+                    <div class="booking-seat-meta-value" th:text="${showtime.room.roomName}">Phòng 1</div>
                 </div>
             </div>
         </div>
@@ -56,11 +69,10 @@
                         <th:block th:each="seat : ${seatsByRow[__${row}__]}">
                             <label class="seat-option"
                                    th:classappend="${(occupiedIds.contains(seat.seatId) ? ' occupied' : ' available') + ' seat-' + (seat.seatType != null ? #strings.toLowerCase(seat.seatType.name()) : 'normal')}"
-                                   th:attr="data-price=${seatPrices != null and seatPrices[seat.seatId] != null ? seatPrices[seat.seatId].intValue() : 0},data-seat-type=${seat.seatType},title=${seat.seatRow + seat.seatNumber}">
+                                   th:attr="data-price=${seatPrices != null and seatPrices[seat.seatId] != null ? seatPrices[seat.seatId].intValue() : 0},data-seat-type=${seat.seatType},data-seat-label=${seat.seatRow + seat.seatNumber},title=${seat.seatRow + seat.seatNumber}">
                                 <input type="checkbox" name="seatIds" th:value="${seat.seatId}"
                                        th:disabled="${occupiedIds.contains(seat.seatId)}">
-                                <span class="seat-icon" aria-hidden="true"></span>
-                                <span class="seat-number visually-hidden" th:text="${seat.seatRow + seat.seatNumber}">A1</span>
+                                <span class="seat-number-text" th:text="${seat.seatRow + seat.seatNumber}">A1</span>
                             </label>
                         </th:block>
                     </div>
@@ -79,23 +91,9 @@
                         <span>Ghế đôi</span>
                     </div>
                     <div class="legend-item">
-                        <span class="legend-box selected"></span>
-                        <span>Đang chọn</span>
-                    </div>
-                    <div class="legend-item">
                         <span class="legend-box occupied"></span>
                         <span>Đã bán</span>
                     </div>
-                    <div class="legend-item">
-                        <span class="legend-box pending-seat"></span>
-                        <span>Đang chờ thanh toán</span>
-                    </div>
-                </div>
-
-                <!-- Seat status notification -->
-                <div id="seatStatusNotice" class="seat-status-notice" style="display:none;">
-                    <i class="bi bi-info-circle-fill me-1"></i>
-                    <span id="seatStatusText"></span>
                 </div>
             </div>
 
@@ -179,8 +177,6 @@
     const clearPromoBtn = document.getElementById('clearPromoBtn');
     const submitBtn = document.getElementById('submitBtn');
     const checkboxes = form.querySelectorAll('input[name="seatIds"]');
-    const seatStatusNotice = document.getElementById('seatStatusNotice');
-    const seatStatusText = document.getElementById('seatStatusText');
 
     const seatsData = /*[[${seats}]]*/ [];
 
@@ -211,6 +207,31 @@
         promoMessage.textContent = message || '';
     }
 
+    function initSeatTypePrices() {
+        const normalEl = document.getElementById('legendNormalPrice');
+        const vipEl = document.getElementById('legendVipPrice');
+        const coupleEl = document.getElementById('legendCouplePrice');
+        if (!normalEl || !vipEl || !coupleEl) return;
+
+        let normalPrice = null;
+        let vipPrice = null;
+        let couplePrice = null;
+
+        checkboxes.forEach(function(cb) {
+            const seat = cb.closest('.seat-option');
+            if (!seat) return;
+            const seatType = (seat.getAttribute('data-seat-type') || '').toLowerCase();
+            const price = parseInt(seat.getAttribute('data-price') || '0', 10);
+            if (seatType === 'normal' && normalPrice === null) normalPrice = price;
+            if (seatType === 'vip' && vipPrice === null) vipPrice = price;
+            if (seatType === 'couple' && couplePrice === null) couplePrice = price;
+        });
+
+        normalEl.textContent = (normalPrice || 0).toLocaleString('vi-VN');
+        vipEl.textContent = (vipPrice || 0).toLocaleString('vi-VN');
+        coupleEl.textContent = (couplePrice || 0).toLocaleString('vi-VN');
+    }
+
     function updatePriceDisplay(subtotal, discount) {
         const safeSubtotal = Number(subtotal || 0);
         const safeDiscount = Number(discount || 0);
@@ -230,17 +251,6 @@
             }
         }
         return 'Ghế ' + seatId;
-    }
-
-    function updateNotice(pendingSeatIds) {
-        if (!seatStatusNotice || !seatStatusText) return;
-        if (pendingSeatIds.length === 0) {
-            seatStatusNotice.style.display = 'none';
-            return;
-        }
-        var labels = pendingSeatIds.map(function(id) { return getSeatLabel(id); }).join(', ');
-        seatStatusText.textContent = 'Ghế ' + labels + ' đang trong trạng thái chờ thanh toán. Ghế sẽ được giải phóng nếu hết thời gian.';
-        seatStatusNotice.style.display = 'flex';
     }
 
     function applySeatStates(paidSet, pendingSet) {
@@ -386,7 +396,6 @@
             });
 
             applySeatStates(paidSet, pendingSet);
-            updateNotice(raw.pending || []);
         } catch (e) {
         }
     }
@@ -440,6 +449,7 @@
     });
 
     refreshInterval = setInterval(pollOccupiedSeats, POLL_INTERVAL);
+    initSeatTypePrices();
     updateSelectedUI();
 })();
 </script>

@@ -1871,6 +1871,218 @@ body.change-password-page {
     }
 }
 
+/* Booking seat UI refresh (customer) */
+.booking-seat-page .booking-seat-shell {
+    background: #fff;
+    border: 1px solid #eceef2;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(18, 38, 63, 0.06);
+}
+
+.booking-seat-page .booking-seat-hero {
+    background: #fff;
+    border: none;
+    padding: 0 0 12px;
+    margin-bottom: 12px;
+}
+
+.booking-seat-page .booking-seat-title {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.booking-seat-page .booking-seat-subtitle {
+    display: none;
+}
+
+.booking-seat-page .booking-seat-tag {
+    display: none;
+}
+
+.booking-seat-page .booking-seat-type-prices {
+    background: #f7f9fc;
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin: 8px 0 12px;
+}
+
+.booking-seat-page .booking-seat-type-prices .price-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.booking-seat-page .booking-seat-type-prices .price-chip::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.booking-seat-page .booking-seat-type-prices .price-chip.normal::before { background: #22d3a7; }
+.booking-seat-page .booking-seat-type-prices .price-chip.vip::before { background: #fbbf24; }
+.booking-seat-page .booking-seat-type-prices .price-chip.couple::before { background: #f472b6; }
+
+.booking-seat-page .booking-seat-type-prices .chip-price {
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.booking-seat-page .booking-seat-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 20px;
+    margin-top: 6px;
+}
+
+.booking-seat-page .booking-seat-meta-item {
+    border: none;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    display: flex;
+    gap: 6px;
+}
+
+.booking-seat-page .booking-seat-meta-label {
+    text-transform: none;
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.booking-seat-page .booking-seat-meta-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.booking-seat-page .booking-seat-stage {
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8px 0 12px;
+    margin-bottom: 10px;
+}
+
+.booking-seat-page .booking-seat-screen {
+    width: 72%;
+    margin: 2px auto 16px;
+    background: linear-gradient(180deg, #5a5a5a 0%, #2f2f2f 100%);
+    color: transparent;
+    border-radius: 50% / 100% 100% 0 0;
+    height: 18px;
+    padding: 0;
+    box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
+}
+
+.booking-seat-page .seat-map {
+    min-width: 650px;
+    gap: 7px;
+}
+
+.booking-seat-page .seat-row {
+    gap: 6px;
+}
+
+.booking-seat-page .seat-row .row-label {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.booking-seat-page .seat-option {
+    width: 34px;
+    height: 26px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 900;
+    background: #22d3a7;
+}
+
+.booking-seat-page .seat-option .seat-number-text {
+    line-height: 1;
+    color: inherit;
+    text-shadow: none;
+    letter-spacing: 0.1px;
+}
+
+.booking-seat-page .seat-option.seat-normal {
+    background: #22d3a7;
+    border-color: #10b981;
+    color: #ffffff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.booking-seat-page .seat-option.seat-vip {
+    background: #fbbf24;
+    border-color: #f59e0b;
+    color: #ffffff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.booking-seat-page .seat-option.seat-couple {
+    width: 42px;
+    background: #f472b6;
+    border-color: #ec4899;
+    font-size: 9px;
+    color: #ffffff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+.booking-seat-page .seat-option.selected {
+    filter: brightness(0.8);
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.18);
+    border-color: rgba(17, 24, 39, 0.35);
+}
+
+.booking-seat-page .seat-option.occupied,
+.booking-seat-page .seat-option.pending-seat {
+    background: #eef2f7;
+    border-color: #e2e8f0;
+    color: #64748b;
+    opacity: 1;
+}
+
+.booking-seat-page .booking-seat-legend {
+    justify-content: flex-start;
+    gap: 16px;
+    margin-top: 10px;
+    padding-left: 6px;
+}
+
+.booking-seat-page .booking-seat-legend .legend-item {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.booking-seat-page .booking-seat-legend .legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 6px;
+}
+
+.booking-seat-page .booking-seat-legend .legend-box.seat-normal { background: #22d3a7; border-color: #10b981; }
+.booking-seat-page .booking-seat-legend .legend-box.seat-vip { background: #fbbf24; border-color: #f59e0b; box-shadow: none; }
+.booking-seat-page .booking-seat-legend .legend-box.seat-couple { background: #f472b6; border-color: #ec4899; box-shadow: none; }
+.booking-seat-page .booking-seat-legend .legend-box.occupied { background: #eef2f7; border-color: #e2e8f0; }
+
+.booking-seat-page .booking-seat-summary {
+    margin-top: 14px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+}
+
 .history-shell,
 .detail-shell {
     background: #fff;

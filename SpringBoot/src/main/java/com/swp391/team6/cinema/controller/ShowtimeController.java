@@ -1,5 +1,6 @@
 package com.swp391.team6.cinema.controller;
 
+import com.swp391.team6.cinema.dto.MovieDTO;
 import com.swp391.team6.cinema.entity.*;
 import com.swp391.team6.cinema.repository.BranchMovieRepository;
 import com.swp391.team6.cinema.repository.CinemaBranchRepository;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +100,7 @@ public class ShowtimeController {
         model.addAttribute("rooms", new ArrayList<>());
         model.addAttribute("showtimeBasePath", "/admin/showtimes");
         model.addAttribute("roomsBasePath", "/admin/rooms/by-branch");
+        model.addAttribute("moviesBasePath", "/admin/movies/by-branch");
         model.addAttribute("isManager", false);
 
         return "showtime-create";
@@ -115,8 +118,8 @@ public class ShowtimeController {
 
     @GetMapping("/admin/movies/by-branch")
     @ResponseBody
-    public List<Movie> getMoviesByBranch(@RequestParam(required = false) Long branchId,
-                                         HttpSession session) {
+    public List<MovieDTO> getMoviesByBranch(@RequestParam(required = false) Long branchId,
+                                            HttpSession session) {
 
         User user = (User) session.getAttribute("loggedInUser");
 
@@ -129,9 +132,15 @@ public class ShowtimeController {
             return List.of();
         }
 
-        return branchMovieRepository.findByBranch_BranchId(branchId)
-                .stream()
-                .map(BranchMovie::getMovie)
+        List<MovieDTO> branchMovies = movieService.getMoviesByBranchId(branchId);
+        if (!branchMovies.isEmpty()) {
+            return branchMovies;
+        }
+
+        // Backward-compatible fallback for old data chưa gán branch_movies.
+        return movieService.getAllMovies(false).stream()
+                .filter(m -> m.getStatus() == Movie.MovieStatus.now_showing)
+                .sorted(Comparator.comparing(MovieDTO::getTitle, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
 
@@ -221,6 +230,7 @@ public class ShowtimeController {
         model.addAttribute("branches", branchRepository.findAll());
         model.addAttribute("showtimeBasePath", "/admin/showtimes");
         model.addAttribute("roomsBasePath", "/admin/rooms/by-branch");
+        model.addAttribute("moviesBasePath", "/admin/movies/by-branch");
         model.addAttribute("isManager", false);
 
         return "showtime-edit";

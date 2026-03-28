@@ -21,6 +21,8 @@
             </header>
             <div class="cinema">
 
+                <div class="screen-curve" aria-hidden="true"></div>
+
                 <div class="seat-map">
 
                     <div th:each="row : ${#lists.sort(#sets.toSet(seats.![seatRow]))}"
@@ -31,15 +33,12 @@
                         <div th:each="seat : ${seats}"
                              th:if="${seat.seatRow == row}"
                              class="seat"
-                             th:attr="data-id=${seat.seatId},data-type=${seat.seatType}"
+                             th:attr="data-id=${seat.seatId},data-type=${seat.seatType},title=${seat.seatRow + seat.seatNumber}"
                              th:classappend="
                             ${seat.seatType.name() == 'VIP'} ? 'seat-vip' :
                             (${seat.seatType.name() == 'COUPLE'} ? 'seat-couple' : 'seat-normal')
                          ">
-
-                            <img th:src="@{/images/armchair.png}"
-                                 class="seat-icon"
-                                 alt="seat">
+                            <span class="seat-code" th:text="${seat.seatRow + seat.seatNumber}">A1</span>
 
                         </div>
                     </div>
@@ -77,9 +76,9 @@
                 </div>
 
                 <div class="legend">
-                    <div><span class="seat seat-normal"></span> Ghế thường</div>
-                    <div><span class="seat seat-vip"></span> Ghế VIP</div>
-                    <div><span class="seat seat-couple"></span> Ghế đôi</div>
+                    <div><span class="legend-seat-box seat-normal"></span> Ghế thường</div>
+                    <div><span class="legend-seat-box seat-vip"></span> Ghế VIP</div>
+                    <div><span class="legend-seat-box seat-couple"></span> Ghế đôi</div>
                 </div>
 
             </div>
@@ -101,11 +100,11 @@
     }
 
     // click ghế
-    document.querySelectorAll(".seat").forEach(seat => {
+    document.querySelectorAll(".seat-map .seat").forEach(seat => {
         seat.addEventListener("click", function () {
 
             // highlight ghế đang chọn
-            document.querySelectorAll(".seat").forEach(s => s.classList.remove("active"));
+            document.querySelectorAll(".seat-map .seat").forEach(s => s.classList.remove("active"));
             this.classList.add("active");
 
             selectedSeatId = this.dataset.id;
